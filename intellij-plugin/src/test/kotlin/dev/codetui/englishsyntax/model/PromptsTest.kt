@@ -37,9 +37,9 @@ class PromptsTest {
   }
 
   @Test
-  fun `core prompt lists all sixteen closed roles`() {
+  fun `core prompt lists all seventeen closed roles`() {
     val prompt = buildCorePrompt(listOf(sentence("The service works.")))
-    assertTrue(prompt.contains("closed 16-role enum"))
+    assertTrue(prompt.contains("closed 17-role enum"))
     GrammarRole.entries.forEach { role -> assertTrue(prompt.contains(role.name), role.name) }
   }
 
@@ -89,7 +89,7 @@ class PromptsTest {
     )
 
     listOf(
-      "The role field is a closed 16-role enum:",
+      "The role field is a closed 17-role enum:",
       "Coverage rule:",
       "Clause-structure-first rule:",
       "Predicate-scope rule:",

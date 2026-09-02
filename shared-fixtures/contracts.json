@@ -39,6 +39,10 @@
       "label": "同位语"
     },
     {
+      "role": "FRAGMENT_HEAD",
+      "label": "片段主体"
+    },
+    {
       "role": "SUBJECT_CLAUSE",
       "label": "主语从句"
     },

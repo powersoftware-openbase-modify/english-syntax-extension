@@ -132,7 +132,7 @@ describe("model-facing sentence payload", () => {
     const repair = buildRepairPrompt([sentence], [{ path: "sentences[0]", message: "bad" }], {});
 
     for (const rule of [
-      "The role field is a closed 16-role enum:",
+      "The role field is a closed 17-role enum:",
       "Coverage rule:",
       "Clause-structure-first rule:",
       "Predicate-scope rule:",

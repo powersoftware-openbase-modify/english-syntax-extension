@@ -155,6 +155,27 @@ describe("SyntaxLearningBlock", () => {
     expect(root.querySelector(".punctuation .translation")).toBeNull();
   });
 
+  it("renders a fragment head with its structural label", () => {
+    const element = block();
+    document.body.append(element.host);
+
+    element.renderCore(sentence, tokens, {
+      ...analysis,
+      components: [
+        {
+          startToken: 0,
+          endToken: 3,
+          role: GrammarRole.FRAGMENT_HEAD,
+          translation: "学习者阅读书籍",
+        },
+      ],
+    });
+
+    const component = element.host.shadowRoot!.querySelector<HTMLElement>(".component")!;
+    expect(component.querySelector(".role")?.textContent).toBe("片段主体");
+    expect(component.style.getPropertyValue("--syntax-role-color")).toBe("#0284c7");
+  });
+
   it("成分区间尾与句间标点并入对应成分的英文行，不再是独立盒子", () => {
     const element = block();
     element.setExpectedSentenceIds(["sentence-1"]);
