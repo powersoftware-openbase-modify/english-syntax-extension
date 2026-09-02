@@ -346,6 +346,106 @@ describe("core analysis grammar constraints", () => {
   const WHOLE_SENTENCE_MESSAGE =
     "one component must not cover the whole sentence; split it into peer components " +
     "(subject, predicate, object, adverbial, …)";
+  const DUPLICATE_FRAGMENT_HEAD_MESSAGE =
+    "a non-clausal fragment must contain at most one FRAGMENT_HEAD";
+  const MIXED_FRAGMENT_ROLE_MESSAGE =
+    "FRAGMENT_HEAD marks a non-clausal fragment and must not be mixed with clause-level " +
+    "SUBJECT, PREDICATE, OBJECT, PREDICATIVE, COMPLEMENT, or clause roles";
+
+  it("accepts a non-clausal fragment with one FRAGMENT_HEAD and modifiers", () => {
+    const sentence = sentenceOf(
+      "Portable API support across AI providers for Chat, text-to-image, and Embedding models.",
+    );
+    const components = [
+      {
+        startToken: 0,
+        endToken: 2,
+        role: "FRAGMENT_HEAD",
+        translation: "可移植 API 支持",
+      },
+      { startToken: 3, endToken: 5, role: "ATTRIBUTE", translation: "跨 AI 提供商" },
+      {
+        startToken: 6,
+        endToken: 14,
+        role: "ATTRIBUTE",
+        translation: "面向聊天、文生图和嵌入模型",
+      },
+    ];
+
+    expect(
+      validateCoreBatch(
+        { sentences: [{ sentenceId: sentence.sentenceId, components }] },
+        [sentence],
+        "profile-1",
+      ).ok,
+    ).toBe(true);
+  });
+
+  it("accepts one FRAGMENT_HEAD covering a whole multi-word fragment", () => {
+    const sentence = sentenceOf("Portable API support across providers.");
+
+    expect(
+      validateCoreBatch(
+        {
+          sentences: [
+            {
+              sentenceId: sentence.sentenceId,
+              components: [
+                {
+                  startToken: 0,
+                  endToken: 5,
+                  role: "FRAGMENT_HEAD",
+                  translation: "跨提供商的可移植 API 支持",
+                },
+              ],
+            },
+          ],
+        },
+        [sentence],
+        "profile-1",
+      ).ok,
+    ).toBe(true);
+  });
+
+  it("rejects more than one FRAGMENT_HEAD", () => {
+    const sentence = sentenceOf("Portable API support across providers.");
+
+    expect(
+      grammarErrors(sentence, [
+        { startToken: 0, endToken: 1, role: "FRAGMENT_HEAD", translation: "可移植 API" },
+        { startToken: 2, endToken: 5, role: "FRAGMENT_HEAD", translation: "跨提供商支持" },
+      ]),
+    ).toContainEqual({
+      path: "sentences[0].components",
+      message: DUPLICATE_FRAGMENT_HEAD_MESSAGE,
+    });
+  });
+
+  it.each([
+    "SUBJECT",
+    "PREDICATE",
+    "OBJECT",
+    "PREDICATIVE",
+    "COMPLEMENT",
+    "SUBJECT_CLAUSE",
+    "OBJECT_CLAUSE",
+    "PREDICATIVE_CLAUSE",
+    "ATTRIBUTIVE_CLAUSE",
+    "ADVERBIAL_CLAUSE",
+    "COORDINATE_CLAUSE",
+  ])("rejects FRAGMENT_HEAD mixed with %s", (forbiddenRole) => {
+    const sentence = sentenceOf("Portable support works well.");
+
+    expect(
+      grammarErrors(sentence, [
+        { startToken: 0, endToken: 1, role: "FRAGMENT_HEAD", translation: "可移植支持" },
+        { startToken: 2, endToken: 4, role: forbiddenRole, translation: "运行良好" },
+      ]),
+    ).toContainEqual({
+      path: "sentences[0].components",
+      message: MIXED_FRAGMENT_ROLE_MESSAGE,
+    });
+  });
 
   it("rejects a PREDICATE that starts with a subject pronoun", () => {
     // deepseek-chat 实测输出:整句只有 PREDICATE + 状语从句,主语 "She" 被吞进谓语。
@@ -493,7 +593,12 @@ describe("core analysis grammar constraints", () => {
             {
               sentenceId: sentence.sentenceId,
               components: [
-                { startToken: 0, endToken: 3, role: "SUBJECT", translation: "详细使用说明" },
+                {
+                  startToken: 0,
+                  endToken: 3,
+                  role: "FRAGMENT_HEAD",
+                  translation: "详细使用说明",
+                },
               ],
             },
           ],

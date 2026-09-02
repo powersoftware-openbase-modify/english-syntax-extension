@@ -229,6 +229,68 @@ class AnalysisValidatorTest {
   }
 
   @Test
+  fun `accepts a non clausal fragment with one FRAGMENT_HEAD and modifiers`() {
+    assertAccepted(
+      "Portable API support across AI providers for Chat, text-to-image, and Embedding models.",
+      """
+      {"startToken":0,"endToken":2,"role":"FRAGMENT_HEAD","translation":"可移植 API 支持"},
+      {"startToken":3,"endToken":5,"role":"ATTRIBUTE","translation":"跨 AI 提供商"},
+      {"startToken":6,"endToken":14,"role":"ATTRIBUTE","translation":"面向聊天、文生图和嵌入模型"}
+      """.trimIndent(),
+    )
+  }
+
+  @Test
+  fun `accepts one FRAGMENT_HEAD covering a whole multi word fragment`() {
+    assertAccepted(
+      "Portable API support across providers.",
+      """{"startToken":0,"endToken":5,"role":"FRAGMENT_HEAD","translation":"跨提供商的可移植 API 支持"}""",
+    )
+  }
+
+  @Test
+  fun `rejects more than one FRAGMENT_HEAD`() {
+    assertGrammarError(
+      "Portable API support across providers.",
+      """
+      {"startToken":0,"endToken":1,"role":"FRAGMENT_HEAD","translation":"可移植 API"},
+      {"startToken":2,"endToken":5,"role":"FRAGMENT_HEAD","translation":"跨提供商支持"}
+      """.trimIndent(),
+      "sentences[0].components",
+      "a non-clausal fragment must contain at most one FRAGMENT_HEAD",
+    )
+  }
+
+  @Test
+  fun `rejects FRAGMENT_HEAD mixed with clause level roles`() {
+    val forbiddenRoles = listOf(
+      "SUBJECT",
+      "PREDICATE",
+      "OBJECT",
+      "PREDICATIVE",
+      "COMPLEMENT",
+      "SUBJECT_CLAUSE",
+      "OBJECT_CLAUSE",
+      "PREDICATIVE_CLAUSE",
+      "ATTRIBUTIVE_CLAUSE",
+      "ADVERBIAL_CLAUSE",
+      "COORDINATE_CLAUSE",
+    )
+    forbiddenRoles.forEach { forbiddenRole ->
+      assertGrammarError(
+        "Portable support works well.",
+        """
+        {"startToken":0,"endToken":1,"role":"FRAGMENT_HEAD","translation":"可移植支持"},
+        {"startToken":2,"endToken":4,"role":"$forbiddenRole","translation":"运行良好"}
+        """.trimIndent(),
+        "sentences[0].components",
+        "FRAGMENT_HEAD marks a non-clausal fragment and must not be mixed with clause-level " +
+          "SUBJECT, PREDICATE, OBJECT, PREDICATIVE, COMPLEMENT, or clause roles",
+      )
+    }
+  }
+
+  @Test
   fun `rejects a PREDICATE that starts with a subject pronoun`() {
     // deepseek-chat 实测输出:整句只有 PREDICATE + 状语从句,主语 "She" 被吞进谓语。
     assertGrammarError(
@@ -325,7 +387,7 @@ class AnalysisValidatorTest {
     // 三个实词以下的片段(标题、列表项)本来就没有可拆的同层结构,拆了只是噪音。
     assertAccepted(
       "Detailed usage instructions.",
-      """{"startToken":0,"endToken":3,"role":"SUBJECT","translation":"详细使用说明"}""",
+      """{"startToken":0,"endToken":3,"role":"FRAGMENT_HEAD","translation":"详细使用说明"}""",
     )
   }
 

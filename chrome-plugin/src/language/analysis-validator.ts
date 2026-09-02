@@ -192,6 +192,15 @@ const CLAUSE_ROLES: ReadonlySet<GrammarRole> = new Set([
   GrammarRole.ATTRIBUTIVE_CLAUSE,
   GrammarRole.ADVERBIAL_CLAUSE,
 ]);
+const FRAGMENT_CLAUSE_ROLES: ReadonlySet<GrammarRole> = new Set([
+  GrammarRole.SUBJECT,
+  GrammarRole.PREDICATE,
+  GrammarRole.OBJECT,
+  GrammarRole.PREDICATIVE,
+  GrammarRole.COMPLEMENT,
+  ...CLAUSE_ROLES,
+  GrammarRole.COORDINATE_CLAUSE,
+]);
 
 /**
  * 一个从句至少要有引导词 + 谓语,或主语 + 谓语,所以实词数 1 一定不是从句。
@@ -394,6 +403,7 @@ function collectGrammarErrors(
   const only = components.length === 1 ? components[0] : undefined;
   if (
     only !== undefined &&
+    only.role !== GrammarRole.FRAGMENT_HEAD &&
     lexicalTokenCount >= MIN_SPLITTABLE_LEXICAL_TOKENS &&
     lexicalTexts(tokens, only).length === lexicalTokenCount
   ) {
@@ -416,6 +426,27 @@ function collectGrammarErrors(
       errors,
       `${path}.components`,
       "COORDINATE_CLAUSE is deprecated; analyse compound sentences as peer components (subject, predicate, object, …) with the coordinating conjunction tagged separately as CONJUNCTION",
+    );
+  }
+
+  const fragmentHeads = components.filter(
+    (component) => component.role === GrammarRole.FRAGMENT_HEAD,
+  );
+  if (fragmentHeads.length > 1) {
+    addError(
+      errors,
+      `${path}.components`,
+      "a non-clausal fragment must contain at most one FRAGMENT_HEAD",
+    );
+  }
+  if (
+    fragmentHeads.length > 0 &&
+    components.some((component) => FRAGMENT_CLAUSE_ROLES.has(component.role))
+  ) {
+    addError(
+      errors,
+      `${path}.components`,
+      "FRAGMENT_HEAD marks a non-clausal fragment and must not be mixed with clause-level SUBJECT, PREDICATE, OBJECT, PREDICATIVE, COMPLEMENT, or clause roles",
     );
   }
 }

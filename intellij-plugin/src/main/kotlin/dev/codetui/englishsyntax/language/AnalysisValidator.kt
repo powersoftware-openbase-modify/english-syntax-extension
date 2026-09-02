@@ -153,6 +153,13 @@ private val clauseRoles = setOf(
   GrammarRole.ATTRIBUTIVE_CLAUSE,
   GrammarRole.ADVERBIAL_CLAUSE,
 )
+private val fragmentClauseRoles = setOf(
+  GrammarRole.SUBJECT,
+  GrammarRole.PREDICATE,
+  GrammarRole.OBJECT,
+  GrammarRole.PREDICATIVE,
+  GrammarRole.COMPLEMENT,
+) + clauseRoles + GrammarRole.COORDINATE_CLAUSE
 
 /**
  * 一个从句至少要有引导词 + 谓语，或主语 + 谓语，所以实词数 1 一定不是从句。
@@ -310,6 +317,7 @@ private fun collectGrammarErrors(
   val only = components.singleOrNull()
   if (
     only != null &&
+    only.role != GrammarRole.FRAGMENT_HEAD &&
     lexicalTokenCount >= MIN_SPLITTABLE_LEXICAL_TOKENS &&
     lexicalTexts(tokens, TokenRange(only.startToken, only.endToken)).size == lexicalTokenCount
   ) {
@@ -330,6 +338,21 @@ private fun collectGrammarErrors(
       "$path.components",
       "COORDINATE_CLAUSE is deprecated; analyse compound sentences as peer components (subject, predicate, object, …) " +
         "with the coordinating conjunction tagged separately as CONJUNCTION",
+    )
+  }
+
+  val fragmentHeads = components.filter { it.role == GrammarRole.FRAGMENT_HEAD }
+  if (fragmentHeads.size > 1) {
+    errors += error(
+      "$path.components",
+      "a non-clausal fragment must contain at most one FRAGMENT_HEAD",
+    )
+  }
+  if (fragmentHeads.isNotEmpty() && components.any { it.role in fragmentClauseRoles }) {
+    errors += error(
+      "$path.components",
+      "FRAGMENT_HEAD marks a non-clausal fragment and must not be mixed with clause-level " +
+        "SUBJECT, PREDICATE, OBJECT, PREDICATIVE, COMPLEMENT, or clause roles",
     )
   }
 }
