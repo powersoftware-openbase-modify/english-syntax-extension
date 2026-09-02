@@ -12,7 +12,8 @@
     "系表结构拆开：PREDICATE 只覆盖动词组（系动词，或助动词 + 主要动词），表语单独标 PREDICATIVE（`Be clear` = PREDICATE«Be» + PREDICATIVE«clear»）。被动语态、完成时、进行时里的 be / have 是动词组的一部分，仍留在同一个 PREDICATE 内（`was rebuilt`、`have been told`、`is deflating`）。",
     "作为独立成分的名词短语后面紧跟的介词短语一律单独标 ATTRIBUTE，没有量词或部分结构的例外（`Four` + `of the biggest US technology companies`、`a lot` + `of context`、`No amount` + `of firewalls or patches`）。但介词短语或从句内部的介词短语不再拆，`without looking at any of the code` 保持一个 ADVERBIAL。",
     "非限定动词短语（动名词、不定式、分词）与它管辖的宾语同属一个成分（`avoiding blind adoption`、`building a software application`、`performing near the frontier of what AI can do`），不拆成两个同级宾语，也不让介词悬在成分末尾。",
-    "含 `It's` 这类「主语 + 系动词」缩写的句子不纳入：分词刻意不拆缩写，整个 `It's` 是一个 Token，主语与系动词无法分到两个成分里。`isn't` / `aren't` 这类「系动词 + 否定」是一个词，不受影响。"
+    "含 `It's` 这类「主语 + 系动词」缩写的句子不纳入：分词刻意不拆缩写，整个 `It's` 是一个 Token，主语与系动词无法分到两个成分里。`isn't` / `aren't` 这类「系动词 + 否定」是一个词，不受影响。",
+    "不成句的标题、列表项、名词短语、形容词短语或非限定动词短语恰好一个 FRAGMENT_HEAD；不得虚构 SUBJECT / PREDICATE / OBJECT 强套句型。单一 FRAGMENT_HEAD 可以合法覆盖没有可分离同层修饰语的多词片段。祈使句仍是完整分句，必须以 PREDICATE 起始并按需标出 OBJECT。`Building production-ready AI applications at scale.` 按名词性活动采用扁平核心：活动整体为 FRAGMENT_HEAD，修饰该活动的 `at scale` 为 ATTRIBUTE。"
   ],
   "sentences": [
     {
@@ -2431,6 +2432,96 @@
           "startToken": 16,
           "endToken": 18,
           "role": "ADVERBIAL"
+        }
+      ]
+    },
+    {
+      "id": "fragment-portable-api",
+      "text": "Portable API support across AI providers for Chat, text-to-image, and Embedding models.",
+      "components": [
+        {
+          "startToken": 0,
+          "endToken": 2,
+          "role": "FRAGMENT_HEAD",
+          "translation": "可移植 API 支持"
+        },
+        {
+          "startToken": 3,
+          "endToken": 5,
+          "role": "ATTRIBUTE",
+          "translation": "跨 AI 提供商"
+        },
+        {
+          "startToken": 6,
+          "endToken": 14,
+          "role": "ATTRIBUTE",
+          "translation": "面向聊天、文生图和嵌入模型"
+        }
+      ]
+    },
+    {
+      "id": "fragment-support-apis",
+      "text": "Support for synchronous and streaming APIs.",
+      "components": [
+        {
+          "startToken": 0,
+          "endToken": 0,
+          "role": "FRAGMENT_HEAD",
+          "translation": "支持"
+        },
+        {
+          "startToken": 1,
+          "endToken": 6,
+          "role": "ATTRIBUTE",
+          "translation": "面向同步与流式 API"
+        }
+      ]
+    },
+    {
+      "id": "fragment-compatible-providers",
+      "text": "Compatible with all major model providers.",
+      "components": [
+        {
+          "startToken": 0,
+          "endToken": 6,
+          "role": "FRAGMENT_HEAD",
+          "translation": "兼容所有主流模型提供商"
+        }
+      ]
+    },
+    {
+      "id": "fragment-building-apps",
+      "text": "Building production-ready AI applications at scale.",
+      "components": [
+        {
+          "startToken": 0,
+          "endToken": 3,
+          "role": "FRAGMENT_HEAD",
+          "translation": "构建生产级 AI 应用"
+        },
+        {
+          "startToken": 4,
+          "endToken": 6,
+          "role": "ATTRIBUTE",
+          "translation": "大规模地"
+        }
+      ]
+    },
+    {
+      "id": "fragment-imperative-counterexample",
+      "text": "Install the CLI.",
+      "components": [
+        {
+          "startToken": 0,
+          "endToken": 0,
+          "role": "PREDICATE",
+          "translation": "安装"
+        },
+        {
+          "startToken": 1,
+          "endToken": 3,
+          "role": "OBJECT",
+          "translation": "该命令行工具"
         }
       ]
     }

@@ -30,6 +30,63 @@ describe("core gold annotations", () => {
     expect(new Set(fixture.sentences.map(({ text }) => text)).size).toBe(fixture.sentences.length);
   });
 
+  it("defines fragments as one FRAGMENT_HEAD without fake clause roles and preserves imperatives", () => {
+    const conventions = fixture.conventions.join("\n");
+    expect(conventions).toMatch(/不成句.*恰好一个 FRAGMENT_HEAD/);
+    expect(conventions).toMatch(/不得.*SUBJECT.*PREDICATE.*OBJECT/);
+    expect(conventions).toMatch(/祈使句.*PREDICATE/);
+  });
+
+  it.each([
+    [
+      "fragment-portable-api",
+      [
+        { startToken: 0, endToken: 2, role: GrammarRole.FRAGMENT_HEAD },
+        { startToken: 3, endToken: 5, role: GrammarRole.ATTRIBUTE },
+        { startToken: 6, endToken: 14, role: GrammarRole.ATTRIBUTE },
+      ],
+    ],
+    [
+      "fragment-support-apis",
+      [
+        { startToken: 0, endToken: 0, role: GrammarRole.FRAGMENT_HEAD },
+        { startToken: 1, endToken: 6, role: GrammarRole.ATTRIBUTE },
+      ],
+    ],
+    [
+      "fragment-compatible-providers",
+      [{ startToken: 0, endToken: 6, role: GrammarRole.FRAGMENT_HEAD }],
+    ],
+    [
+      "fragment-building-apps",
+      [
+        { startToken: 0, endToken: 3, role: GrammarRole.FRAGMENT_HEAD },
+        { startToken: 4, endToken: 6, role: GrammarRole.ATTRIBUTE },
+      ],
+    ],
+    [
+      "fragment-imperative-counterexample",
+      [
+        { startToken: 0, endToken: 0, role: GrammarRole.PREDICATE },
+        { startToken: 1, endToken: 3, role: GrammarRole.OBJECT },
+      ],
+    ],
+  ] as const)("keeps the human-reviewed component contract for %s", (id, components) => {
+    expect(
+      fixture.sentences
+        .find((sentence) => sentence.id === id)
+        ?.components.map(({ startToken, endToken, role }) => ({ startToken, endToken, role })),
+    ).toEqual(components);
+  });
+
+  it("keeps the imperative counterexample PREDICATE-led and fragment-free", () => {
+    const imperative = fixture.sentences.find(
+      ({ id }) => id === "fragment-imperative-counterexample",
+    );
+    expect(imperative?.components[0]?.role).toBe(GrammarRole.PREDICATE);
+    expect(imperative?.components.map(({ role }) => role)).not.toContain(GrammarRole.FRAGMENT_HEAD);
+  });
+
   it("uses component token IDs from the production tokenizer", () => {
     for (const sentence of fixture.sentences) {
       const tokens = tokenize(sentence.text);

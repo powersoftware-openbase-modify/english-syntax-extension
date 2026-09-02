@@ -39,6 +39,19 @@ describe("scoreCorePredictions", () => {
     });
   });
 
+  it("scores FRAGMENT_HEAD as a normal labeled span", () => {
+    const gold = [
+      sentence("fragment", [component(0, 2, "FRAGMENT_HEAD"), component(3, 5, "ATTRIBUTE")]),
+    ];
+
+    const report = scoreCorePredictions(gold, JSON.parse(JSON.stringify(gold)));
+
+    expect(report.exactSentence).toEqual({ count: 1, rate: 1 });
+    expect(report.spanExact).toMatchObject({ truePositive: 2, predicted: 2, gold: 2, f1: 1 });
+    expect(report.labeledSpan).toMatchObject({ truePositive: 2, predicted: 2, gold: 2, f1: 1 });
+    expect(report.roleAccuracyOnExactSpans).toEqual({ correct: 2, matched: 2, accuracy: 1 });
+  });
+
   it("does not count reversed components as an exact sentence", () => {
     const gold = [sentence("s1", [component(0, 0, "SUBJECT"), component(1, 1, "PREDICATE")])];
     const predicted = [sentence("s1", [component(1, 1, "PREDICATE"), component(0, 0, "SUBJECT")])];
