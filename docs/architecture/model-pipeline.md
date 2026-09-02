@@ -204,7 +204,7 @@ raw → dropPunctuationOnlyComponents → validateCoreBatch
 - core / repair prompt 的 `SUPPLEMENT_RULE` 区分破折号、冒号后的补充说明或列举与真正并列句：补充跨度使用 `APPOSITIVE` / `INDEPENDENT_ELEMENT`，内部可分离谓语、宾语、状语仍按同层成分输出；名词短语不能连同其关系从句整体标成 `ATTRIBUTIVE_CLAUSE`（`the ones that matter` 中只有 `that matter` 是从句）。
 - `validateCoreBatch` 还把十二条**代码实际可判的语法粒度约束**变成硬门：组件序列相邻且 Token 区间连续的两个 `PREDICATE` 必须合并；成分去掉标点后恰好一个 lexical word、role 不是 `CONJUNCTION` 且命中保守的高把握“必须带宾语”介词白名单时，必须并入其管辖短语（`after/before/down/off/over/since/until/throughout/around/inside/outside` 等常见副词、表语或连词兼类词不收）；`COORDINATE_CLAUSE` 数量恰好为 1 时非法；`CONJUNCTION` 至少含一个 FANBOYS；`PREDICATE` 首个 lexical word 是限定词、主格人称代词或 `that` 时非法；`PREDICATE` 非首位 lexical words 含限定词时非法（`that` 刻意不算，它更常是宾语从句引导词）；`COORDINATE_CLAUSE` 首词是从属连词且整句无 `CONJUNCTION` 成分时非法；单个成分覆盖全部非标点 token 且句子实词数 ≥ 4 时非法（不论 role）；出现 2 个以上 `COORDINATE_CLAUSE` 却既无 `CONJUNCTION` 成分也无 `;` token 时非法；五类从句角色的成分只有 1 个 lexical word 时非法（从句至少是引导词 + 谓语，或主语 + 谓语）；`ATTRIBUTIVE_CLAUSE` 的下一个成分是 `OBJECT` / `PREDICATIVE` / `COMPLEMENT` 时非法（定语从句修饰的名词在从句之前，主句宾语只能在主句谓语之后，紧跟的宾语一定是从句自己的）；成分的最后一个 lexical word 命中「几乎不可能悬垂」的介词表（`of/into/onto/upon/within/among/between/despite/during/toward/towards`）时非法。后四条补的正是「模型给出的坏划分照样显示给用户」的那一段：实测 deepseek-chat 把 `She kept practicing until…` 整句只标成 `PREDICATE` + `ADVERBIAL_CLAUSE`（一个主语都没有），前四条一条都拦不住。最后三条从句硬门补的是另一段：实测把 `that` 单独标成 `ATTRIBUTIVE_CLAUSE`、从句的谓语与宾语平铺到主句层，页面上出现两个同级"谓语"，而这个划分**完全通过**当时的全部硬门。**缺主语本身刻意不判**——祈使句没有主语，`First, install the CLI.` 这类副词开头的祈使句在文档里很常见，按缺主语判会大面积误拒；改判「谓语开头不可能是动词」既airtight 又覆盖这个失败。**介词悬垂表刻意不收 `for`/`with`/`at`/`from`/`to`**——关系从句里 `the tool I work with`、`the place I came from` 让它们合法地出现在成分末尾。grammar 只在结构可信时执行：所有 component 都有可用 range/role/translation、区间句内、有序不重叠、非纯标点；unknown field、translation too long、sentenceId 等非结构错误不阻止同轮 grammar 诊断，两类错误同次报告。TS/Kotlin 逐条、逐文案一致，错误会原样进入 repair prompt。黄金集整份必须通过这套校验（`core-gold-annotations.test.ts`）。
 
-### 8.1 成分粒度的三条边界与并列句平铺(`CORE_PROMPT_VERSION` 8；当前契约为 10)
+### 8.1 成分粒度的四条边界与并列句平铺(`CORE_PROMPT_VERSION` 8；当前契约为 11)
 
 只有"别让谓语吞掉宾语"这类**下界**规则时,指令型文本会被切成词级碎片。同一模型(deepseek-v4-flash,temperature 0,兼容模式)实测:
 
@@ -213,11 +213,12 @@ raw → dropPunctuationOnlyComponents → validateCoreBatch
 | `Help turn ideas into fully formed designs and specs through natural collaborative dialogue.` | 8–9 成分:`Help` / `turn` 两个 `PREDICATE`、`into` 与其宾语拆开、宾语短语误标 `ATTRIBUTE` | 4 成分:`PREDICATE(Help turn)` + `OBJECT(ideas)` + 两个整体介词短语 `ADVERBIAL` |
 | 6 个祈使动词逗号串成的一句                                                                    | 16 成分 / 6 个 `PREDICATE`                                                               | 按单分句内的同层成分平铺，由本地硬门拦截相邻谓语与整句包裹                     |
 
-三条边界:
+四条边界:
 
-1. `CLAUSE_FIRST_RULE`——**先定分句层级**:只有各自带主语、由 FANBOYS 或分号连接的才是并列句；但并列句也必须继续拆成顶层的 subject/predicate/object 等同层成分，只把 FANBOYS 标成 `CONJUNCTION`。`COORDINATE_CLAUSE` 已废弃，prompt 与 validator 都禁止输出。
-2. `PREDICATE_SCOPE_RULE`——`PREDICATE` 只覆盖动词组本身(含 `help/let` 后的原形动词链,`Help turn` 是**一个**谓语);两个 `PREDICATE` 不得相邻。
-3. `PREPOSITIONAL_PHRASE_RULE`——介词与它管辖的一切(含并列宾语)是**一个**成分,成分也不得以介词收尾;动词或介词管辖的名词短语永远不是 `ATTRIBUTE`。**紧跟名词短语的介词短语标 `ATTRIBUTE`,修饰动词或整句的标 `ADVERBIAL`**(`the development` + `of applications` = `OBJECT` + `ATTRIBUTE`),量词与部分结构没有例外;已经嵌在另一个介词短语里的不再拆(`without looking at any of the code` 是**一个** `ADVERBIAL`)。旧文案把 `ATTRIBUTE` 限死成「名词短语内部的修饰语」并只给前置修饰的例子,后置介词短语于是无处可归,模型一律退回 `ADVERBIAL`——这与黄金集 conventions 及手工标注(`an open standard` + `for connecting AI tools…`)矛盾,而 `the development of applications` 正是技术文档最高频的结构。
+1. `COMPLETENESS_FIRST_RULE`——**先判是否成句**:有显式限定谓语或省略主语的祈使句使用既有分句角色；不成句的标题、列表项、名词/形容词/非限定动词短语必须恰有一个 `FRAGMENT_HEAD`，可分离的后置介词、分词或不定式短语标 `ATTRIBUTE`，不得虚构主谓宾强套句型。component 的 `translation` 仍只翻译自身覆盖的局部短语，不新增句级 translation。
+2. `CLAUSE_FIRST_RULE`——**再定分句层级**:只有各自带主语、由 FANBOYS 或分号连接的才是并列句；但并列句也必须继续拆成顶层的 subject/predicate/object 等同层成分，只把 FANBOYS 标成 `CONJUNCTION`。`COORDINATE_CLAUSE` 已废弃，prompt 与 validator 都禁止输出。
+3. `PREDICATE_SCOPE_RULE`——`PREDICATE` 只覆盖动词组本身(含 `help/let` 后的原形动词链,`Help turn` 是**一个**谓语);两个 `PREDICATE` 不得相邻。
+4. `PREPOSITIONAL_PHRASE_RULE`——介词与它管辖的一切(含并列宾语)是**一个**成分,成分也不得以介词收尾;动词或介词管辖的名词短语永远不是 `ATTRIBUTE`。**紧跟名词短语的介词短语标 `ATTRIBUTE`,修饰动词或整句的标 `ADVERBIAL`**(`the development` + `of applications` = `OBJECT` + `ATTRIBUTE`),量词与部分结构没有例外;已经嵌在另一个介词短语里的不再拆(`without looking at any of the code` 是**一个** `ADVERBIAL`)。旧文案把 `ATTRIBUTE` 限死成「名词短语内部的修饰语」并只给前置修饰的例子,后置介词短语于是无处可归,模型一律退回 `ADVERBIAL`——这与黄金集 conventions 及手工标注(`an open standard` + `for connecting AI tools…`)矛盾,而 `the development of applications` 正是技术文档最高频的结构。
 
 **顺序是规则的一部分**:分句规则必须排在 `PEER_COMPONENT_RULE` 之前,`PEER_COMPONENT_RULE` 本身也收窄为"在单个分句之内"。两条平列摆着时实测同一句会在两种切法之间跳(同一 prompt 连发两次得到 7 成分 / 0 谓语与 17 成分 / 2 谓语两种结果)。`prompts.test.ts` / `PromptsTest.kt` 用 `indexOf` 钉住这个顺序。
 
@@ -225,7 +226,7 @@ raw → dropPunctuationOnlyComponents → validateCoreBatch
 
 ### 8.2 Token 坐标变化与版本
 
-`tokenize()` 现在把白名单点号缩写（如 `U.S.` / `Ph.D.`）、小数/千分位/语义版本号、带 scheme 的 URL 与邮箱各作为**一个 Token**。通用姓名 initials 链（如 `J. R. R.`）不会合成一个 Token；它只在 `segmentBlock()` 的分句边界阶段持续向后合并，避免姓名中间误断。这不是显示层细节：core component span 与 detail focus 都以 Token ID 闭区间定位，任何拆分变化都会让旧缓存区间指向错误文本。此前 `CORE_PROMPT_VERSION = 6` 同时覆盖 core prompt 粒度规则与 tokenization 的变化；版本 8 让并列句 prompt 与已废弃 `COORDINATE_CLAUSE` 的 validator 契约一致；版本 9 强化 repair prompt 的限定词切分与逐条自检，并配套 core 至多两轮修复；当前 `CORE_PROMPT_VERSION = 10` 补齐从句右边界（从引导词延伸到从句自己的宾语与状语）、把后置介词短语明确归 `ATTRIBUTE`、把系表结构定死成「系动词单独 + `PREDICATIVE`」，并要求译文覆盖整段成分而不是只译中心词。tokenization 没有再变，所以 `DETAIL_PROMPT_VERSION = 5`。结果 JSON 形状没有变化，`CORE_SCHEMA_VERSION` 保持 `3`。
+`tokenize()` 现在把白名单点号缩写（如 `U.S.` / `Ph.D.`）、小数/千分位/语义版本号、带 scheme 的 URL 与邮箱各作为**一个 Token**。通用姓名 initials 链（如 `J. R. R.`）不会合成一个 Token；它只在 `segmentBlock()` 的分句边界阶段持续向后合并，避免姓名中间误断。这不是显示层细节：core component span 与 detail focus 都以 Token ID 闭区间定位，任何拆分变化都会让旧缓存区间指向错误文本。此前 `CORE_PROMPT_VERSION = 6` 同时覆盖 core prompt 粒度规则与 tokenization 的变化；版本 8 让并列句 prompt 与已废弃 `COORDINATE_CLAUSE` 的 validator 契约一致；版本 9 强化 repair prompt 的限定词切分与逐条自检，并配套 core 至多两轮修复；版本 10 补齐从句右边界、后置介词短语与系表结构口径，并要求译文覆盖整段成分；当前 `CORE_PROMPT_VERSION = 11` 增加 completeness-first 判定，让无谓语片段使用唯一 `FRAGMENT_HEAD`，同时明确祈使句不是片段。tokenization 没有再变，所以 `DETAIL_PROMPT_VERSION = 5`；输出 JSON 形状也未变化，`CORE_SCHEMA_VERSION` 保持 `3`。
 
 ### 8.3 黄金集 runner 的 provider 端点
 

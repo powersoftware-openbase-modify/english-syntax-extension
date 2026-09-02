@@ -72,6 +72,36 @@ describe("model-facing sentence payload", () => {
     expect(prompt).toContain("OBJECT, PREDICATIVE, COMPLEMENT, or ADVERBIAL");
   });
 
+  it("classifies complete clauses before fragments without adding sentence translations", () => {
+    const prompts = [
+      buildCorePrompt([sentence]),
+      buildRepairPrompt([sentence], [{ path: "sentences[0]", message: "bad" }], {}),
+    ];
+    const completenessRuleParts = [
+      "Completeness-first rule:",
+      "FRAGMENT_HEAD",
+      "Portable API support",
+      "across AI providers",
+      "for Chat, text-to-image, and Embedding models",
+      "An imperative is a clause, not a fragment",
+      '\"Install the CLI\" is PREDICATE \"Install\" plus OBJECT \"the CLI\"',
+    ];
+
+    for (const prompt of prompts) {
+      expect(prompt).toContain("The role field is a closed 17-role enum:");
+      let previousIndex = -1;
+      for (const part of completenessRuleParts) {
+        const index = prompt.indexOf(part, previousIndex + 1);
+        expect(index, part).toBeGreaterThan(previousIndex);
+        previousIndex = index;
+      }
+      expect(previousIndex).toBeLessThan(prompt.indexOf("Clause-structure-first rule:"));
+      expect(prompt).toContain("Give every component a concise, non-empty Chinese translation");
+      expect(prompt).not.toContain("sentence-level translation");
+      expect(prompt).not.toContain('{"sentenceId": string, "translation": string');
+    }
+  });
+
   /**
    * 三条粒度边界:少了它们，实测同一句会被切成词级碎片(Help/turn 两个谓语、
    * 介词与宾语分离、宾语短语误标定语)。判定顺序也是实测出来的——分句规则必须

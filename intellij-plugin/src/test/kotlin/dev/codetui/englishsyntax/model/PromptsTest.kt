@@ -53,6 +53,42 @@ class PromptsTest {
     assertTrue(prompt.contains("OBJECT, PREDICATIVE, COMPLEMENT, or ADVERBIAL"))
   }
 
+  @Test
+  fun `core and repair prompts classify complete clauses before fragments without sentence translations`() {
+    val input = sentence("The service works.")
+    val prompts = listOf(
+      buildCorePrompt(listOf(input)),
+      buildRepairPrompt(
+        listOf(input),
+        listOf(ValidationError("sentences[0]", "bad")),
+        buildJsonObject { put("sentences", buildJsonArray { }) },
+      ),
+    )
+    val completenessRuleParts = listOf(
+      "Completeness-first rule:",
+      "FRAGMENT_HEAD",
+      "Portable API support",
+      "across AI providers",
+      "for Chat, text-to-image, and Embedding models",
+      "An imperative is a clause, not a fragment",
+      "\"Install the CLI\" is PREDICATE \"Install\" plus OBJECT \"the CLI\"",
+    )
+
+    prompts.forEach { prompt ->
+      assertTrue(prompt.contains("The role field is a closed 17-role enum:"))
+      var previousIndex = -1
+      completenessRuleParts.forEach { part ->
+        val index = prompt.indexOf(part, previousIndex + 1)
+        assertTrue(index > previousIndex, part)
+        previousIndex = index
+      }
+      assertTrue(previousIndex < prompt.indexOf("Clause-structure-first rule:"))
+      assertTrue(prompt.contains("Give every component a concise, non-empty Chinese translation"))
+      assertFalse(prompt.contains("sentence-level translation"))
+      assertFalse(prompt.contains("""{"sentenceId": string, "translation": string"""))
+    }
+  }
+
   /**
    * 三条粒度边界：少了它们，实测同一句会被切成词级碎片（Help/turn 两个谓语、介词与
    * 宾语分离、宾语短语误标定语）。判定顺序也是实测出来的——分句规则必须排在 peer

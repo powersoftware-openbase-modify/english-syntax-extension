@@ -79,6 +79,9 @@ private const val MINIFIED_OUTPUT =
  *
  * 与 Chrome 端 `prompts.ts` 逐字一致，由 shared-fixtures/core-prompt-parity.json 钉住。
  */
+private const val COMPLETENESS_FIRST_RULE =
+  "Completeness-first rule: before assigning clause roles, decide whether the input forms a clause. An input with an explicit finite predicate, or an imperative with an omitted subject, is a clause and uses the existing clause-level roles. A heading, list item, noun phrase, adjective phrase, or non-finite verb phrase that does not form a clause must contain exactly one FRAGMENT_HEAD; never invent SUBJECT, PREDICATE, OBJECT, PREDICATIVE, or ADVERBIAL merely to force a fragment into a clause pattern. Keep ordinary determiners and tightly bound single-word premodifiers with the FRAGMENT_HEAD, and emit separable postmodifying prepositional, participial, or infinitive phrases as ATTRIBUTE. \"Portable API support across AI providers for Chat, text-to-image, and Embedding models\" is FRAGMENT_HEAD \"Portable API support\" plus ATTRIBUTE \"across AI providers\" plus ATTRIBUTE \"for Chat, text-to-image, and Embedding models\". An imperative is a clause, not a fragment: \"Install the CLI\" is PREDICATE \"Install\" plus OBJECT \"the CLI\"."
+
 private const val CLAUSE_FIRST_RULE =
   "Clause-structure-first rule: decide the clause layout before anything else. " +
     "A sentence is compound only when two or more clauses each carry their own subject and are joined by a coordinating conjunction (for, and, nor, but, or, yet, so) or a semicolon; " +
@@ -159,6 +162,7 @@ private val CORE_ANALYSIS_RULES: List<String> = listOf(
   "Every component uses a closed Token interval [startToken, endToken]; both endpoints are inclusive Token IDs from the supplied sentence.",
   """Each supplied Token is {"id","text"}; a Token is punctuation only when it carries "punctuation": true.""",
   "Coverage rule: every non-punctuation Token must be covered exactly once. Components must be ordered, non-overlapping, and may include punctuation but may not contain punctuation only.",
+  COMPLETENESS_FIRST_RULE,
   CLAUSE_FIRST_RULE,
   PREDICATE_SCOPE_RULE,
   PREPOSITIONAL_PHRASE_RULE,

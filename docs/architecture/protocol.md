@@ -8,10 +8,10 @@
 | ----------------------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------ |
 | `MESSAGE_VERSION`       | `1`    | 消息信封版本;收发两侧都校验                                  | 改了会让旧页面上残留的 content script 与新 SW 互不认账 |
 | `CORE_SCHEMA_VERSION`   | `3`    | core / detail 结果的语义契约版本;**参与缓存键**              | 改了等于全量作废缓存;缓存导入也会因版本不符整体拒绝    |
-| `CORE_PROMPT_VERSION`   | `10`   | core 提示词/Token 坐标版本;**参与 core / correction 缓存键** | 改了作废全部 core 缓存                                 |
+| `CORE_PROMPT_VERSION`   | `11`   | core 提示词/Token 坐标版本;**参与 core / correction 缓存键** | 改了作废全部 core 缓存                                 |
 | `DETAIL_PROMPT_VERSION` | `5`    | detail 提示词/focus Token 坐标版本;**参与 detail 缓存键**    | 改了作废全部详解缓存                                   |
 
-> 缓存键**刻意不含** profile / 模型维度——换模型不该让已有译文全部作废;但**含提示词版本**,因为同一句在不同规则下会被切成不同粒度的成分,旧结果继续复用只会让新旧质量混在一屏。版本 8 彻底删除了要求输出 `COORDINATE_CLAUSE` 的残留旧指令；版本 9 强化 repair prompt 的限定词切分与逐条自检，并配套 core 至多两轮修复；当前 `CORE_PROMPT_VERSION = 10` 补齐从句右边界、把后置介词短语明确归 `ATTRIBUTE`、把系表结构定死成「系动词单独 + `PREDICATIVE`」，并要求译文覆盖整段成分。Token 坐标未变，所以 `DETAIL_PROMPT_VERSION = 5`，结果 JSON 形状也未变，`CORE_SCHEMA_VERSION` 保持 `3`。
+> 缓存键**刻意不含** profile / 模型维度——换模型不该让已有译文全部作废;但**含提示词版本**,因为同一句在不同规则下会被切成不同粒度的成分,旧结果继续复用只会让新旧质量混在一屏。版本 8 彻底删除了要求输出 `COORDINATE_CLAUSE` 的残留旧指令；版本 9 强化 repair prompt 的限定词切分与逐条自检，并配套 core 至多两轮修复；版本 10 补齐从句右边界、后置介词短语和系表结构口径，并要求译文覆盖整段成分；当前 `CORE_PROMPT_VERSION = 11` 在分句角色前先判输入是否成句，无谓语标题/名词短语等使用唯一 `FRAGMENT_HEAD`，祈使句仍按完整分句处理。Token 坐标未变，所以 `DETAIL_PROMPT_VERSION = 5`，结果 JSON 形状也未变，`CORE_SCHEMA_VERSION` 保持 `3`。
 
 ## 2. 请求消息 `RequestMessage`
 
