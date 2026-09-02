@@ -3,7 +3,7 @@
     "核心层只切短语级同层成分。普通限定词或紧密结合的单词级形容词与中心名词整体构成 SUBJECT / OBJECT / PREDICATIVE 等，不机械地把每个前置修饰都拆成 ATTRIBUTE。",
     "ATTRIBUTE 表示名词短语内部可独立成短语的修饰语，既可以前置（如 'fully formed designs' 中短语级的 'fully formed'），也可以后置（如 'The documents signed yesterday' 中的 'signed yesterday'）；拆出后，中心名词短语承担 SUBJECT / OBJECT 等同层角色。",
     "介词与它管辖的一切优先合为一个 ADVERBIAL 或 ATTRIBUTE；因此 'into fully formed designs and specs' 整体标 ADVERBIAL，不在介词短语内部再拆 'fully formed'。并列的副词或名词（'calmly and confidently'）也保持一个成分，其中的 and 不标 CONJUNCTION。",
-    "标点刻意不覆盖：校验规则允许标点不被任何成分覆盖，渲染层按源 Token 画回原位。",
+    "总体约定为不覆盖标点：校验规则允许标点不被任何成分覆盖，渲染层按源 Token 画回原位。仅 fragment-portable-api 因本次报告原始截图与明确验收范围而保留 ATTRIBUTE 6..14 这个钉死例外，不得推广到其他标注。",
     "刻意排除了内部有歧义的句子（谓语被副词割开），免得基线指标被标注争议污染。名词后接介词短语不再算歧义，已在下面定死口径——它是技术文档里最高频的结构，排除等于测不到。",
     "id 带 doc- 前缀的句子逐字取自真实技术文档（code.claude.com/docs 的 Claude Code 概览页），用来测真实输入分布：无前缀的那批是精选教学句，句长与句式都比实际网页/文档窄，单靠它无法判断线上准确率。",
     "共享主语的并列谓语不是并列句：'Claude Code traces the issue…, identifies…, and implements a fix.' 里三个动词共用一个主语，各谓语与其宾语按同层成分平铺，连接它们的 and / or 标 CONJUNCTION，不标 COORDINATE_CLAUSE。",
@@ -2471,7 +2471,7 @@
         },
         {
           "startToken": 1,
-          "endToken": 6,
+          "endToken": 5,
           "role": "ATTRIBUTE",
           "translation": "面向同步与流式 API"
         }
@@ -2483,7 +2483,7 @@
       "components": [
         {
           "startToken": 0,
-          "endToken": 6,
+          "endToken": 5,
           "role": "FRAGMENT_HEAD",
           "translation": "兼容所有主流模型提供商"
         }
@@ -2501,7 +2501,7 @@
         },
         {
           "startToken": 4,
-          "endToken": 6,
+          "endToken": 5,
           "role": "ATTRIBUTE",
           "translation": "大规模地"
         }
@@ -2519,7 +2519,7 @@
         },
         {
           "startToken": 1,
-          "endToken": 3,
+          "endToken": 2,
           "role": "OBJECT",
           "translation": "该命令行工具"
         }

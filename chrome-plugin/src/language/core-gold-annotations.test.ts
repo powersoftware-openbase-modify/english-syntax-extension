@@ -35,6 +35,8 @@ describe("core gold annotations", () => {
     expect(conventions).toMatch(/不成句.*恰好一个 FRAGMENT_HEAD/);
     expect(conventions).toMatch(/不得.*SUBJECT.*PREDICATE.*OBJECT/);
     expect(conventions).toMatch(/祈使句.*PREDICATE/);
+    expect(conventions).toMatch(/总体.*不覆盖标点/);
+    expect(conventions).toMatch(/fragment-portable-api.*6\.\.14.*例外.*不得推广/);
   });
 
   it.each([
@@ -50,25 +52,25 @@ describe("core gold annotations", () => {
       "fragment-support-apis",
       [
         { startToken: 0, endToken: 0, role: GrammarRole.FRAGMENT_HEAD },
-        { startToken: 1, endToken: 6, role: GrammarRole.ATTRIBUTE },
+        { startToken: 1, endToken: 5, role: GrammarRole.ATTRIBUTE },
       ],
     ],
     [
       "fragment-compatible-providers",
-      [{ startToken: 0, endToken: 6, role: GrammarRole.FRAGMENT_HEAD }],
+      [{ startToken: 0, endToken: 5, role: GrammarRole.FRAGMENT_HEAD }],
     ],
     [
       "fragment-building-apps",
       [
         { startToken: 0, endToken: 3, role: GrammarRole.FRAGMENT_HEAD },
-        { startToken: 4, endToken: 6, role: GrammarRole.ATTRIBUTE },
+        { startToken: 4, endToken: 5, role: GrammarRole.ATTRIBUTE },
       ],
     ],
     [
       "fragment-imperative-counterexample",
       [
         { startToken: 0, endToken: 0, role: GrammarRole.PREDICATE },
-        { startToken: 1, endToken: 3, role: GrammarRole.OBJECT },
+        { startToken: 1, endToken: 2, role: GrammarRole.OBJECT },
       ],
     ],
   ] as const)("keeps the human-reviewed component contract for %s", (id, components) => {
