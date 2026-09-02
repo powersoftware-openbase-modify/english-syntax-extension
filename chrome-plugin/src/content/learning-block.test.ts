@@ -156,23 +156,31 @@ describe("SyntaxLearningBlock", () => {
   });
 
   it("renders a fragment head with its structural label", () => {
+    const fragment = "Portable API support";
+    const fragmentTokens: Token[] = [
+      { id: 0, text: "Portable", start: 0, end: 8, leadingWhitespace: "", punctuation: false },
+      { id: 1, text: "API", start: 9, end: 12, leadingWhitespace: " ", punctuation: false },
+      { id: 2, text: "support", start: 13, end: 20, leadingWhitespace: " ", punctuation: false },
+    ];
     const element = block();
     document.body.append(element.host);
 
-    element.renderCore(sentence, tokens, {
+    element.renderCore(fragment, fragmentTokens, {
       ...analysis,
       components: [
         {
           startToken: 0,
-          endToken: 3,
+          endToken: 2,
           role: GrammarRole.FRAGMENT_HEAD,
-          translation: "学习者阅读书籍",
+          translation: "便携式 API 支持",
         },
       ],
     });
 
     const component = element.host.shadowRoot!.querySelector<HTMLElement>(".component")!;
     expect(component.querySelector(".role")?.textContent).toBe("片段主体");
+    expect(component.querySelector(".english")?.textContent).toBe(fragment);
+    expect(component.querySelector(".translation")?.textContent).toBe("便携式 API 支持");
     expect(component.style.getPropertyValue("--syntax-role-color")).toBe("#0284c7");
   });
 

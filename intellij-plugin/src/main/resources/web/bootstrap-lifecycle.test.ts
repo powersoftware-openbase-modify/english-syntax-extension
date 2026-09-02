@@ -62,6 +62,10 @@ describe("bootstrap-entry 停止回归", () => {
 
     expect(bundle).toContain("tokensJson");
     expect(bundle).toContain("english-syntax-punctuation");
+    // 角色源文件改了但没重建 bundle 时，单测会绿、真实 JCEF 却仍回退为英文枚举与灰色。
+    expect(bundle).toContain('FRAGMENT_HEAD: "片段主体"');
+    expect(bundle).toContain('FRAGMENT_HEAD: "#0284c7"');
+    expect(bundle).toContain('FRAGMENT_HEAD: "#38bdf8"');
     // 忘了 npm run bundle-web 的症状是「Kotlin 侧全绿、真机按快捷键毫无反应」。
     expect(bundle).toContain("PARSE_BLOCK");
     expect(bundle).toContain("__englishSyntaxParseHoveredBlock");
