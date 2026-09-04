@@ -156,6 +156,16 @@
 
 **守护测试** `prompts.test.ts` 的 "closes the four gaps behind the observed misanalyses" 钉住四条新措辞;`core-gold-annotations.test.ts` 的 "keeps every of-phrase out of the noun-phrase component it modifies" 钉住黄金集这一侧的 of 口径。
 
+### I-11.2 非分句片段不得被强套进分句角色
+
+**规则** 技术文档里大量输入根本不成句(标题、列表项、名词/形容词/非限定动词短语)。completeness-first:有成句结构(显式限定谓语,或省略主语的祈使句)才用既有分句角色;不成句的输入**恰有一个** `FRAGMENT_HEAD`,可分离的后置介词/分词/不定式短语标 `ATTRIBUTE`,**绝不虚构 `SUBJECT` / `PREDICATE` / `OBJECT` 等分句角色**去拼一个主谓宾。三处必须说同一件事:提示词 `COMPLETENESS_FIRST_RULE`(内嵌正例 `Portable API support across AI providers…` 与祈使反例 `Install the CLI` = `PREDICATE("Install")` + `OBJECT("the CLI")`)、黄金集 `conventions` 与 `fragment-*` 标注、双端 validator 的两条硬门(至多一个 `FRAGMENT_HEAD`;存在时不得混任何分句级角色)加上整句单成分门对该角色的唯一豁免。`CORE_PROMPT_VERSION` 11 落地,core 缓存整体作废;`FRAGMENT_HEAD` 的 `translation` 与其它成分一样只译自身覆盖的局部短语,没有句级 translation。validator **刻意不用词表判「缺限定谓语」**——词形兼类(祈使句、动名词短语)会大面积误拒,「模型该用而没用 `FRAGMENT_HEAD`」由提示词、黄金集与真模型评测约束。
+
+**为什么** 文档页里片段输入与成句输入同样高频;把 `Portable API support…` 强拆成主谓宾会得到完全虚构的语法讲解,而单靠「缺主语不判」的既有硬门一个都拦不住——这正是「一个 role 的判定标准只能有一处定义」在成句判定上的延伸。祈使句反例同样关键:祈使句没有主语但有限定谓语,是分句不是片段。
+
+**症状** 标题/列表项被拆成虚构的 `SUBJECT` + `PREDICATE`,卡片显示不存在的语法关系;或反过来祈使句被整体标成一个 `FRAGMENT_HEAD`,丢了谓语/宾语的讲解;混标输出(`FRAGMENT_HEAD` + `PREDICATE` 同现)则两种错误叠在一屏。
+
+**守护测试** `analysis-validator.test.ts` / `AnalysisValidatorTest.kt` 的片段组(accepts a non-clausal fragment with one FRAGMENT_HEAD and modifiers、accepts one FRAGMENT_HEAD covering a whole multi-word fragment、rejects more than one FRAGMENT_HEAD、rejects FRAGMENT_HEAD mixed with clause level roles、accepts a short fragment covered by one component);`prompts.test.ts` / `PromptsTest.kt` 的 "classifies complete clauses before fragments without adding sentence translations"(含正反例与 `FRAGMENT_HEAD` 在 `Clause-structure-first rule` 之前的顺序);`core-gold-annotations.test.ts` 的 "defines fragments as one FRAGMENT_HEAD without fake clause roles and preserves imperatives" 与 `fragment-portable-api` 等 5 句的钉死标注(其中 6..14 的 `ATTRIBUTE` 因原始验收范围**覆盖终止标点**,是全黄金集「标点不覆盖」约定的唯一例外);`core-evaluation.test.mjs` 的 "scores FRAGMENT_HEAD as a normal labeled span"。
+
 ### I-12 别改 prompt 首行措辞
 
 **规则** 假模型服务器按 prompt 首行前缀识别请求类型(`chrome-plugin/tests/support/fake-openai-server.ts` 的 `detectKind`)。
@@ -220,13 +230,13 @@
 
 ### I-17.2 本地可判的语法粒度规则必须进入双端 validator
 
-**规则** 不能只在 prompt 里要求模型遵守；TS/Kotlin `validateCoreBatch` 必须同步执行九条可判硬门（见 [protocol.md](./protocol.md) 第 6–14 条）。bare-preposition 仅对 role 不是 `CONJUNCTION`、去标点后恰好一个 lexical word 且命中**保守的高把握“必须带宾语”白名单**时生效；`after/before/down/off/over/since/until/throughout/around/inside/outside` 等常见副词/表语/连词兼类词不收。grammar 是否执行只看结构可信度（全部 component 都有可用 range/role/translation、区间句内、有序不重叠、非纯标点），不得被 unknown field、translation too long、sentenceId 等非结构错误阻断；两类错误必须可同次报告。错误英文文案逐字一致。
+**规则** 不能只在 prompt 里要求模型遵守；TS/Kotlin `validateCoreBatch` 必须同步执行十三条可判硬门（完整清单与逐条理由见 [protocol.md](./protocol.md) 覆盖率规则第 6–19 条；`CORE_PROMPT_VERSION` 11 起含 `FRAGMENT_HEAD` 的两条边界门）。bare-preposition 仅对 role 不是 `CONJUNCTION`、去标点后恰好一个 lexical word 且命中**保守的高把握“必须带宾语”白名单**时生效；`after/before/down/off/over/since/until/throughout/around/inside/outside` 等常见副词/表语/连词兼类词不收。grammar 是否执行只看结构可信度（全部 component 都有可用 range/role/translation、区间句内、有序不重叠、非纯标点），不得被 unknown field、translation too long、sentenceId 等非结构错误阻断；两类错误必须可同次报告。错误英文文案逐字一致。
 
 **为什么** prompt 只是生成建议，未被 validator 拒绝的违规结果会直接进入跨 profile 共用缓存。错误文案又会被 repair prompt 原样引用，因此它同时是可执行修复指令。
 
 **症状** 模型偶发把动词链/介词短语切碎或把简单句套成单个并列分句，首轮仍被当作成功缓存；双端若文案不同，同一错误会收到不同 repair 指令。
 
-**守护测试** 双端 `AnalysisValidatorTest` / `analysis-validator.test.ts` 的九类语法粒度用例，正反两侧都要有（每条硬门既有 reject 用例，也有证明它不误拒的 accept 用例：祈使句无主语、以情态动词开头的动词组、`announced that`、有 `CONJUNCTION` 的从属连词起首并列分句、三实词以内的片段）。`core-gold-annotations.test.ts` 的 `passes the production core validator sentence by sentence` 再把整份黄金集压上——新硬门把正确答案判非法比漏判更糟。
+**守护测试** 双端 `AnalysisValidatorTest` / `analysis-validator.test.ts` 的各类语法粒度用例，正反两侧都要有（每条硬门既有 reject 用例，也有证明它不误拒的 accept 用例：祈使句无主语、以情态动词开头的动词组、`announced that`、有 `CONJUNCTION` 的从属连词起首并列分句、三实词以内的片段、恰一个 `FRAGMENT_HEAD` 的非分句片段）。`core-gold-annotations.test.ts` 的 `passes the production core validator sentence by sentence` 再把整份黄金集压上——新硬门把正确答案判非法比漏判更糟。
 
 ### I-17.3 Core repair 至多两轮，且失败卡必须自带原句 Token
 
@@ -250,7 +260,7 @@
 
 ### I-18.1 Tokenization 改动必须同时提升 core 与 detail 提示词版本
 
-**规则** 任何会改变 Token 数量或 ID 的分词改动，都必须同时提升 `CORE_PROMPT_VERSION` 与 `DETAIL_PROMPT_VERSION`；本次值分别为 `6` 与 `5`，而输出契约未变，`CORE_SCHEMA_VERSION` 保持 `3`。
+**规则** 任何会改变 Token 数量或 ID 的分词改动，都必须同时提升 `CORE_PROMPT_VERSION` 与 `DETAIL_PROMPT_VERSION`；当前值分别为 `11` 与 `5`（最近一次只动 core：版本 11 引入 completeness-first 片段判定，Token 坐标未变），而输出契约未变，`CORE_SCHEMA_VERSION` 保持 `3`。
 
 **为什么** core span 与 detail focus 都使用 Token ID。两条缓存键虽各自带提示词版本，但 Token 坐标是共同依赖；只升一条会让另一类旧缓存仍以过期坐标命中新文本。
 

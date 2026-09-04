@@ -152,22 +152,25 @@ DetailStructure = TokenRange & { role: string, explanation, translation? }
 DetailAnalysis  = { sentenceId, focus, structures[], grammarPoints[], explanation, modelProfileId }
 ```
 
-- `CoreComponent.role` 取自 **16 值封闭枚举**;`DetailStructure.role` 是**模型自由文本**(提示词要求中文语法术语),渲染时按中文标签查配色、英文枚举兜底、都不中则灰色。
+- `CoreComponent.role` 取自 **17 值封闭枚举**;`DetailStructure.role` 是**模型自由文本**(提示词要求中文语法术语),渲染时按中文标签查配色、英文枚举兜底、都不中则灰色。
 - `DetailStructure.translation` 是**渐进增强**:缺失时标注块退回两行,不算校验错误。
 - 发给模型的 Token 载荷**只有 `{id, text, punctuation?}`**——`start` / `end` / `leadingWhitespace` 是死重量(见 `prompts.ts`)。
 
-### 16 个语法角色
+### 17 个语法角色
 
-| 枚举          | 中文   |     | 枚举                  | 中文     |
-| ------------- | ------ | --- | --------------------- | -------- |
-| `SUBJECT`     | 主语   |     | `SUBJECT_CLAUSE`      | 主语从句 |
-| `PREDICATE`   | 谓语   |     | `OBJECT_CLAUSE`       | 宾语从句 |
-| `OBJECT`      | 宾语   |     | `PREDICATIVE_CLAUSE`  | 表语从句 |
-| `PREDICATIVE` | 表语   |     | `ATTRIBUTIVE_CLAUSE`  | 定语从句 |
-| `ATTRIBUTE`   | 定语   |     | `ADVERBIAL_CLAUSE`    | 状语从句 |
-| `ADVERBIAL`   | 状语   |     | `INDEPENDENT_ELEMENT` | 独立成分 |
-| `COMPLEMENT`  | 补语   |     | `COORDINATE_CLAUSE`   | 并列分句 |
-| `APPOSITIVE`  | 同位语 |     | `CONJUNCTION`         | 并列连词 |
+第 17 个 `FRAGMENT_HEAD`(片段主体)是**唯一不自带谓语的角色**:它标记不成句的输入(标题、列表项、名词/形容词/非限定动词短语),不是分句的语法成分。
+
+| 枚举            | 中文     |     | 枚举                  | 中文     |
+| --------------- | -------- | --- | --------------------- | -------- |
+| `SUBJECT`       | 主语     |     | `SUBJECT_CLAUSE`      | 主语从句 |
+| `PREDICATE`     | 谓语     |     | `OBJECT_CLAUSE`       | 宾语从句 |
+| `OBJECT`        | 宾语     |     | `PREDICATIVE_CLAUSE`  | 表语从句 |
+| `PREDICATIVE`   | 表语     |     | `ATTRIBUTIVE_CLAUSE`  | 定语从句 |
+| `ATTRIBUTE`     | 定语     |     | `ADVERBIAL_CLAUSE`    | 状语从句 |
+| `ADVERBIAL`     | 状语     |     | `INDEPENDENT_ELEMENT` | 独立成分 |
+| `COMPLEMENT`    | 补语     |     | `COORDINATE_CLAUSE`   | 并列分句 |
+| `APPOSITIVE`    | 同位语   |     | `CONJUNCTION`         | 并列连词 |
+| `FRAGMENT_HEAD` | 片段主体 |     |                       |          |
 
 ### 核心解析的覆盖率规则
 
@@ -177,21 +180,23 @@ DetailAnalysis  = { sentenceId, focus, structures[], grammarPoints[], explanatio
 2. 成分之间**有序、不重叠**;
 3. **每个非标点 token 恰好被覆盖一次**;标点可以不被覆盖,但不得被覆盖两次;
 4. 成分**不得只含标点**(模型偶发把逗号单切成一个成分——这条由 `dropPunctuationOnlyComponents()` 在本地直接丢掉,省一整轮模型往返);
-5. `translation` 非空、无危险文本、长度不超过 `max(500, 英文长度 × 8)`；
+5. `translation` 非空、无危险文本、长度不超过 `max(500, 英文长度 × 8)`。`translation` 是**该成分自身覆盖文本的局部中文释义**,不存在句级 translation 字段——片段句(`FRAGMENT_HEAD`)同样按成分逐个给局部译文,不新增整句翻译;
 6. 组件序列相邻且 Token 区间连续的两个 `PREDICATE` 必须合并；
 7. 成分去掉标点后恰好一个 lexical word、role 不是 `CONJUNCTION`，且该词命中**保守的高把握介词白名单**时，不得独立成分，必须并入其管辖短语；`after/before/down/off/over/since/until/throughout/around/inside/outside` 等常见副词、表语或连词兼类词不收；
-8. `COORDINATE_CLAUSE` 数量恰好为 1 时非法；0 或至少 2 个不触发这条门；
+8. `COORDINATE_CLAUSE` **出现即非法(≥1 个)**——该角色已废弃，并列句一律按同层成分平铺、FANBOYS 单独标 `CONJUNCTION`（`CORE_PROMPT_VERSION` 8 起提示词同步禁用）；
 9. `CONJUNCTION` 的 lexical words 必须至少含一个 FANBOYS(`for/and/nor/but/or/yet/so`)；可以同时含其他词，并非只能含 FANBOYS。
 10. `PREDICATE` 的**首个 lexical word** 不得是限定词、主格人称代词或 `that`——动词组不可能以它们开头，命中即说明主语被吞进了谓语；
 11. `PREDICATE` 的**非首位 lexical words** 不得含限定词（`the/a/an/this/these/those/my/your/his/her/its/our/their`）——限定词是名词短语的左边界，出现在动词组内部说明宾语/表语/补语被吞了进来。`that` 刻意不在这一条里，它更常作宾语从句引导词；
 12. `COORDINATE_CLAUSE` 的首个 lexical word 是从属连词（`because/although/as/if/when/while/since/until/that/…`）且整句**没有** `CONJUNCTION` 成分时非法——从属连词引导的是从句，不是并列分句。有 `CONJUNCTION` 时放行，因为 `Because A, B, and C` 里第一个并列分句本来就以从属连词开头；
-13. 单个成分覆盖了句子**全部**非标点 token 且句子实词数 ≥ 4 时非法（不论 role）——那等于没有划分，卡片会退化成一整块译文。三个实词以内的片段（标题、列表项）没有可拆的同层结构，不触发。
-14. 出现 2 个以上 `COORDINATE_CLAUSE` 时，整句必须另有一个 `CONJUNCTION` 成分或一个 `;` token——并列句的定义就是「各分句自带主语 + 并列连词或分号连接」。逗号串起来的祈使句、共享主语的并列谓语都不是并列句，包成分句块只会让卡片变成几整块译文。
+13. 单个成分覆盖了句子**全部**非标点 token 且句子实词数 ≥ 4 时非法（不论 role）——那等于没有划分，卡片会退化成一整块译文。**唯一豁免:该成分是 `FRAGMENT_HEAD`**——不成句的片段本来就没有可拆的同层结构,多词标题/名词短语整体一个 `FRAGMENT_HEAD` 是合法输出。三个实词以内的片段（标题、列表项）没有可拆的同层结构，不触发。
+14. （历史判据,已被第 8 条覆盖)曾要求「出现 2 个以上 `COORDINATE_CLAUSE` 时,整句必须另有一个 `CONJUNCTION` 成分或一个 `;` token」;`COORDINATE_CLAUSE` 废弃后任何数量都直接非法,这条不再单独执行。
 15. 五类从句角色（`SUBJECT_CLAUSE` / `OBJECT_CLAUSE` / `PREDICATIVE_CLAUSE` / `ATTRIBUTIVE_CLAUSE` / `ADVERBIAL_CLAUSE`）的成分不得只有 1 个 lexical word——从句至少是引导词 + 谓语，或主语 + 谓语。实测线上把 `that` 单独标成 `ATTRIBUTIVE_CLAUSE`、把 `developers` 标成 `SUBJECT_CLAUSE`，从句剩下的部分平铺到主句层，页面上出现两个同级"谓语"，引导词底下还挂着整个从句的译文。
 16. `ATTRIBUTIVE_CLAUSE` 的**下一个成分**不得是 `OBJECT` / `PREDICATIVE` / `COMPLEMENT`——定语从句修饰的名词在从句之前，主句宾语只能出现在主句谓语之后，所以紧跟在从句后面的宾语一定是从句自己的（实测 `that will reach` + `about $650 billion`）。主句谓语与主句状语跟在从句后面都合法（`I met the man who called yesterday in the park.`），刻意不判。
 17. 成分的**最后一个 lexical word** 不得命中「几乎不可能悬垂」的介词表（`of/into/onto/upon/within/among/between/despite/during/toward/towards`）——命中说明介词的宾语被切了出去（实测 `near the frontier of` + 宾语从句）。`for`/`with`/`at`/`from`/`to` 刻意不收：关系从句里 `the tool I work with`、`the place I came from` 让它们合法地出现在成分末尾。这一条与第 7 条互补，第 7 条只管「整个成分就是一个介词」。
+18. `FRAGMENT_HEAD` **至多一个**——非分句片段的主体只有一个,两个说明模型把一个片段当多句切;
+19. `FRAGMENT_HEAD` 存在时,整句不得再出现任何分句级角色（`SUBJECT` / `PREDICATE` / `OBJECT` / `PREDICATIVE` / `COMPLEMENT`、五类从句角色、`COORDINATE_CLAUSE`）——成句与否是二值判定,混标说明模型在给不成句的输入虚构主谓宾。
 
-后十二条是 TS/Kotlin validator 逐条同步的代码判据，不是 prompt 中一般语言学要求的完整实现。都只看「成分序列 + Token 文本」，不需要句法分析器；词表刻意保守（`then` 是副词不算从属连词，祈使句串的第三个分句就以它开头；缺主语本身不判，祈使句本来就没有主语，`First, install the CLI.` 这类副词开头的祈使句更常见）。grammar 诊断只要求所有 component 都有可用 range/role/translation、区间句内、有序不重叠且非纯标点；unknown field、translation too long、sentenceId 等非结构错误不阻止同轮 grammar 诊断。校验错误文案会被 repair prompt 原样引用，因此两端不仅判据要一致，英文文案也要一致；否则同一个模型输出会得到不同修复指令与缓存结果。
+第 6–19 条共十四项,其中**十三条是 TS/Kotlin validator 逐条同步的代码判据**(第 14 条已被第 8 条的废弃门整体覆盖,仅作历史说明保留;第 12 条在废弃门之外仍会作为补充错误独立触发)。它们不是 prompt 中一般语言学要求的完整实现。都只看「成分序列 + Token 文本」，不需要句法分析器；词表刻意保守（`then` 是副词不算从属连词，祈使句串的第三个分句就以它开头；缺主语本身不判，祈使句本来就没有主语，`First, install the CLI.` 这类副词开头的祈使句更常见）。**「输入是否成句」同样只用第 18 / 19 两条数量与互斥硬门约束,validator 刻意不试图用词表判定片段缺少限定谓语**——词形兼类(祈使句、`Building apps` 这类动名词短语)会大面积误拒;模型该用而没用 `FRAGMENT_HEAD` 由提示词 completeness-first 规则、黄金集口径与真模型评测约束。grammar 诊断只要求所有 component 都有可用 range/role/translation、区间句内、有序不重叠且非纯标点；unknown field、translation too long、sentenceId 等非结构错误不阻止同轮 grammar 诊断。校验错误文案会被 repair prompt 原样引用，因此两端不仅判据要一致，英文文案也要一致；否则同一个模型输出会得到不同修复指令与缓存结果。
 
 ## 8. 错误码(`shared/errors.ts`)
 
