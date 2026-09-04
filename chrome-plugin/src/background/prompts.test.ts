@@ -84,7 +84,7 @@ describe("model-facing sentence payload", () => {
       "across AI providers",
       "for Chat, text-to-image, and Embedding models",
       "An imperative is a clause, not a fragment",
-      '\"Install the CLI\" is PREDICATE \"Install\" plus OBJECT \"the CLI\"',
+      '"Install the CLI" is PREDICATE "Install" plus OBJECT "the CLI"',
     ];
 
     for (const prompt of prompts) {
