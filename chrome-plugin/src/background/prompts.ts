@@ -71,9 +71,13 @@ const MINIFIED_OUTPUT =
   "Do not wrap it in a Markdown code fence.";
 
 /**
- * 成分粒度的三条边界,以及它们必须按这个顺序出现的原因。
+ * 成分粒度的四条边界,以及它们必须按这个顺序出现的原因。
  *
- * 缺了这三条,同一个模型(deepseek-v4-flash)对指令型文本会给出词级碎片:实测
+ * completeness-first 排在最前:先判输入是否构成分句(带定式谓语、或省略主语的
+ * 祈使句,都算分句),再交给 clause-first 决定分句层级——不构成分句的片段标
+ * FRAGMENT_HEAD,不为凑句型凭空造主谓宾。
+ *
+ * 缺了这四条,同一个模型(deepseek-v4-flash)对指令型文本会给出词级碎片:实测
  * "Help turn ideas into fully formed designs and specs through natural collaborative
  * dialogue." 被切成 8-9 个成分——Help / turn 两个 PREDICATE、介词 into 与其宾语
  * 拆开、拆出来的名词短语再误标 ATTRIBUTE;补上后稳定收敛到 4 个短语级成分。

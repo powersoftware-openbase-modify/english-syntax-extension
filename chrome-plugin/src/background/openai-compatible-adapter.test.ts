@@ -6,6 +6,7 @@ import {
   type JsonSchemaSpec,
 } from "./openai-compatible-adapter";
 import { buildCorePrompt, buildDetailPrompt, buildRepairPrompt } from "./prompts";
+import { GrammarRole } from "../shared/grammar";
 import { CORE_SCHEMA_VERSION } from "../shared/versions";
 
 const profile: ModelProfile = {
@@ -409,7 +410,7 @@ describe("syntax prompts", () => {
     const prompt = buildCorePrompt([sentence]);
     expect(prompt).toContain("SUBJECT");
     expect(prompt).toContain("INDEPENDENT_ELEMENT");
-    expect(prompt).toContain("17");
+    expect(prompt).toContain(`closed ${Object.values(GrammarRole).length}-role enum`);
     expect(prompt).toMatch(/closed.*Token/i);
     expect(prompt).toMatch(/exactly once/i);
     expect(prompt).toMatch(/Chinese/i);

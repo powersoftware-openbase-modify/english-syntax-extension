@@ -103,8 +103,9 @@ describe("model-facing sentence payload", () => {
   });
 
   /**
-   * 三条粒度边界:少了它们，实测同一句会被切成词级碎片(Help/turn 两个谓语、
-   * 介词与宾语分离、宾语短语误标定语)。判定顺序也是实测出来的——分句规则必须
+   * 四条粒度边界:少了它们，实测同一句会被切成词级碎片(Help/turn 两个谓语、
+   * 介词与宾语分离、宾语短语误标定语)。completeness-first 排最前——先判输入
+   * 是否构成分句,再定分句层级。判定顺序也是实测出来的——分句规则必须
    * 排在 peer 规则之前，两条平列时模型会在两种切法之间跳。
    */
   it("bounds component granularity and decides clause layout first", () => {
