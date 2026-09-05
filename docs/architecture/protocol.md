@@ -198,6 +198,8 @@ DetailAnalysis  = { sentenceId, focus, structures[], grammarPoints[], explanatio
 
 第 6–19 条共十四项,其中**十三条是 TS/Kotlin validator 逐条同步的代码判据**(第 14 条已被第 8 条的废弃门整体覆盖,仅作历史说明保留;第 12 条在废弃门之外仍会作为补充错误独立触发)。它们不是 prompt 中一般语言学要求的完整实现。都只看「成分序列 + Token 文本」，不需要句法分析器；词表刻意保守（`then` 是副词不算从属连词，祈使句串的第三个分句就以它开头；缺主语本身不判，祈使句本来就没有主语，`First, install the CLI.` 这类副词开头的祈使句更常见）。**「输入是否成句」同样只用第 18 / 19 两条数量与互斥硬门约束,validator 刻意不试图用词表判定片段缺少限定谓语**——词形兼类(祈使句、`Building apps` 这类动名词短语)会大面积误拒;模型该用而没用 `FRAGMENT_HEAD` 由提示词 completeness-first 规则、黄金集口径与真模型评测约束。grammar 诊断只要求所有 component 都有可用 range/role/translation、区间句内、有序不重叠且非纯标点；unknown field、translation too long、sentenceId 等非结构错误不阻止同轮 grammar 诊断。校验错误文案会被 repair prompt 原样引用，因此两端不仅判据要一致，英文文案也要一致；否则同一个模型输出会得到不同修复指令与缓存结果。
 
+`shared-fixtures/validator-messages.json` 以 schema v1 保存固定句子、原始 core JSON 与 TS 生产 validator 得出的完整有序 errors；TS/Kotlin 测试均只读消费，并用各自生产 tokenizer 重建 Token。`coveredMessageSubstrings` 与 cases 实际错误并集双向闭合，确保覆盖声明不虚报、实际错误不漏报。当前 fixture 不覆盖三类尚未双端对齐的输入：纯标点成分、前一个 `PREDICATE` 仅含单个助动词/情态动词的相邻谓语、负数或 `0.0` Token 区间。
+
 ## 8. 错误码(`shared/errors.ts`)
 
 | code                     | 可重试   | 典型来源                                                | 用户可见处理                                               |
