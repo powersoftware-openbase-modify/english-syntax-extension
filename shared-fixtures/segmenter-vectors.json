@@ -788,5 +788,377 @@
         ]
       }
     ]
+  },
+  {
+    "name": "url-at-sentence-end",
+    "block": "Read https://example.com/docs. Then run it.",
+    "sentences": [
+      {
+        "text": "Read https://example.com/docs.",
+        "start": 0,
+        "end": 30,
+        "tokens": [
+          {
+            "text": "Read",
+            "start": 0,
+            "end": 4,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "https://example.com/docs",
+            "start": 5,
+            "end": 29,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 29,
+            "end": 30,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "text": "Then run it.",
+        "start": 31,
+        "end": 43,
+        "tokens": [
+          {
+            "text": "Then",
+            "start": 0,
+            "end": 4,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "run",
+            "start": 5,
+            "end": 8,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "it",
+            "start": 9,
+            "end": 11,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 11,
+            "end": 12,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "email-at-sentence-end",
+    "block": "Contact ada@example.com. Thanks.",
+    "sentences": [
+      {
+        "text": "Contact ada@example.com.",
+        "start": 0,
+        "end": 24,
+        "tokens": [
+          {
+            "text": "Contact",
+            "start": 0,
+            "end": 7,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "ada@example.com",
+            "start": 8,
+            "end": 23,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 23,
+            "end": 24,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "text": "Thanks.",
+        "start": 25,
+        "end": 32,
+        "tokens": [
+          {
+            "text": "Thanks",
+            "start": 0,
+            "end": 6,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 6,
+            "end": 7,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "question-exclaim-quote",
+    "block": "Really?!\" She asked.",
+    "sentences": [
+      {
+        "text": "Really?!\"",
+        "start": 0,
+        "end": 9,
+        "tokens": [
+          {
+            "text": "Really",
+            "start": 0,
+            "end": 6,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "?",
+            "start": 6,
+            "end": 7,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "text": "!",
+            "start": 7,
+            "end": 8,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "text": "\"",
+            "start": 8,
+            "end": 9,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "text": "She asked.",
+        "start": 10,
+        "end": 20,
+        "tokens": [
+          {
+            "text": "She",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "asked",
+            "start": 4,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 9,
+            "end": 10,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "decimal-sentence-end",
+    "block": "The value is 4.5.",
+    "sentences": [
+      {
+        "text": "The value is 4.5.",
+        "start": 0,
+        "end": 17,
+        "tokens": [
+          {
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "value",
+            "start": 4,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "is",
+            "start": 10,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "4.5",
+            "start": 13,
+            "end": 16,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 16,
+            "end": 17,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "please-stop",
+    "block": "Please stop. We need to talk.",
+    "sentences": [
+      {
+        "text": "Please stop.",
+        "start": 0,
+        "end": 12,
+        "tokens": [
+          {
+            "text": "Please",
+            "start": 0,
+            "end": 6,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "stop",
+            "start": 7,
+            "end": 11,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 11,
+            "end": 12,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "text": "We need to talk.",
+        "start": 13,
+        "end": 29,
+        "tokens": [
+          {
+            "text": "We",
+            "start": 0,
+            "end": 2,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "need",
+            "start": 3,
+            "end": 7,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "to",
+            "start": 8,
+            "end": 10,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "talk",
+            "start": 11,
+            "end": 15,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 15,
+            "end": 16,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "eg-single-token",
+    "block": "Use it, e.g. here.",
+    "sentences": [
+      {
+        "text": "Use it, e.g. here.",
+        "start": 0,
+        "end": 18,
+        "tokens": [
+          {
+            "text": "Use",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "it",
+            "start": 4,
+            "end": 6,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ",",
+            "start": 6,
+            "end": 7,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "text": "e.g.",
+            "start": 8,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "here",
+            "start": 13,
+            "end": 17,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 17,
+            "end": 18,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      }
+    ]
   }
 ]
