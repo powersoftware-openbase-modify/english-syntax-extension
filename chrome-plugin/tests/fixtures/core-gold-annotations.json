@@ -2383,19 +2383,25 @@
           "startToken": 0,
           "endToken": 2,
           "role": "SUBJECT",
-          "translation": "压电手性效应"
+          "translation": "该压电手性效应"
         },
         {
-          "startToken": 3,
-          "endToken": 17,
+          "startToken": 4,
+          "endToken": 6,
           "role": "APPOSITIVE",
-          "translation": "应变响应功能家族中的新成员，与压电性和压磁效应并列"
+          "translation": "一个新成员"
+        },
+        {
+          "startToken": 7,
+          "endToken": 16,
+          "role": "ATTRIBUTE",
+          "translation": "应变响应功能家族中的"
         },
         {
           "startToken": 18,
           "endToken": 19,
           "role": "PREDICATE",
-          "translation": "被引入。"
+          "translation": "被介绍"
         }
       ]
     },

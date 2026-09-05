@@ -166,6 +166,7 @@ describe("core gold annotations", () => {
       GrammarRole.PREDICATIVE,
       GrammarRole.COMPLEMENT,
       GrammarRole.ATTRIBUTE,
+      GrammarRole.APPOSITIVE,
     ]);
     for (const sentence of fixture.sentences) {
       const tokens = tokenize(sentence.text);
