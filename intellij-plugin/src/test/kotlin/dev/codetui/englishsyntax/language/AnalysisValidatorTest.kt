@@ -188,6 +188,7 @@ class AnalysisValidatorTest {
     assertTrue(validateCoreBatch(raw, listOf(request), "profile-1").ok)
   }
 
+  @Test
   fun `rejects a CONJUNCTION that covers no coordinating conjunction`() {
     val request = sentence("Readers read books.")
     val raw = core(
@@ -370,8 +371,7 @@ class AnalysisValidatorTest {
     )
   }
 
-
-
+  @Test
   fun `rejects one component covering the whole sentence whatever its role`() {
     // 现有规则只拦 COORDINATE_CLAUSE;换成 SUBJECT 就一路通过,卡片退化成一整块译文。
     assertGrammarError(
@@ -744,5 +744,15 @@ class AnalysisValidatorTest {
     )
 
     variants.forEach { assertFalse(validateDetail(it, sentence(), TokenRange(2, 2), "profile-1").ok) }
+  }
+
+  @Test
+  fun `word list sizes stay pinned`() {
+    assertEquals(7, coordinatingConjunctions.size)
+    assertEquals(15, prepositions.size)
+    assertEquals(7, subjectPronouns.size)
+    assertEquals(13, determiners.size)
+    assertEquals(21, subordinatingConjunctions.size)
+    assertEquals(11, objectRequiringPrepositions.size)
   }
 }

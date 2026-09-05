@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { GrammarRole } from "../shared/grammar";
 import { CORE_SCHEMA_VERSION } from "../shared/versions";
@@ -49,6 +50,36 @@ function invalidCore(raw: unknown) {
   }
   return result.errors;
 }
+
+function countStringSetMembers(source: string, constantName: string): number {
+  const declaration = new RegExp(
+    `const ${constantName}: ReadonlySet<string> = new Set\\(\\[([\\s\\S]*?)\\]\\);`,
+  ).exec(source);
+  expect(declaration, `missing source set ${constantName}`).not.toBeNull();
+  return [...declaration![1]!.matchAll(/^\s*"[^"]+",?$/gm)].length;
+}
+
+describe("validator word list source guards", () => {
+  it("keeps the six shared word list sizes pinned to the Kotlin baseline", () => {
+    const source = readFileSync(new URL("./analysis-validator.ts", import.meta.url), "utf8");
+
+    expect({
+      coordinatingConjunctions: countStringSetMembers(source, "COORDINATING_CONJUNCTIONS"),
+      prepositions: countStringSetMembers(source, "PREPOSITIONS"),
+      subjectPronouns: countStringSetMembers(source, "SUBJECT_PRONOUNS"),
+      determiners: countStringSetMembers(source, "DETERMINERS"),
+      subordinatingConjunctions: countStringSetMembers(source, "SUBORDINATING_CONJUNCTIONS"),
+      objectRequiringPrepositions: countStringSetMembers(source, "OBJECT_REQUIRING_PREPOSITIONS"),
+    }).toEqual({
+      coordinatingConjunctions: 7,
+      prepositions: 15,
+      subjectPronouns: 7,
+      determiners: 13,
+      subordinatingConjunctions: 21,
+      objectRequiringPrepositions: 11,
+    });
+  });
+});
 
 describe("core analysis validation", () => {
   it("accepts complete, ordered core coverage", () => {

@@ -82,8 +82,9 @@ private fun tokenLength(tokens: List<Token>, range: TokenRange): Int = tokens
  * 只写在 prompt 里的约束等于没有约束：模型违反了没人拦，坏划分照样写进缓存并长期
  * 显示（缓存键不带模型维度，一次坏结果所有 profile 共用）。**错误文案本身就是发给
  * 模型的修复指令**（修复 prompt 把它原样塞进去），所以必须写成「该怎么做」。
+ * 六张字符串词表保持 internal 仅供测试统计成员数，判定逻辑不变。
  */
-private val coordinatingConjunctions = setOf("for", "and", "nor", "but", "or", "yet", "so")
+internal val coordinatingConjunctions = setOf("for", "and", "nor", "but", "or", "yet", "so")
 
 /**
  * 保守的单词介词表。只收缺少宾语时几乎不可能独立作副词、表语或连词的词；
@@ -92,7 +93,7 @@ private val coordinatingConjunctions = setOf("for", "and", "nor", "but", "or", "
  * 误放一次只影响粒度，
  * 误拒则会把合法分析送进无意义的修复轮，所以 accuracy 优先于召回率。
  */
-private val prepositions = setOf(
+internal val prepositions = setOf(
   "among", "at", "between", "despite", "during", "for", "from", "into", "of", "onto",
   "toward", "towards", "upon",
   "with", "within",
@@ -108,7 +109,7 @@ private val prepositions = setOf(
  * （`Help turn ideas…` 的黄金标注就是 `PREDICATE` 起头）；文档里
  * "First, install the CLI." 这类副词开头的祈使句更常见，按缺主语判会大面积误拒。
  */
-private val subjectPronouns = setOf("i", "you", "he", "she", "it", "we", "they")
+internal val subjectPronouns = setOf("i", "you", "he", "she", "it", "we", "they")
 
 /**
  * 限定词 = 名词短语的左边界。动词组内部出现它，说明宾语 / 表语 / 补语被吞了进来
@@ -117,7 +118,7 @@ private val subjectPronouns = setOf("i", "you", "he", "she", "it", "we", "they")
  * `that` 刻意不收：它更常作宾语从句引导词，`announced that` 这种一个词的粒度差
  * 远好过把合法分析送进修复轮。首词判定另算——谓语以 `that` 开头一定是错的。
  */
-private val determiners = setOf(
+internal val determiners = setOf(
   "the", "a", "an", "this", "these", "those", "my", "your", "his", "her", "its", "our", "their",
 )
 private val predicateHeadBlockers = subjectPronouns + determiners + "that"
@@ -129,7 +130,7 @@ private val predicateHeadBlockers = subjectPronouns + determiners + "that"
  *
  * `for` / `so` 属 FANBOYS，`then` 是副词（黄金集的祈使句串第三个分句就以它开头），都不收。
  */
-private val subordinatingConjunctions = setOf(
+internal val subordinatingConjunctions = setOf(
   "after", "although", "as", "because", "before", "if", "lest", "once", "since", "that",
   "though", "till", "unless", "until", "when", "whenever", "whereas", "wherever", "whether",
   "while", "whilst",
@@ -190,7 +191,7 @@ private val clauseInternalFollowers = setOf(
  * 收进来会把正确分析送进修复轮。已有的单词介词硬门只管「整个成分就是一个介词」，
  * 这条补的是「介词在成分末尾」。
  */
-private val objectRequiringPrepositions = setOf(
+internal val objectRequiringPrepositions = setOf(
   "among", "between", "despite", "during", "into", "of", "onto", "toward", "towards",
   "upon", "within",
 )
