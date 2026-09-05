@@ -19,7 +19,10 @@ interface GoldSentence {
 }
 
 const fixture = JSON.parse(
-  readFileSync(new URL("../../tests/fixtures/core-gold-annotations.json", import.meta.url), "utf8"),
+  readFileSync(
+    new URL("../../../shared-fixtures/core-gold-annotations.json", import.meta.url),
+    "utf8",
+  ),
 ) as { conventions: string[]; sentences: GoldSentence[] };
 const roles = new Set<string>(Object.values(GrammarRole));
 
