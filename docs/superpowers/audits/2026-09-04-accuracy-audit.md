@@ -19,7 +19,7 @@
 
 | ID | 严重度 | 问题 | 证据 | 机理与后果 | 修复方向 |
 |----|--------|------|------|-----------|---------|
-| G1 | High | `improved-008` 两处口径违反:APPOSITIVE(3..17)内嵌 of-短语未拆;首尾逗号(token 3、17)被成分覆盖 | `tests/fixtures/core-gold-annotations.json`;convention「名词短语后介词短语一律拆,无例外」+「总体不覆盖标点」 | 全库其余 5 处同构句(auto-gen-034/015、improved-005、doc-of-phrase-clause-1、auto-gen-008)全部拆分,唯此句不拆——复刻「三句拆三句不拆」历史病灶;评分器奖励错误口径 | 改标注为 `APPOSITIVE 4..6` + `ATTRIBUTE 7..16` + 首尾逗号退出覆盖;黄金集 replay 验证 |
+| G1 | High | `improved-008` 两处口径违反:APPOSITIVE(3..17)内嵌 of-短语未拆;首尾逗号(token 3、17)被成分覆盖 | `shared-fixtures/core-gold-annotations.json`;convention「名词短语后介词短语一律拆,无例外」+「总体不覆盖标点」 | 全库其余 5 处同构句(auto-gen-034/015、improved-005、doc-of-phrase-clause-1、auto-gen-008)全部拆分,唯此句不拆——复刻「三句拆三句不拆」历史病灶;评分器奖励错误口径 | 改标注为 `APPOSITIVE 4..6` + `ATTRIBUTE 7..16` + 首尾逗号退出覆盖;黄金集 replay 验证 |
 | G2 | Medium | `improved-001`(`The way we build software has changed.`)限定从句整块并入 SUBJECT,全库唯一(其余 11 句含 ATTRIBUTIVE_CLAUSE 标注全部独立成句,共 12 处出现) | 同上 fixture | 同构异标;评分器惩罚做拆分的正确分析 | 二选一:拆为 `SUBJECT 0..1 + ATTRIBUTIVE_CLAUSE 2..4 + PREDICATE 5..6`(推荐,与全库一致),或 conventions 写明「way 的从句补足整体并入」 |
 | G3 | Medium | 括注两种口径:`retry-008` 的 `(ADR)` 并入 SUBJECT,`improved-003` 的括注拆 APPOSITIVE | 同上 fixture | 同构异标 | 向 improved-003 对齐(`SUBJECT 0..3 + APPOSITIVE 4..6`),conventions 补一句括注口径 |
 | G4 | Medium | `doc-negated-svo-1` 的 `Git for Windows` 整体作 OBJECT,与 convention「名词后介词短语一律拆」字面冲突 | 同上 fixture + conventions | 严格执行口径的模型会拆专名(`OBJECT Git + ATTRIBUTE for Windows`)而被评分器判错——口径文本与句法直觉的真实冲突 | **保留现标注**(不拆是对的),conventions 补「词汇化专名内部的介词短语不拆」 |

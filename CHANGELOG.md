@@ -90,7 +90,7 @@
   - **硬门 2：谓语不得以限定词开头**（the/a/an/this/these/those 等）。限定词是名词短语的左边界，命中即说明主语被吞了进来。
   - **硬门 3：谓语内部不得含限定词**。动词组内部出现它，说明宾语/表语/补语被吞了进来（`PEER_COMPONENT_RULE` 要挡的正是这个，但此前只写在提示词里）。
   - **硬门 4：从属连词引导的是从句，不是并列分句**（because/although/if/when/while 等）。`COORDINATE_CLAUSE` 的首个实词命中从属连词，且整句没有 `CONJUNCTION` 时触发——有 CONJUNCTION 不判是因为 "Because A, B, and C" 里第一个并列分句本来就以从属连词开头。
-- **新增黄金标注测试集（1368 行）**：`chrome-plugin/tests/fixtures/core-gold-annotations.json` 收录了基础句型、从句、被动、祈使、并列等各类句型的标准答案，其中带 `doc-` 前缀的句子逐字取自真实技术文档（code.claude.com/docs 的 Claude Code 概览页），用来测真实输入分布。精选教学句的句长与句式都比实际网页窄，单靠它无法判断线上准确率。
+- **新增黄金标注测试集（1368 行）**：`shared-fixtures/core-gold-annotations.json` 收录了基础句型、从句、被动、祈使、并列等各类句型的标准答案，其中带 `doc-` 前缀的句子逐字取自真实技术文档（code.claude.com/docs 的 Claude Code 概览页），用来测真实输入分布。精选教学句的句长与句式都比实际网页窄，单靠它无法判断线上准确率。
 - **核心评估框架**：`chrome-plugin/scripts/core-evaluation.mjs` 与 `core-evaluation-runner.mjs` 提供离线评估能力，可用黄金标注批量测试分词与覆盖不变量，而不必每次都跑真模型（耗时且不稳定）。评估 validator 改动时用离线重放即可。
 
 ### 修复

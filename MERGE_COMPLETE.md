@@ -27,7 +27,7 @@
 
 ### 文件位置
 
-- 黄金标注: `chrome-plugin/tests/fixtures/core-gold-annotations.json`
+- 黄金标注: `shared-fixtures/core-gold-annotations.json`
 - 备份文件: `chrome-plugin/tests/fixtures/core-gold-annotations.json.backup`
 - 详细报告: `SUBAGENT_VALIDATION_FINAL_REPORT.md`
 
