@@ -261,6 +261,26 @@ git commit -m "test: 黄金集升入 shared-fixtures 实现双端校验回归"
 
 ---
 
+## Task 0E: 生产链路评测接入与行为改动前基线（Task 4 后、Task 5 前）
+
+**Files:**
+- Modify: `.superpowers/acceptance/run-core-gold-evaluation.mjs`（手动联网入口，gitignored，永不提交）
+- Modify: `chrome-plugin/scripts/core-evaluation.mjs`、`chrome-plugin/scripts/core-evaluation.test.mjs`（轨迹评分、字符区间比较、同句集报告）
+- Modify: `chrome-plugin/src/background/analysis-service.test.ts`（真实 service 固定响应轨迹）
+- Modify: `intellij-plugin/src/test/kotlin/dev/codetui/englishsyntax/analysis/AnalysisServiceTest.kt`（同轨迹回放）
+- Create: `shared-fixtures/core-evaluation-traces.json`（脱敏固定响应，仅离线测试）
+- Modify: `docs/architecture/build-test-release.md`（首轮评分与最终链路验收的边界）
+
+**Interfaces:** Consumes: CachedAnalysisService、AnalysisAdapter.completeJson、CoreBatchInput.bypassCache 与现有纯评分器。Produces: 同次请求的首轮/各轮修复/最终结果轨迹、规范化字符 span 评分、固定语料快照；实施与验收严格遵循规格 §9.1。不复制生产 validator 或 repair 循环。
+
+- [ ] **Step 1: 冻结评测文本与人工标注依据**。分规则回归集与独立留出集（五类各至少 4 句）；批次 2 前新句仅存 acceptance 文本/词语边界快照，不提前入共享黄金集。记录来源、类别、标注理由；独立留出句不进入 prompt。将 Task 21 已确认的两处黄金纠错纳入评测口径快照，避免基线奖励已知错标；正式 fixture 仍按原批次修改。
+- [ ] **Step 2: 写离线失败测试**。固定轨迹覆盖：首轮合法不 repair；首轮错误→修对；语法 exact 但非语法字段错误被拒→修坏；三轮错误→最终失败；两句中一修好不回流。断言 `repairedToCorrect`、`correctToWrongOrFailure`、`finalFailures` 的计数及固定全集分母，正确首轮数为零时拒绝率为 N/A。分别构造相同字符边界但 token ID 不同的结果，断言跨 tokenizer 比较相等。先运行 `node --test chrome-plugin/scripts/core-evaluation.test.mjs` 与 `cd chrome-plugin && npx vitest run src/background/analysis-service.test.ts`，确认因缺少轨迹评分能力而失败。
+- [ ] **Step 3: 接入实际服务**。acceptance 脚本经 Vite 加载 CachedAnalysisService；复用 service 单测的内存 cache/scheduler 装配，cache 初始为空，输入 `bypassCache: true`。包装 AnalysisAdapter 记录 messages、返回 JSON、调用顺序；按 schema 转发实际模型请求，不手写另一套修复流程。通过 `analyzeCore` 返回的最终结果评分；第一轮 JSON 同时独立评分并用生产 validator 诊断拒绝原因。真实路径中包含 repair，首轮与最终必须来自同一次服务调用。
+- [ ] **Step 4: 双端离线回放与元数据**。将合成脱敏轨迹写入共享 fixture；TS/Kotlin 各经本端 AnalysisService 回放并断言相同最终 span/role、成功失败句集合及 repair 子集。本地真模型轨迹不自动提交。artifact 按规格 §9.1 保存模型参数、批大小/顺序、commit、prompt/语料/tokenizer 快照及哈希，不保存密钥。增加 `--mode pipeline`（保留默认首轮模式），第一份基线明确传 `--candidate` 指向独立文件，后续 `--baseline` 只读，禁止覆盖基线。
+- [ ] **Step 5: 验证并留基线**。跑评分器相关测试、TS AnalysisService 测试及 Kotlin AnalysisServiceTest，全部离线。手动运行 `source ~/.secrets && node .superpowers/acceptance/run-core-gold-evaluation.mjs --mode pipeline --candidate .superpowers/acceptance/core-pipeline-baseline-run1.json`；以 run2/run3 不同文件名再运行两次，固定配置与顺序。无 key 时冻结快照并登记“准确性验收待完成”，未来从旧 commit 补跑；不以新实现冒充旧基线。提交只包含离线工具/测试/共享 fixture/文档，不包含 acceptance 文件。
+
+---
+
 ## Task 5: V1 尾介词角色豁免（1a）
 
 **Files:**
@@ -382,18 +402,20 @@ git commit -m "fix: 定语从句跟随门不再误杀宾补结构"
 - Modify: `shared-fixtures/validator-messages.json`（Task 2b 夹具增补本门新文案条目;**旧整句门条目可能失效**——若夹具含「INDEPENDENT_ELEMENT/APPOSITIVE 整句」输入,旧门只豁免 FRAGMENT_HEAD 现状被拒,本任务后 ≤10 实词变 ok,该条目 expected 同步改;**新文案子串同步进 coveredMessageSubstrings**,双端同提交）
 
 **Interfaces:**
-- Consumes: Task 1 落地后的黄金集（improved-008 的 ATTRIBUTE 7..16 恰 10 实词是上限依据）
+- Consumes: Task 1 落地后的黄金集与 Task 0E 冻结的挑战文本；10 为已裁定启发式值，不以多成分句中的 ATTRIBUTE 长度证明阈值正确。
 - Produces: `MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS = 10` 常量（双端同名）+ 豁免集 {FRAGMENT_HEAD, INDEPENDENT_ELEMENT, APPOSITIVE}
 
-- [ ] **Step 1: 写失败测试（双端，三组）**
+- [ ] **Step 0: 先做长度门挑战审阅，禁止跳过**。从真实文档标题、名词片段、形容词片段各选 9/10/11+ 实词样本（记录来源），人工判断是否存在按本项目口径可拆的后置修饰语，生产 tokenizer 实测长度。补短完整句 `The system works correctly.` 整体误标 FRAGMENT_HEAD 的漏判探针。若存在合法且不可再拆的 11+ 词片段，记录该门误杀并暂停行为实现，请用户复核阈值裁定；不得将错误拆分当预期结果。该探针不要求添加词表识别限定谓语。
+
+- [ ] **Step 1: 写失败测试（双端，三组；仅 Step 0 无阻断后）**
 
 1. 11 实词整句单 FRAGMENT_HEAD → 拒,期望文案是**新门文案** `a whole-sentence fragment component must not exceed 10 lexical tokens; split it into a fragment head plus its modifiers`（**勿写旧整句门文案**——FRAGMENT_HEAD 在豁免集内,旧门被跳过,断旧文案实现后仍红）。例句自造 11+ 实词成句（`The quick brown fox jumps over the lazy dog near the river bank.`——实测 **13** 实词）整句标一个 FRAGMENT_HEAD。
 2. `What a wonderful surprise!`（4 实词）整句 INDEPENDENT_ELEMENT → 过（现状被拒）。
-3. 9-10 实词无介词词汇化标题整句 APPOSITIVE → 过。**正例句不得含可拆的后置介词短语**——用并列名词形态，实测可用:`A fast, reliable, secure, and modern developer experience platform`（**9** 实词）或 `Claude Code, a fast, reliable, and secure developer experience platform`（**10** 实词,但注意逗号结构宜作 4 句集用句外正例;两候选均已 tokenize 验证,无介词无可拆后置介词短语）。
+3. 9-10 实词无可拆后置修饰语的独立标题，推荐标注 FRAGMENT_HEAD → 过；另用同一输入整体 APPOSITIVE → 过，仅钉已裁定的**容错接收**，不得写入黄金答案或称为语言学正例。候选 `A fast, reliable, secure, and modern developer experience platform`（9 实词，实施时核 tokenizer）；10 词样本从 Step 0 人工审阅集取。不要用 `Claude Code, a ... platform` 整体 APPOSITIVE 冒充正例，该结构含显式同位对象，推荐分别标片段主体与同位语。
 
 - [ ] **Step 2: 跑测试确认失败模式**
 
-Expected: 用例 1 PASS（现状 11+ 实词 FRAGMENT_HEAD 因豁免通过——这正是要堵的洞）;用例 2 FAIL;用例 3 FAIL（APPOSITIVE 现状被拒）。
+Expected: 用例 1 FAIL（期望拒绝而现状通过）；用例 2 FAIL；用例 3 的 APPOSITIVE 容错断言 FAIL，FRAGMENT_HEAD 推荐标注断言 PASS。不要把“错误输出通过 validator”误写成“拒绝断言 PASS”。
 
 - [ ] **Step 3: 双端实现**
 
@@ -407,7 +429,7 @@ const WHOLE_SENTENCE_FRAGMENT_ROLES: ReadonlySet<GrammarRole> = new Set([
 ]);
 const MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS = 10;
 // 单成分整句的豁免集:三角色均为「片段语义角色」;配实词上限防整句糊弄。
-// 上限 10 依据:黄金集 improved-008 的 ATTRIBUTE 7..16 恰 10 实词(最长合法单成分)。
+// 10 是经挑战集审阅后采用的启发式上限，不是语法定律；不能据此证明长片段可拆。
 
 if (
   only !== undefined &&
@@ -666,7 +688,7 @@ git commit -m "feat: 拦截从属连词开头的伪状语定语成分"
 1. `developers now play a frontline role` 标 SUBJECT_CLAUSE → 拒（历史实测错误,现状过——红）。**组装必须嵌入完整句子**（如 `INDEPENDENT_ELEMENT(Today,) + SUBJECT_CLAUSE(2..7)` 前置成分形态）——**不得单成分包整句**:单成分组装现状已被整句门拒,红因错误且实现后整句门仍在,测试死红。
 2. `Whoever wins gets the prize.` 的 `Whoever wins` 标 SUBJECT_CLAUSE → 过。
 3. `How he did it remains a mystery.` 的 `How he did it` → 过。
-4. `It is obvious that the cache is stale.` 的 `that the cache is stale` 标 PREDICATIVE_CLAUSE → 过（it 形式主语不误杀——门查从句成分自己的首词）。
+4. `It is obvious that the cache is stale.` → SUBJECT(It) + PREDICATE(is) + PREDICATIVE(obvious) + SUBJECT_CLAUSE(that the cache is stale)，断言完整合法分析通过。it 为形式主语，后置从句为真正主语，不标 PREDICATIVE_CLAUSE。另以 `The problem is that the cache is stale.` 的 PREDICATIVE_CLAUSE 验证本门不干扰其他角色。
 
 - [ ] **Step 2: 跑测试确认红绿模式**
 

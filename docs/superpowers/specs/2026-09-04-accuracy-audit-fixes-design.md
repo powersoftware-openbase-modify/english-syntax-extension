@@ -14,6 +14,16 @@
 | V14(片段+内嵌从句口径) | **混用集只放行 ATTRIBUTIVE_CLAUSE**——标题/列表项带关系从句高频且语言自洽,从句卡片保留;其余四类从句照旧拒;黄金集补「片段+定语从句」人工复核句 |
 | V12(单成分整句豁免角色集) | **确认三角色 {FRAGMENT_HEAD, INDEPENDENT_ELEMENT, APPOSITIVE} 且实词数 ≤10**——与 V2 合并为统一门(1c) |
 
+## 0.1 准确性优先的修订约束（2026-09-05）
+
+本轮按用户批准的审阅意见补强规格与实施计划；不改变七批次范围、不擅自撤销 §0 已裁定事项。审计是历史论证记录，执行口径以本规格及同步修订的计划为准。
+
+- **成功标准是用户最终看到的成分边界与角色更准确**，不是门数、测试数量或中文译文更流畅。局部译文仅作辅助，不用中文语序决定英文 span。
+- **区分推荐标注与宽容接收**：validator 允许一种输出，不代表黄金集应推荐它。独立名词标题推荐 FRAGMENT_HEAD；APPOSITIVE 用于确有同位关系的成分，不把无同位对象的独立标题作为 APPOSITIVE 的语言学正例。三角色接收豁免仍按 §0 保留，相关测试标明“容错接收”。
+- **10 实词上限是待验证的启发式限制，不是语法定律**：improved-008 的 ATTRIBUTE 长度与“整句单片段”不是同一适用对象，不能作为阈值正确性的证据。Task 7 必须加入 9/10/11+ 实词的真实标题、名词片段、形容词片段挑战集，同时检查短完整句伪装 FRAGMENT_HEAD 的漏判。若人工认可且按本项目粒度不可再拆的长片段被拒，记录为误杀并暂停该门行为落地，提交证据请用户复核原裁定；不得为了过门虚构修饰语或改错黄金答案。
+- **标注先于断言**：`helps developers work faster` 按 OBJECT(developers) + COMPLEMENT(work faster)；`It is obvious that the cache is stale.` 按形式主语结构，obvious 为 PREDICATIVE，后置 that 从句为 SUBJECT_CLAUSE。不得用测试不检查该角色作为保留错标的理由。
+- **口径作用域明确**：不成句的形容词片段中，补足介词短语留在 FRAGMENT_HEAD 内；完整分句中采用既有学习粒度，形容词表语后的补足介词短语另标 ADVERBIAL。两者都写入 prompt 与 conventions，并分别给正例。片段带定语从句的推荐形状是 FRAGMENT_HEAD + ATTRIBUTIVE_CLAUSE，在批次 4 的 prompt 中提前明确，批次 5 放宽 validator 并入库回归句。
+
 ## 1. 总体结构
 
 七个批次按依赖顺序落地,每批独立提交、独立过双端门禁:
@@ -49,7 +59,7 @@
 |----|------|
 | 1a | **V1 角色豁免版**:`of/within/between/among` 保留在 `OBJECT_REQUIRING_PREPOSITIONS`,仅当成分 role ∈ 五类从句角色时跳过(从句内部介词悬垂合法);短语角色照旧拦。正例 `That's what dreams are made of.`(过),反例 `near the frontier of` + 宾语从句被外切族(拒) |
 | 1b | **V3 最小修复**:ATTRIBUTIVE_CLAUSE 跟随集仅移出 `COMPLEMENT`(前邻判据进阶方案已否决,审计 D3);正例 `We consider the movie that she directed a masterpiece.`(过);双宾 `give the teacher who helped me a book` 残留误杀接受(低频) |
-| 1c | **V2+V12 统一门**:单成分覆盖整句且实词 ≥4 时,仅当 `role ∈ {FRAGMENT_HEAD, INDEPENDENT_ELEMENT, APPOSITIVE}` **且**实词数 ≤10 时放行;实现必须同时钉死 `components.length === 1` 与角色条件(两端整句门已按 `length===1` 取单成分,改动即把 `role !== FRAGMENT_HEAD` 换成豁免集 + `≤10`,增量极小);正例:9-10 词无介词词汇化标题(过,优先从真实文档标题选,需人工核语言学正确性)、`What a wonderful surprise!`(过);反例:11+ 词整句糊弄(拒)。正例**不得含可拆的后置介词短语**(与 4c 口径一致)。上限 10 的可验证依据 = 0a 落地后 improved-008 的 `ATTRIBUTE 7..16` 恰 10 实词(生产 tokenizer 已核)。上限常量与豁免集进 architecture-docs 断言 |
+| 1c | **V2+V12 统一门**:单成分覆盖整句且实词 ≥4 时,仅当 `role ∈ {FRAGMENT_HEAD, INDEPENDENT_ELEMENT, APPOSITIVE}` **且**实词数 ≤10 时放行;实现必须同时钉死 `components.length === 1` 与角色条件(两端整句门已按 `length===1` 取单成分,改动即把 `role !== FRAGMENT_HEAD` 换成豁免集 + `≤10`,增量极小);正例:9-10 词无介词词汇化标题(过,优先从真实文档标题选,需人工核语言学正确性)、`What a wonderful surprise!`(过);反例:11+ 词整句糊弄(拒)。正例**不得含可拆的后置介词短语**(与 4c 口径一致)。上限 10 沿用已裁定的启发式值，不以 improved-008 的 ATTRIBUTE 长度作为依据；落地前必须完成 §0.1 的长片段挑战验证，发现误杀则暂停并报告。上限常量与豁免集进 architecture-docs 断言 |
 | 1d | **V8**:TS service 层 `dropPunctuationOnlyComponents` 的预丢弃语义**下沉进双端 validator**(统一为「预丢弃」),correction 路径随之闭合;两端 validator 单元测试同步改(现状各自钉死相反行为;**新文案预告**:TS 侧纯标点结构错误文案 `component must not contain only punctuation` 将被 Kotlin 现有语义取代——整句全纯标点时产出 `must contain a non-punctuation component`,TS 旧反例断言组同步改);shared-fixtures 补纯标点成分对照向量 |
 | 1e | **(模板存档,非本批动作)新门错误文案初稿**——3b/3c 落地时按此模板双端逐字抄,不得各自造:V6 门:`a component that starts with a subordinating conjunction (because/although/…) is a clause and must be tagged with a clause role (ADVERBIAL_CLAUSE/…)`,V7 门:`a SUBJECT_CLAUSE must start with a subject-clause introducer (that/whether/what/who/…); retag or extend the component`。实现时可微调措辞但双端必须逐字一致 |
 
@@ -92,7 +102,7 @@ parity 更新方式:无现成脚本——临时 node 脚本调 `buildCorePrompt`
 
 | 项 | 内容 |
 |----|------|
-| 5a | **G2**:`improved-001` 拆为 `SUBJECT 0..1 + ATTRIBUTIVE_CLAUSE 2..4 + PREDICATE 5..6`;**G3**:`retry-008` 括注对齐 improved-003 口径(`SUBJECT 0..3 + APPOSITIVE 4..6`)+ conventions 补一句括注口径;**G4**:conventions 补「词汇化专名内部的介词短语不拆」;**G6**:conventions 注明「形容词短语内补足介词短语仍独立成 ADVERBIAL」。逐句人工复核 + replay |
+| 5a | **G2**:`improved-001` 拆为 `SUBJECT 0..1 + ATTRIBUTIVE_CLAUSE 2..4 + PREDICATE 5..6`;**G3**:`retry-008` 括注对齐 improved-003 口径(`SUBJECT 0..3 + APPOSITIVE 4..6`)+ conventions 补一句括注口径;**G4**:conventions 补「词汇化专名内部的介词短语不拆」;**G6**:conventions 注明「完整分句中形容词表语后的补足介词短语独立成 ADVERBIAL；不成句的形容词片段则留在 FRAGMENT_HEAD 内」(core prompt 在 4c 同步教该区分)。逐句人工复核 + replay |
 | 5b | **V9**:Kotlin 补 `auxiliaryModals` 集合与专属文案分支(以 TS 文案为准),双端各补文案断言;auxiliaryModals 进 0b 元测试 |
 | 5c | **R1**:Kotlin `AnalysisService` 的 normalize 复用 Segmenter 的共享 whitespace 常量(提为 internal,**不手写第三份**);缓存键向量补句内 NBSP 用例 |
 | 5d | **R5**:Kotlin 流式分片 translation 缺省对齐 TS(AnalysisService.kt:671 的 `?: return null` 整片拒绝 → 缺失时 `""` 接受,渐进增强语义) |
@@ -117,9 +127,19 @@ parity 更新方式:无现成脚本——临时 node 脚本调 `buildCorePrompt`
 4. 假服务器:detectKind 只认首行;`Focus:`/`Requested focus ranges:` 标记原文不变;改 prompt 后跑 playwright 全量。
 5. 文档同步:门数(六处含 overview.md)、词表、版本号、缩写枚举;`npm run docs:drift`。
 6. 门禁:每批 chrome(`npm test` + playwright + lint 恰 1 既有错误 + format:check + build)+ intellij(npm test + gradle test + buildPlugin + verifyPluginProjectConfiguration)。
-7. 真模型评测:批次 4 前(现状基线留档)、批次 4 后、全部完成后(同句集/逐句 diff 对比)。
+7. 真模型评测:按 §9.1 执行首轮与生产链路双轨评测。批次 0 数据修正后、批次 1 行为改动前留生产链路基线；批次 4 前留 prompt 基线，批次 4 后与全部完成后复测。Task 0E 先准备离线可测的评测接入与固定语料。无模型访问条件可继续离线开发，但准确性验收标为待完成，不以“只加例句所以低风险”替代证据。
 8. 发布:合并一次发布(建议 1.4.0);CHANGELOG 记录**两次**缓存作废(批次 2 与批次 4——P10-P12 已定论并入批次 4,批次 6 不再动 core prompt)与 etc. 分句行为变化;「全量重取」列入验收清单为预期行为。
 9. 提交节奏细化:0a 与 0d 分开提交(数据修正 vs 基建搬家,replay 语义不同);每批提交前跑 `npm run docs:drift`;全计划单分支顺序执行,**不需要 worktree**;新黄金句不得早于批次 2 入库(避免旧 tokenizer token 序列返工)。
+
+## 9.1 准确性验收协议
+
+1. **两轨不能混为一分**：保留现有直接 buildCorePrompt 的首轮评分；增加调用生产 CachedAnalysisService.analyzeCore 的链路评分，覆盖真实 validator、逐轮收窄的最多两轮 repair、最终失败。冷缓存且 bypassCache=true。IntelliJ 使用 AnalysisServiceTest 的请求记录 seam 回放相同响应轨迹，验证同输入的接受/拒绝及最终 span/role 与 TS 一致，不能用“TS 终评通过”宣称 Kotlin 已验证。
+2. **同次请求配对**：adapter 记录同一次服务调用的首轮输出、repair 输出与请求次数，首轮和最终输出分别评分；不要另调一次模型来推断“修坏”。记录正确首轮被拒数、其中 grammar/非 grammar 错误原因、首轮错→最终对数、首轮对→最终错或失败数、最终失败数。分母固定为评测全集，失败句不得从准确率分母排除；正确首轮被拒比例的分母为首轮语法 exact 的句数，分母为零时报告 N/A。
+3. **主指标**：首轮与最终的整句 exact、span F1、labeled-span F1、exact-span role accuracy 均报；上线判断以最终整句 exact 和 labeled-span F1 为主。分别报告片段、从句、宾补、介词附着、并列结构等类别及每句差异，不能用总分掩盖某类系统性退化。长度门挑战中已确认的合法不可拆片段误杀是阻断项。
+4. **语料隔离**：规则回归集可含 prompt 例句；独立留出集不得写进 prompt，至少覆盖上述五类，每类至少 4 个真实文档或独立改写样本，含易混淆反例。记录来源/标注依据并人工复核；每个新黄金标注附 span/role 断言。留出集一旦用于调 prompt，就转为开发集并补新留出句。批次 2 前只冻结文本、来源和人工词语边界，不提前将新句写进共享黄金集；评测时按各版本 tokenizer 将词语边界映射成 token span。
+5. **可比性**：固定语料文本、黄金标注口径、模型标识、请求参数、批大小与顺序，首轮/最终至少各报告三次配对运行的均值及范围（来自同三次服务轨迹）。artifact 保存 git commit、prompt 文本及其哈希、版本、tokenizer/语料快照及其哈希、逐句输入输出与错误，全部脱敏。黄金口径修订后重评保存的旧输出；tokenizer 改动须先按各自输入 tokens 映射到原文字符边界后比较，禁止直接比较不同坐标系的 token span。补句不能混入旧全集总分，交集与新增集分开报告。
+6. **验收结论**：相同配置/同句集的最终整句 exact 与 labeled-span F1 均值不得低于基线；检查三次范围与逐句回归，对下降或波动导致结论不稳的项追加复测，不宣称提升。新增误杀、repair 修坏必须逐条人工归因，未解决的系统性语法退化阻断准确性验收。没有前后证据只能报告绝对分与限制，状态为“准确性验收待完成”；保留旧 commit 与 prompt 快照以便有 key 后补跑，不能拿新 prompt 冒充旧基线。已有接受的残留误杀单列，不偷偷从分母移除。
+7. **离线与联网分离**：计分与轨迹转换测试使用固定响应，纳入 CI；真实 API 只由 gitignored acceptance 脚本手动运行。禁止 CI 联网、禁止读取或输出密钥文件内容。
 
 ## 10. 明确不做(本次范围外)
 

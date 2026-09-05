@@ -18,7 +18,7 @@
 - 假服务器红线:`Focus:` / `Focus range:` / `Requested focus ranges:` 标记原文不变（fake-openai-server.ts parseFocus :281 / sentenceDetailsTargets :299 依赖）。
 - parity 重生成方式:无现成脚本——临时 node 脚本调 `buildCorePrompt`（与 `buildRepairPrompt`/`buildDetailPrompt`）输出后手工更新 `core-prompt-parity.json`。
 - 新增黄金句一律人工核语言学正确性 + 补机器口径断言（AGENTS 硬性要求）。
-- 批次 4 前、批次 4 后、全部完成后各跑一次真模型评测（`.superpowers/acceptance/run-core-gold-evaluation.mjs`，需环境变量;批次 4 前先重跑现状基线留档——补句后黄金集从 86 句增长，按同句集或逐句 diff 对比，不比旧总分）。
+- 真模型验收统一遵循规格 §9.1：Task 0E 行为改动前基线、Task 16 批次 4 前基线、Task 20 阶段评测、Task 30 终评均按三次配对生产轨迹报告首轮与最终准确度。独立留出集不进 prompt；无模型访问条件标“准确性验收待完成”。文中 86/90 句为原计划计数，补作用域对照句后按实际计数，不硬编码数量代替覆盖断言。
 
 ---
 
@@ -26,8 +26,11 @@
 
 - [ ] **Step 1: 跑现状基线**
 
-Run: `source ~/.secrets && node .superpowers/acceptance/run-core-gold-evaluation.mjs`（脚本路径已在批次 0 Task 4 改为 shared-fixtures）。
-Expected: 产出基线分数文件;保存到 `.superpowers/acceptance/` 下带日期文件名（该目录 gitignored，不入库）。**基线语义（第 4 轮审核 M-3）**:此时点是「prompt 11 文本 + Task 1 新标注的 86 句」（评测脚本不走 validator/repair,批次 0-3 的 validator 改动对基线零影响）;与 acceptance 历史 baseline（旧标注 81 句）不可比,勿比旧总分。**跳过路径（第 4 轮审核 E-1:原「批次 4 后补跑两次对比」逻辑空转——届时代码已是 prompt 13,无法补基线）**:无 key 时接受「无基线,仅留批次 4 后绝对分」,并在 Task 20 记录「降级依据:批次 4 prompt 改动全部为加例句/加定义,无删改既有规则,回归风险低」（E-2 的定性写死在计划里）。
+前置：Task 0E 的生产链路评测接入与行为改动前快照已完成。此时 prompt 文本仍为 11 的规则、版本号为 12，但 validator/tokenizer 已变化，**本次是批次 4 前基线，不替代 Task 0E 的全计划基线**。
+
+Run: `source ~/.secrets && node .superpowers/acceptance/run-core-gold-evaluation.mjs --mode pipeline --candidate .superpowers/acceptance/core-pre-batch4-run1.json`；以 run2/run3 文件名再跑两次。同轨迹记录首轮与最终分数，固定配置/批大小/顺序；保留原始首轮模式用于单独研究 prompt，不用它证明 validator/repair 有效。
+
+Expected: 按规格 §9.1 保存三次配对分数及逐句脱敏轨迹；基线文件独立命名，后续只读。使用 Task 0E 冻结并人工复核的评测口径，不能拿旧 81 句总分比较；规则回归集与留出集分别报告。无 key 时保存旧 commit、prompt 与语料快照，登记“准确性验收待完成”，未来从旧版本补跑；不得以“只加例句/定义所以回归风险低”放行准确性验收。
 
 ---
 
@@ -54,7 +57,7 @@ Expected: 产出基线分数文件;保存到 `.superpowers/acceptance/` 下带�
 
 1. `predicative-clause-1`: `The real problem is that the cache entry has expired.` → PREDICATE(is) 前段 SUBJECT(The real problem) + PREDICATIVE_CLAUSE(that the cache entry has expired)整块。
 2. `subject-clause-whatever`: `Whoever wins the race gets the final ticket.` → SUBJECT_CLAUSE(Whoever wins the race) + PREDICATE(gets) + OBJECT(the final ticket)。
-3. `appositive-clause-1`: `Claude Code, an AI coding assistant, helps developers work faster.` → 实测 token 序列 `0:Claude 1:Code 2:,[P] 3:an 4:AI 5:coding 6:assistant 7:,[P] 8:helps 9:developers 10:work 11:faster 12:.[P]`;标注 **SUBJECT(0..1) + APPOSITIVE(3..6) + PREDICATE(8..8) + OBJECT(9..9) + ADVERBIAL(10..11)**（逗号 2/7 退出覆盖;`work faster` 角色**写死 ADVERBIAL**——若人工复核倾向 `helps you run` 的 OBJECT+COMPLEMENT 口径,则改 OBJECT(9..9)+COMPLEMENT(10..11),二选一后写进断言表,双端 fixture 同值,勿留两可）。
+3. `appositive-clause-1`: `Claude Code, an AI coding assistant, helps developers work faster.` → 实测 token 序列 `0:Claude 1:Code 2:,[P] 3:an 4:AI 5:coding 6:assistant 7:,[P] 8:helps 9:developers 10:work 11:faster 12:.[P]`;标注 **SUBJECT(0..1) + APPOSITIVE(3..6) + PREDICATE(8..8) + OBJECT(9..9) + COMPLEMENT(10..11)**（逗号 2/7 退出覆盖；`work faster` 为宾语 developers 的动作补足，不是修饰 helps 的普通状语。用同一口径核对既有 help + 宾语 + 裸不定式样本，发现冲突先修标注依据，不为断言方便改回 ADVERBIAL）。
 4. `independent-element-1`: `Fortunately, the deployment finished without errors.` → INDEPENDENT_ELEMENT(Fortunately) + SUBJECT(the deployment) + PREDICATE(finished) + ADVERBIAL(without errors)。
 
 core-gold-annotations.test.ts:it.each 断言表追加这 4 句的 span 表（照既有 `keeps the human-reviewed component contract` 模式）;角色覆盖断言清单补 `GrammarRole.PREDICATIVE_CLAUSE`（SUBJECT_CLAUSE 已在）。
@@ -92,6 +95,8 @@ it("separates adjective-complement from noun-postmodifier in fragments", () => {
 - 4a 「Complex-sentence rule」**不是具名常量**——它是 `CORE_ANALYSIS_RULES` 数组的内联元素（TS prompts.ts:202-205 / Kotlin Prompts.kt:176,含 "five subordinate clause roles" 字样的那段）。在该段末尾追加: `'Use PREDICATIVE_CLAUSE for a clause that completes a linking verb ("The real problem is that the cache entry has expired" → the "that…" clause is ONE PREDICATIVE_CLAUSE), SUBJECT_CLAUSE for a clause acting as subject ("Whoever wins the race gets the final ticket" → "Whoever wins the race" is ONE SUBJECT_CLAUSE), and ADVERBIAL_CLAUSE for a subordinate clause acting as an adverbial ("Because the road was flooded, the bus took a longer route." → the "Because…" clause is ONE ADVERBIAL_CLAUSE).'`
 - 4b PEER_COMPONENT_RULE 追加: `'A COMPLEMENT completes an object or a verb ("We consider the tool essential" → OBJECT "the tool" plus COMPLEMENT "essential"; "They painted the fence bright blue" → OBJECT plus COMPLEMENT).'`
 - 4c COMPLETENESS_FIRST_RULE 追加: `'A prepositional phrase that completes an adjective head stays inside the single FRAGMENT_HEAD ("Compatible with all major model providers" is ONE FRAGMENT_HEAD); only a postmodifier of a noun head separates ("Support for synchronous APIs" is FRAGMENT_HEAD "Support" plus ATTRIBUTE "for synchronous APIs").'`
+- 4c 作用域补齐（同次 CORE→13）：再加 `'In a full clause, under this learning convention, separate a prepositional complement after an adjective predicative as ADVERBIAL: "The tool is suitable for beginners" is SUBJECT "The tool", PREDICATE "is", PREDICATIVE "suitable", and ADVERBIAL "for beginners". In the fragment "Suitable for beginners", keep the adjective and its complement in ONE FRAGMENT_HEAD.'`。conventions 同步同义中文；双端 prompt 测试检查两种作用域，黄金标注各补 span/role 断言（若全库无对应样本则新增，计数按实际更新）。
+- V14 提前教学（同次 CORE→13）：加 `'A noun-phrase fragment may contain a relative clause: "An API that returns JSON responses" is FRAGMENT_HEAD "An API" plus ATTRIBUTIVE_CLAUSE "that returns JSON responses". The finite verb inside that relative clause does not turn the whole input into a main clause.'`。同步修正原 completeness 判断为先判断是否存在主句/祈使句结构，不能因内嵌从句有 finite predicate 就判整个输入成句。双端 prompt 测试钉住例句及作用域。Task 24 才放宽 validator/入黄金句；批次 4 阶段对此类已知误杀单列，最终验收必须消除，不发布中间态。
 - 4d COMPLETENESS_FIRST_RULE 末尾追加: `'Inside a full clause a non-finite phrase keeps its normal role (a gerund phrase as SUBJECT or OBJECT, a participial opener as ADVERBIAL); FRAGMENT_HEAD applies only when the whole input is not a clause.'`
 - 4e SUPPLEMENT_RULE 追加: `'A comma-braced noun phrase renaming another noun is APPOSITIVE ("Claude Code, an AI coding assistant, …" → "an AI coding assistant" is ONE APPOSITIVE), and a sentence-initial comment adverb is INDEPENDENT_ELEMENT ("Fortunately, …" → "Fortunately" is ONE INDEPENDENT_ELEMENT).'`
 - 4e2 PREDICATE_SCOPE_RULE 助动词列表补 `been, being, having`;SUPPLEMENT_RULE 或 PREDICATE_SCOPE_RULE 可选补 seem 一例（实现时定,双端一致）。
@@ -189,8 +194,8 @@ git commit -m "fix: 统一修复提示词标签并修复多句修复路径错位
 AGENTS.md:48 版本号更新（core 13 / detail 7）;`docs/architecture/protocol.md:11-14` 版本表与叙事;`invariants.md:263`（「当前值分别为 11 与 5」→13/7）;`model-pipeline.md` 版本叙事（:229 附近）。Task 18 的 DETAIL→7 与 Task 17 的 CORE→13 在各自落地时已改版本四文件,本步骤只补 AGENTS/architecture 四处叙事。
 - [ ] **Step 3: 真模型评测（对比 Task 16 基线,按同句集 86 句对比或逐句 diff）**
 
-Run: `source ~/.secrets && node .superpowers/acceptance/run-core-gold-evaluation.mjs`
-Expected: exact/span F1 不低于基线（新增句集单独看）;若下降,停下分析逐句 diff——prompt 例句改动引起的回归优先于继续批次 5。
+Run: `source ~/.secrets && node .superpowers/acceptance/run-core-gold-evaluation.mjs --mode pipeline --baseline .superpowers/acceptance/core-pre-batch4-run1.json --candidate .superpowers/acceptance/core-post-batch4-run1.json`；run2/run3 分别使用对应基线与新输出文件。汇总三次均值/范围，不只看单次结果。
+Expected: 按规格 §9.1，最终整句 exact 与 labeled-span F1 均值不低于同句集基线，首轮与最终分别报告；规则集/独立留出集/新增句分别评分。逐句检查误杀、repair 修对/修坏、最终失败及五类结构分项。Task 17 的示例句属于规则集，不能算独立泛化证据；Task 24 尚未修的片段定从误杀显式列为未关闭项，不计作新增修复收益。出现新增系统性退化先停止分析，不以总分抵消。无基线时仅报告绝对分并保持“准确性验收待完成”。
 
 ---
 
@@ -215,7 +220,7 @@ core-gold-annotations.test.ts 追加断言（类比 of-index 测试的遍历式�
 
 - [ ] **Step 3: conventions 追加四条**
 
-「`The way we build software` 类接触性从句拆为 ATTRIBUTIVE_CLAUSE,不并入名词短语」「括号缩写注拆为 APPOSITIVE,如 `(ADR)`」「词汇化专名内部的介词短语不拆(如 Git for Windows)」「形容词短语内补足介词短语仍独立成 ADVERBIAL(如 for beginners)」。
+「`The way we build software` 类接触性从句拆为 ATTRIBUTIVE_CLAUSE,不并入名词短语」「括号缩写注拆为 APPOSITIVE,如 `(ADR)`」「词汇化专名内部的介词短语不拆(如 Git for Windows)」「完整分句中，形容词表语后的补足介词短语按本项目学习粒度另标 ADVERBIAL；不成句的形容词片段则保留在 FRAGMENT_HEAD 内(如 Suitable for beginners)」。该作用域已在 Task 17 同步 prompt 与 conventions，本任务检查并补齐，不重复追加相冲突的旧句。
 
 - [ ] **Step 4: 黄金集双端 replay + Commit**
 
@@ -341,6 +346,6 @@ git commit -m "feat: 片段允许内嵌定语从句并对齐流式分片缺省"
 ## Task 30: 批次 6 收尾——门禁 + 真模型终评 + 发布准备
 
 - [ ] **Step 1: 全量双端门禁 + docs:drift**
-- [ ] **Step 2: 真模型终评（对比 Task 20,全部新句集含入）**
+- [ ] **Step 2: 真模型终评**。按 Task 20 的 pipeline 命令模式运行三次，candidate 分别保存为 `core-final-run1/2/3.json`。同时对比 Task 0E 全计划基线与 Task 16/20 阶段结果；最终口径重评旧输出，跨 tokenizer 先转字符 span。固定句集交集、规则集、独立留出集、新增句分别报告，不能把全部新句混入旧总分。检查最终整句 exact/labeled-span F1 均值、范围、五类结构分项、正确首轮误拒、repair 修对/修坏与最终失败；Task 24 的片段定从项必须关闭，长度门误杀不得靠删样本掩盖。通过双端固定轨迹回放后才能宣称两端链路一致。缺少可比基线或存在未解决系统性退化时标“准确性验收待完成”，不作准确度提升或发布就绪结论。
 - [ ] **Step 3: CHANGELOG 补两批条目（**批次 2 一次作废 + 批次 4 内 core/detail 分两提交连续作废**——第 4 轮审核 M-4:验收时「批次 4 中途还有一次 miss 高峰」是预期;etc. 行为变化 + 新门清单 + 提示词版本 13/7）;版本发布 1.4.0 准备（发布动作本身由用户执行）**
 - [ ] **Step 4: 最终 Commit** `chore: 发布准备与变更记录`
