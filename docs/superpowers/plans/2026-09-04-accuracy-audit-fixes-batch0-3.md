@@ -14,7 +14,7 @@
 ## Global Constraints
 
 - 双端逐字同步:validator 判定逻辑 + 英文错误文案、prompt 规则文本、词表成员——TS/Kotlin + contracts.json/parity fixture 一致（规格 §9.1）。
-- 本计划批次 0-3 **不升任何 PROMPT_VERSION**（规格 §3 结构性结论：repair prompt 是动态载荷不进缓存；旧缓存读回重过 validator，违背新门自动当 miss）。
+- **批次 1 与批次 3 的 validator 改动不升任何 PROMPT_VERSION**（规格 §3 结构性结论：repair prompt 是动态载荷不进缓存；旧缓存读回重过 validator，违背新门自动当 miss）。**批次 2 例外**——Task 10 的 tokenization 改动（etc. 变 Token ID）按 AGENTS 硬规则双升 CORE 11→12 / DETAIL 5→6（第 5 轮审核 A1 更正：原「批次 0-3 不升」为滑笔，D10 结论的作用域只有 validator 批次）。
 - 黄金集 replay:每条新门/改门后整份 86 句过双端 validator（0d 起 Kotlin 侧可用；规格 §9.3）。
 - lint 基线:恰好 1 个错误（options.test.ts 的 no-unnecessary-type-assertion），0 警告——不得新增（AGENTS 门禁）。
 - 提交信息中文主题。
@@ -89,7 +89,7 @@ git commit -m "test: 修正 improved-008 黄金标注并封住 APPOSITIVE 藏 of
 
 **Interfaces:**
 - Consumes: AnalysisValidator.kt 现有 6 张字符串词表
-- Produces: `internal` 可见词表 + `AnalysisValidatorTest` 中的 `word list sizes stay pinned` 元测试（Task 8/9/12 增量登记依赖此测试存在）
+- Produces: `internal` 可见词表 + `AnalysisValidatorTest` 中的 `word list sizes stay pinned` 元测试（Task 13/14/22 增量登记依赖此测试存在——第 5 轮审核 B1 更正：原引 Task 8/9/12 有误）
 
 - [ ] **Step 1: 补两个 @Test 注解**
 
@@ -115,18 +115,49 @@ fun `word list sizes stay pinned`() {
 }
 ```
 
-（需补 import `dev.codetui.englishsyntax.language.coordinatingConjunctions` 等——internal 顶层声明同包直接可见，实际无需 import；若声明在 object 内则用对象限定名。实现时按实际结构调整。）
+（internal 顶层声明对同包测试类直接可见、无需 import——已有活先例:`repairTruncatedJson`、`injectForTest()` 均为 internal 且被测试调用;若声明在 object 内则用对象限定名。）
+
+> 元测试守护边界（第 2 轮审核 G1）:钉的是 Kotlin 侧成员数（防静默增删）,防不了换词;TS 侧无对称元测试（词表不导出）——TS↔Kotlin 词表漂移由黄金集双端 replay 与 contract 测试间接兜底。**加词须双端同步 + 同步改此断言**（后续任务已有登记步骤）。
 
 - [ ] **Step 4: 跑 Kotlin validator 测试**
 
 Run: `./gradlew :intellij-plugin:test --tests "dev.codetui.englishsyntax.language.AnalysisValidatorTest"`
-Expected: PASS（44 个用例全绿——比之前多 3 个：两个复活 + 一个元测试）。
+Expected: PASS（**45 个用例**全绿——现有 42 个 @Test + 两个复活 + 一个元测试）。
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add intellij-plugin/src/main/kotlin/dev/codetui/englishsyntax/language/AnalysisValidator.kt intellij-plugin/src/test/kotlin/dev/codetui/englishsyntax/language/AnalysisValidatorTest.kt
 git commit -m "test: 复活 Kotlin 校验器死测试并钉住词表成员数"
+```
+
+---
+
+## Task 2b: validator 错误文案 shared fixture（第 3 轮审核 B1:双端互验机制缺口的收口）
+
+**Files:**
+- Create: `shared-fixtures/validator-messages.json`
+- Modify: `chrome-plugin/src/language/analysis-validator.ts`（可选:导出一个固定输入 → 全部文案的纯函数,或由测试组装）
+- Create/Modify: `chrome-plugin/src/language/validator-messages.test.ts`（TS 消费端）
+- Create/Modify: `intellij-plugin/src/test/kotlin/dev/codetui/englishsyntax/language/ValidatorMessagesTest.kt`（Kotlin 消费端）
+
+**Interfaces:**
+- Consumes: 双端 validator 对固定 synthetic 输入产出的 errors 数组
+- Produces: `shared-fixtures/validator-messages.json`——**顶层对象** `{ coveredMessageSubstrings: string[], cases: [{id, input: {sentence, components-json}, expected: [{path, message}]}] }`（第 5 轮审核 A3 统一：原 Produces 写纯数组挂不了顶层字段）;后续 Task 7/13/14/22 的新门文案各增补条目（各自任务 Files 已含此文件）
+
+- [ ] **Step 1: 定义固定输入集（覆盖现 13 门各至少一条;**排除已知分叉项**）**
+
+每门选一个最小触发输入（句子 + components JSON 字符串）——**批次 0 实际可钉的是「10 门 + 助动词子门与负数文案等已对齐子项」,排除三条门后初建覆盖即它们暂无条目**（第 5 轮审核 A3 措辞更正:「13 门各至少一条」与排除并存时字面不可满足,以 coveredMessageSubstrings 清单自声明的实际内容为准）。**批次 0 输入集必须排除三类已知双端分叉的输入**（第 4 轮审核 D-2——它们正是后续任务要修的,现在钉进夹具会当场红、无法满足 Step 3「双端绿」）:①纯标点成分输入（V8,TS 报结构错/Kotlin 预丢弃,Task 8 落地时补入）;②前谓语为单词助动词的相邻 PREDICATE 输入（V9,文案分叉,Task 22 落地时补入）;③负数/`"0.0"` startToken 输入（V11,Kotlin 专属文案,Task 25 落地时补入）。
+
+- [ ] **Step 2: TS 生成 fixture（唯一生成端），双端消费 + 覆盖表断言**
+
+TS 侧把「输入 → 完整 errors 数组」写入 fixture（多门命中同一输入时 expected 含多条,合法）;TS 测试断言 `validateCoreBatch(输入) 的 errors === fixture 条目`;Kotlin ValidatorMessagesTest 同款断言（**纯消费**）。此后任何单端改文案都会在另一端红。**覆盖表机器断言（第 4 轮审核补）**:TS 测试加一条「fixture 全体 errors 消息的并集 ⊇ 各门代表文案子串清单」断言,防后续任务增删条目时漏门——清单本身进 fixture 的 `coveredMessageSubstrings` 字段。
+
+- [ ] **Step 3: 双端测试绿 + Commit**
+
+```bash
+git add -A
+git commit -m "test: 校验器错误文案建立双端互验夹具"
 ```
 
 ---
@@ -138,7 +169,7 @@ git commit -m "test: 复活 Kotlin 校验器死测试并钉住词表成员数"
 - Test: 双端 segmenter 测试自动消费（TS `it.each(vectors)` / Kotlin for 循环遍历）
 
 **Interfaces:**
-- Consumes: 现有向量 JSON 结构（name/input/sentences 或同等字段——实现时先读文件头几组确认 schema）
+- Consumes: 现有向量 JSON 结构（实测 schema 为 `{name, block, sentences: [{text, start, end, tokens: [...]}]}`——字段名是 **block** 非 input）
 - Produces: 新增 5 组向量，双端同测
 
 - [ ] **Step 1: 确认向量 schema**
@@ -197,24 +228,19 @@ Expected: PASS。
 ```kotlin
 package dev.codetui.englishsyntax.contract
 
-import dev.codetui.englishsyntax.domain.CoreComponent
-import dev.codetui.englishsyntax.domain.GrammarRole
-import dev.codetui.englishsyntax.domain.Token
-import dev.codetui.englishsyntax.domain.TokenRange
-import dev.codetui.englishsyntax.language.AnalysisValidator
-import dev.codetui.englishsyntax.language.Segmenter
-import kotlinx.serialization.json.Json
-// 按仓库既有 JSON 解析模式（LenientJson/JsonObject）解析 fixture；
+// 顶层函数直接 import（无 Segmenter 类）:
+import dev.codetui.englishsyntax.language.tokenize
+// 按仓库既有 JSON 解析模式（LenientJson/JsonObject,参照 SharedContractTest 消费 contracts.json 的方式）解析 fixture;
 // 结构: { conventions: [...], sentences: [{ id, text, components: [{startToken,endToken,role}] }] }
+// validateCoreBatch 签名: (raw: JsonElement, requests: List<SentenceInput>, profileId: String) —— 只收 JsonElement,
+// raw 组装参照 AnalysisValidatorTest 既有 core() helper(逐成分 JSON 数组字符串)
 
 class CoreGoldAnnotationsTest {
-  // 逐句: tokenize(text) → 组装 CoreComponent(role 枚举valueOf, TokenRange, translation 占位"") 
-  //   → AnalysisValidator.validateCoreBatch(单句 raw, 单句请求, "gold") 断言 ok
-  // 参照 AnalysisValidatorTest 既有 core() helper 的 raw 组装方式
+  // 逐句: tokenize(text) → core() 式 raw JSON(translation 用"译文") → validateCoreBatch(raw, listOf(单句请求), "gold") 断言 ok
 }
 ```
 
-实现要点:黄金集 JSON 无 translation 字段，逐句注入占位 `""`（TS 侧测试 :201-204 同款做法）；用 `FixtureLoader.text("core-gold-annotations.json")` 读取。
+实现要点:黄金集 JSON 无 translation 字段，逐句注入占位非空译文 `"译文"`（TS 侧测试 :201-204 同款做法——**勿用空串**,双端 validator 对空 translation 报 must not be empty,86 句会全红）；用 `FixtureLoader.text("core-gold-annotations.json")` 读取。
 
 - [ ] **Step 4: 跑 Kotlin 测试**
 
@@ -243,6 +269,8 @@ git commit -m "test: 黄金集升入 shared-fixtures 实现双端校验回归"
 - Modify: `intellij-plugin/src/main/kotlin/dev/codetui/englishsyntax/language/AnalysisValidator.kt`（:301-312）
 - Modify: `intellij-plugin/src/test/kotlin/dev/codetui/englishsyntax/language/AnalysisValidatorTest.kt`
 
+- Modify: `shared-fixtures/validator-messages.json`（第 4 轮审核:判定变化——夹具若含「PREDICATIVE_CLAUSE 尾 of」类输入,从拒变过,该条目删除或换为短语角色反例,双端同提交）
+
 **Interfaces:**
 - Consumes: `CLAUSE_ROLES` 集合（TS :188-194 / Kotlin :150 附近）
 - Produces: 尾介词门对从句角色的豁免（`of/within/between/among` 保留白名单；词表成员数不变，Task 2 元测试不受影响）
@@ -263,7 +291,7 @@ it("still rejects a phrase component ending on of with its object split off", ()
 });
 ```
 
-Kotlin AnalysisValidatorTest.kt 追加同款两个用例（用既有 `sentence()` / `core()` helper，文案断言 `"a component must not end on a preposition; merge the phrase that preposition governs into the same component"`）。
+Kotlin AnalysisValidatorTest.kt 追加同款两个用例（用既有 `sentence()` / `core()` helper）。**TS 侧用例 2 也须断言同款文案**（复用既有 `DANGLING_PREPOSITION_MESSAGE` 常量,analysis-validator.test.ts:682-683）——双端守护强度一致,文案即修复指令。
 
 - [ ] **Step 2: 跑测试确认失败模式正确**
 
@@ -309,6 +337,8 @@ git commit -m "fix: 尾介词门对从句角色豁免悬垂介词"
 - Modify: `intellij-plugin/src/main/kotlin/dev/codetui/englishsyntax/language/AnalysisValidator.kt`（clauseInternalFollowers :178-182 附近 + 门）
 - Modify: `intellij-plugin/src/test/kotlin/dev/codetui/englishsyntax/language/AnalysisValidatorTest.kt`
 
+- Modify: `shared-fixtures/validator-messages.json`（第 4 轮审核:判定变化——夹具若含「ATTRIBUTIVE_CLAUSE+COMPLEMENT」输入,从拒变过,条目同步,双端同提交）
+
 **Interfaces:**
 - Consumes: CLAUSE_INTERNAL_FOLLOWERS 集合
 - Produces: 集合缩为 {OBJECT, PREDICATIVE}（成员数 3→2；若 Task 2 元测试纳入该集合需同步改断言——本计划未纳入，只需改集合）
@@ -345,8 +375,11 @@ git commit -m "fix: 定语从句跟随门不再误杀宾补结构"
 - Modify: `chrome-plugin/src/language/analysis-validator.ts`（整句门 :401-415 + 常量区）
 - Modify: `chrome-plugin/src/language/analysis-validator.test.ts`
 - Modify: `chrome-plugin/src/shared/architecture-docs.test.ts`（钉上限常量）
+- Modify: `docs/architecture/model-pipeline.md` 与 `docs/architecture/invariants.md`（**须同步写出常量值 10**——expectDocumentedNumber 要求文档里出现该数值,否则断言红;勿等 Task 15 统一补）
 - Modify: `intellij-plugin/src/main/kotlin/dev/codetui/englishsyntax/language/AnalysisValidator.kt`（:315-329）
 - Modify: `intellij-plugin/src/test/kotlin/dev/codetui/englishsyntax/language/AnalysisValidatorTest.kt`
+
+- Modify: `shared-fixtures/validator-messages.json`（Task 2b 夹具增补本门新文案条目;**旧整句门条目可能失效**——若夹具含「INDEPENDENT_ELEMENT/APPOSITIVE 整句」输入,旧门只豁免 FRAGMENT_HEAD 现状被拒,本任务后 ≤10 实词变 ok,该条目 expected 同步改;**新文案子串同步进 coveredMessageSubstrings**,双端同提交）
 
 **Interfaces:**
 - Consumes: Task 1 落地后的黄金集（improved-008 的 ATTRIBUTE 7..16 恰 10 实词是上限依据）
@@ -354,9 +387,9 @@ git commit -m "fix: 定语从句跟随门不再误杀宾补结构"
 
 - [ ] **Step 1: 写失败测试（双端，三组）**
 
-1. 11 实词整句单 FRAGMENT_HEAD → 拒（`one component must not cover the whole sentence...`——复用现有文案）。例句自造 11+ 实词成句（如 `The quick brown fox jumps over the lazy dog near the river bank.`——14 实词）整句标一个 FRAGMENT_HEAD。
+1. 11 实词整句单 FRAGMENT_HEAD → 拒,期望文案是**新门文案** `a whole-sentence fragment component must not exceed 10 lexical tokens; split it into a fragment head plus its modifiers`（**勿写旧整句门文案**——FRAGMENT_HEAD 在豁免集内,旧门被跳过,断旧文案实现后仍红）。例句自造 11+ 实词成句（`The quick brown fox jumps over the lazy dog near the river bank.`——实测 **13** 实词）整句标一个 FRAGMENT_HEAD。
 2. `What a wonderful surprise!`（4 实词）整句 INDEPENDENT_ELEMENT → 过（现状被拒）。
-3. 9-10 实词无介词词汇化标题整句 APPOSITIVE → 过。**正例句不得含可拆的后置介词短语**——用并列名词形态，如 `A fast, reliable, and secure developer experience platform`（9 实词: fast/reliable/and/secure/developer/experience/platform + a + ...以实际 tokenizer 计数为准，实现时先 tokenize 数实词，选一个恰 9-10 的真实标题形态句）。
+3. 9-10 实词无介词词汇化标题整句 APPOSITIVE → 过。**正例句不得含可拆的后置介词短语**——用并列名词形态，实测可用:`A fast, reliable, secure, and modern developer experience platform`（**9** 实词）或 `Claude Code, a fast, reliable, and secure developer experience platform`（**10** 实词,但注意逗号结构宜作 4 句集用句外正例;两候选均已 tokenize 验证,无介词无可拆后置介词短语）。
 
 - [ ] **Step 2: 跑测试确认失败模式**
 
@@ -392,11 +425,11 @@ if (
   lexicalTexts(tokens, only).length === lexicalTokenCount
 ) {
   addError(errors, `${path}.components`,
-    "a whole-sentence fragment component must not exceed 10 lexical tokens; split it into a fragment head plus its modifiers");
+    `a whole-sentence fragment component must not exceed ${MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS} lexical tokens; split it into a fragment head plus its modifiers`); // 文案用常量插值,上限调整只改一处
 }
 ```
 
-Kotlin :315-329 同构实现（常量同名、文案逐字一致）。
+Kotlin :315-329 同构实现（常量同名 `MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS`;**文案用 Kotlin 字符串模板** `"a whole-sentence fragment component must not exceed $MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS lexical tokens; split it into a fragment head plus its modifiers"`——单串+$插值,勿按文件内既有 `+` 拼接风格写死 10,否则常量改值时 TS 改 Kotlin 漏,静默分叉）。
 
 - [ ] **Step 4: architecture-docs 断言 + 双端测试 + replay**
 
@@ -419,7 +452,10 @@ git commit -m "fix: 单成分整句豁免集配实词上限防糊弄"
 - Modify: `chrome-plugin/src/language/analysis-validator.ts`（parse 阶段预丢弃纯标点成分）
 - Modify: `chrome-plugin/src/language/analysis-validator.test.ts`（改既有纯标点反例断言）
 - Modify: `chrome-plugin/src/background/analysis-service.ts`（删 dropPunctuationOnlyComponents 调用,函数可留或删）
+- Verify-only: `chrome-plugin/src/background/analysis-service.test.ts` 的三个纯标点用例（:1290-1343,断言 service 层 drop 行为）——drop 下沉后行为等价应保持绿,**确认等价、预期不改**;若 fetch 计数断言意外红再评估
 - Modify: `intellij-plugin/src/main/kotlin/dev/codetui/englishsyntax/language/AnalysisValidator.kt`（:414-424 已有预过滤,补「整句全纯标点」文案与 TS 对齐）
+
+- Modify: `shared-fixtures/validator-messages.json`（第 4 轮审核:TS 纯标点文案口径变化——Task 2b 排除的纯标点输入此时**补入夹具**（双端已对齐）,含「丢弃后通过」与「整句全纯标点拒」两类条目,双端同提交）
 
 **Interfaces:**
 - Consumes: Kotlin 现有预过滤语义（:414-424）+ 文案 `must contain a non-punctuation component`
@@ -431,11 +467,11 @@ git commit -m "fix: 单成分整句豁免集配实词上限防糊弄"
 
 - [ ] **Step 2: TS 实现预丢弃**
 
-在 components 映射后、结构校验前:纯标点成分（lexicalTexts 长度 0）filterNot 掉;若丢弃后 semanticComponents 为空 → addError(`must contain a non-punctuation component`)。删 :597-600 的旧纯标点结构错误。analysis-service.ts 的 `dropPunctuationOnlyComponents` 调用点删除（函数本体删除）。
+在 components 解析**前**按原始数组先 filterNot 纯标点再 mapIndexed 编 path（**与 Kotlin :414-427 现状同口径**——Kotlin 是先过滤再编号;若 TS 在映射后过滤,parse 错误的 path 索引会与 Kotlin 分叉,混合错误场景的 repair prompt 双端不一致）;若丢弃后 semanticComponents 为空 → addError(`must contain a non-punctuation component`)。删 :597-600 的旧纯标点结构错误。analysis-service.ts 的 `dropPunctuationOnlyComponents` 调用点删除（函数本体删除）。
 
 - [ ] **Step 3: Kotlin 对齐**
 
-Kotlin :414-424 已预丢弃;确认「整句全纯标点」产出的文案与 TS 逐字一致（`must contain a non-punctuation component`——已核 :422 现有文案即此）,若 TS 侧组装文案格式与 Kotlin 有差异（如 path 前缀）以 Kotlin 现状为准对齐。Kotlin 测试若有钉旧行为的用例同步改。
+Kotlin :414-424 已预丢弃且索引口径即目标口径;**Kotlin validateCoreBatch :492-494 的成功后二次过滤保留不动**（防御性,与预过滤条件差异不影响 errors 输出;TS 侧**不**实现对应物——双端口径就此写死,勿「顺手同构」）;确认「整句全纯标点」文案与 TS 逐字一致（`must contain a non-punctuation component`——已核 :422 现有文案即此）。Kotlin 侧两个「丢弃后通过」用例（AnalysisValidatorTest.kt:540/:557）钉的正是目标行为,**保持不动**。
 
 - [ ] **Step 4: 双端测试 + replay + E2E**
 
@@ -530,9 +566,9 @@ git commit -m "feat: etc. 纳入可收句缩写并升双提示词版本"
 - Consumes: `javascriptWhitespace` 单字符判定（Segmenter.kt:76）
 - Produces: 尾部剥离与 TS 显式类逐字符一致
 
-- [ ] **Step 1: 写失败测试**
+- [ ] **Step 1: 先实测定性（第 1 轮审核更正:公共路径上分叉不可达）**
 
-Kotlin 用例:`"Acme Inc.\u00A0 they said."`（NBSP 尾缀）当前 Kotlin trimEnd 不剥 NBSP（JVM isWhitespace 对 U+00A0 为 true——**注意方向**:先实测确认哪端剥哪端不剥,分叉方向以实测为准）→ 断言与 TS 行为一致的结果。向量:`inc-nbsp-tail`（期望按 TS 行为）与 `inc-u001c-tail`（U+001C 不在共享类,期望一段/两段以修后实测为准）。
+已实测 30+ 组差分（NBSP/U+001C/U+001D/U+202F/U+FEFF/VT 尾缀 × 缩写 × 大小写）:双端输出**逐字节一致**——`mergesIntoNext` 收到的片段终点永远是边界 offset（空白属下一段开头、由段首 trim 处理,两端都用共享类）,`trimEnd()` 与 TS 尾剥在实际输入上均为无操作。**本任务因此定性为:防御性对齐 + 向量钉一致现状**（防未来片段来源变化时 JVM 全集多剥 U+001C-001F）,不是修一个现行 bug。测试直接写「两段/一段」的一致性断言（绿),勿等红。向量:`inc-nbsp-tail` 与 `inc-u001c-tail`（期望值以双端修后实测一致为准,钉住的就是「一致」本身）。
 
 - [ ] **Step 2: 实现**
 
@@ -562,9 +598,11 @@ git commit -m "fix: Kotlin 尾部空白剥离对齐共享显式类"
 - Modify: `intellij-plugin/src/main/kotlin/dev/codetui/englishsyntax/language/AnalysisValidator.kt`
 - Modify: `intellij-plugin/src/test/kotlin/dev/codetui/englishsyntax/language/AnalysisValidatorTest.kt`（含元测试登记）
 
+- Modify: `shared-fixtures/validator-messages.json`（Task 2b 夹具增补本门文案条目,双端同提交）
+
 **Interfaces:**
 - Consumes: `lexicalTexts` helper（取第二实词）
-- Produces: 新词表（7 词,元测试登记成员数）+ 错误文案（见 Step 3,双端逐字）
+- Produces: 新词表（无条件 5 词 + because/though 两个条件款;元测试登记 5）+ 错误文案（见 Step 3,双端逐字）
 
 - [ ] **Step 1: 写失败测试（双端,四组）**
 
@@ -593,7 +631,7 @@ const CLAUSE_ONLY_CONJUNCTIONS: ReadonlySet<string> = new Set([
 // "a component that starts with a subordinating conjunction (because/although/…) is a clause and must be tagged with a clause role (ADVERBIAL_CLAUSE/…)"
 ```
 
-Kotlin 同构（`clauseOnlyConjunctions` internal 集合）。
+Kotlin 同构（`clauseOnlyConjunctions` internal 集合）,条件款用安全形态:**`(head == "because" && words.getOrNull(1) != "of") || (head == "though" && words.size >= 2)`**——必须 `getOrNull`,Kotlin `words[1]` 越界抛异常会被外层 catch 折叠成 `invalid JSON structure`,双端同输入输出分叉（TS `words[1]` 越界返回 undefined,单实词 `because` 成分在 TS 命中门、Kotlin 若照抄则崩）。双端正反例须各补一条:**单实词 `Because` 成分（如 `Because, we stayed.` 的 `Because 0..0` 标 ADVERBIAL）→ 须拒**（TS words[1]===undefined≠of → 命中;Kotlin getOrNull(1)===null≠of → 命中）。
 
 - [ ] **Step 4: 元测试登记 + 双端测试 + replay**
 
@@ -617,18 +655,25 @@ git commit -m "feat: 拦截从属连词开头的伪状语定语成分"
 - Modify: `intellij-plugin/src/test/kotlin/dev/codetui/englishsyntax/language/AnalysisValidatorTest.kt`（含元测试登记）
 - Modify: `chrome-plugin/src/shared/architecture-docs.test.ts`（闭集成员数断言）
 
+- Modify: `shared-fixtures/validator-messages.json`（Task 2b 夹具增补本门文案条目,双端同提交）
+
 **Interfaces:**
 - Consumes: 现有 SUBJECT_CLAUSE 门位（从句最少实词门附近）
 - Produces: `SUBJECT_CLAUSE_INTRODUCERS` 闭集（15 词）+ 文案（规格 1e 模板）
 
 - [ ] **Step 1: 写失败测试（双端）**
 
-1. `developers now play a frontline role` 标 SUBJECT_CLAUSE → 拒（历史实测错误,现状过——红）。
+1. `developers now play a frontline role` 标 SUBJECT_CLAUSE → 拒（历史实测错误,现状过——红）。**组装必须嵌入完整句子**（如 `INDEPENDENT_ELEMENT(Today,) + SUBJECT_CLAUSE(2..7)` 前置成分形态）——**不得单成分包整句**:单成分组装现状已被整句门拒,红因错误且实现后整句门仍在,测试死红。
 2. `Whoever wins gets the prize.` 的 `Whoever wins` 标 SUBJECT_CLAUSE → 过。
 3. `How he did it remains a mystery.` 的 `How he did it` → 过。
 4. `It is obvious that the cache is stale.` 的 `that the cache is stale` 标 PREDICATIVE_CLAUSE → 过（it 形式主语不误杀——门查从句成分自己的首词）。
 
-- [ ] **Step 2: 双端实现**
+- [ ] **Step 2: 跑测试确认红绿模式**
+
+Run: 双端 validator 测试。
+Expected: 用例 1 FAIL（现状闭集门缺失）;用例 2/3/4 PASS（回归侧）。
+
+- [ ] **Step 3: 双端实现**
 
 ```ts
 const SUBJECT_CLAUSE_INTRODUCERS: ReadonlySet<string> = new Set([
@@ -642,11 +687,11 @@ const SUBJECT_CLAUSE_INTRODUCERS: ReadonlySet<string> = new Set([
 
 Kotlin 同构（`subjectClauseIntroducers` internal）。
 
-- [ ] **Step 3: 元测试 + arch-docs 断言 + replay**
+- [ ] **Step 4: 元测试 + arch-docs 断言 + replay**
 
-Task 2 元测试追加 `assertEquals(15, subjectClauseIntroducers.size)`;architecture-docs.test.ts 按既有 helper 钉成员数（从源码计数,勿手写——参照 Task 7 Step 4 方式）。黄金集双端 replay（noun-clause-1 what / noun-clause-3 whether 均在闭集内,安全——审计实测）。
+Task 2 元测试追加 `assertEquals(15, subjectClauseIntroducers.size)`;architecture-docs.test.ts 按既有 helper 钉成员数（从源码计数,勿手写——参照 Task 7 Step 4 方式 + 其 Files 的文档前置说明（第 5 轮审核 B2 更正原 Step 5 引用））。黄金集双端 replay（noun-clause-1 what / noun-clause-3 whether 均在闭集内,安全——审计实测）。
 
-- [ ] **Step 4: 双端全量门禁 + Commit**
+- [ ] **Step 5: 双端全量门禁 + Commit**
 
 ```bash
 git add -A
@@ -658,7 +703,7 @@ git commit -m "feat: 主语从句首词必须命中引导词闭集"
 ## Task 15: 批次 3 收尾 + 批次 0-3 总结
 
 - [ ] **Step 1: 全量双端门禁 + docs:drift**
-- [ ] **Step 2: 核对规格 §2-§5 全条目完成**:0a✓(Task1) 0b✓(Task2) 0c✓(Task3) 0d✓(Task4) 1a✓(Task5) 1b✓(Task6) 1c✓(Task7) 1d✓(Task8) 2a✓(Task10) 2b✓(Task11) 3b✓(Task13) 3c✓(Task14);3a 已随 V5 裁定关闭。文档同步:AGENTS/protocol/model-pipeline/invariants/modules/overview 六处门数措辞随本批更新——**门数以代码实际重数为准**（当前 13 门,Task 7 为改造不净增,Task 13/14 各 +1,批次 6 Task 26 合并死门 -1;在此写「十五条」并注明构成）,勿沿用猜测数字。
+- [ ] **Step 2: 核对规格 §2-§5 全条目完成**:0a✓(Task1) 0b✓(Task2) 0c✓(Task3) 0d✓(Task4) 1a✓(Task5) 1b✓(Task6) 1c✓(Task7) 1d✓(Task8) 2a✓(Task10) 2b✓(Task11) 3b✓(Task13) 3c✓(Task14);3a 已随 V5 裁定关闭。文档同步:AGENTS/protocol/model-pipeline/invariants/modules/overview 六处门数措辞随本批更新;**AGENTS.md:46 的「十三条判据」枚举清单逐条对照更新**（第 5 轮审核 B3 更正：硬门段在 :46,:45 是缩写枚举行）（+V6 门 +V7 门;整句门改写为豁免集+上限口径;纯标点口径改写;批次 6 再 -废弃门）,勿只改总数——**门数以代码实际重数为准**（当前 13 门,Task 7 为改造不净增,Task 13/14 各 +1,批次 6 Task 26 合并死门 -1;在此写「十五条」并注明构成）,勿沿用猜测数字。
 - [ ] **Step 3: Commit（若有文档补齐）**
 
 ---
