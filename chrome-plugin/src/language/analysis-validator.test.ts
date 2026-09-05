@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { GrammarRole } from "../shared/grammar";
 import { CORE_SCHEMA_VERSION } from "../shared/versions";
@@ -52,14 +53,48 @@ function invalidCore(raw: unknown) {
 }
 
 function countStringSetMembers(source: string, constantName: string): number {
-  const declaration = new RegExp(
-    `const ${constantName}: ReadonlySet<string> = new Set\\(\\[([\\s\\S]*?)\\]\\);`,
-  ).exec(source);
-  expect(declaration, `missing source set ${constantName}`).not.toBeNull();
-  return [...declaration![1]!.matchAll(/^\s*"[^"]+",?$/gm)].length;
+  const sourceFile = ts.createSourceFile("word-lists.ts", source, ts.ScriptTarget.Latest, true);
+  const declaration = sourceFile.statements
+    .filter(ts.isVariableStatement)
+    .flatMap((statement) => [...statement.declarationList.declarations])
+    .find((candidate) => ts.isIdentifier(candidate.name) && candidate.name.text === constantName);
+  expect(declaration, `missing source set ${constantName}`).toBeDefined();
+
+  const initializer = declaration?.initializer;
+  expect(
+    initializer !== undefined &&
+      ts.isNewExpression(initializer) &&
+      ts.isIdentifier(initializer.expression) &&
+      initializer.expression.text === "Set" &&
+      initializer.arguments?.length === 1 &&
+      ts.isArrayLiteralExpression(initializer.arguments[0]!),
+    `source set ${constantName} must use new Set([...])`,
+  ).toBe(true);
+
+  const elements = (initializer as ts.NewExpression).arguments![0] as ts.ArrayLiteralExpression;
+  for (const element of elements.elements) {
+    if (!ts.isStringLiteral(element)) {
+      throw new Error(
+        `unsupported initializer element in source set ${constantName}: ${element.getText(sourceFile)}`,
+      );
+    }
+  }
+  return elements.elements.length;
 }
 
 describe("validator word list source guards", () => {
+  it("rejects unsupported set initializer elements instead of silently undercounting", () => {
+    const source = `
+      const TEST_WORDS: ReadonlySet<string> = new Set([
+        "one",
+        ...OTHER_WORDS,
+        "two",
+      ]);
+    `;
+
+    expect(() => countStringSetMembers(source, "TEST_WORDS")).toThrow(/unsupported initializer/i);
+  });
+
   it("keeps the six shared word list sizes pinned to the Kotlin baseline", () => {
     const source = readFileSync(new URL("./analysis-validator.ts", import.meta.url), "utf8");
 
