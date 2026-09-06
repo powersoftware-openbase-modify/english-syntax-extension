@@ -16,6 +16,7 @@ import dev.codetui.englishsyntax.scheduler.RequestScheduler
 import dev.codetui.englishsyntax.settings.CredentialStore
 import dev.codetui.englishsyntax.settings.JsonSchemaSupport
 import dev.codetui.englishsyntax.settings.ModelProfile
+import dev.codetui.englishsyntax.contract.FixtureLoader
 import dev.codetui.englishsyntax.testsupport.FakeOpenAiServer
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -250,6 +251,62 @@ class AnalysisServiceTest {
     assertEquals(
       dev.codetui.englishsyntax.domain.ErrorCode.INVALID_MODEL_OUTPUT,
       outcome.failures[0].error.code,
+    )
+  }
+
+  @Test
+  fun `shared evaluation trace replays through production service with identical shrinking subsets`() = runBlocking {
+    val fixture = json.parseToJsonElement(FixtureLoader.text("core-evaluation-traces.json")).jsonObject
+    val replay = fixture.getValue("serviceReplay").jsonObject
+    val snapshots = fixture.getValue("tokenizerSnapshot").jsonObject.getValue("sentences").jsonArray
+      .associate { item ->
+        val value = item.jsonObject
+        value.getValue("id").jsonPrimitive.content to value.getValue("text").jsonPrimitive.content
+      }
+    val ids = replay.getValue("inputSentenceIds").jsonArray.map { it.jsonPrimitive.content }
+    val sentences = ids.map { id -> sentence(id, snapshots.getValue(id)) }
+    val rounds = replay.getValue("rounds").jsonArray.map { it.jsonObject }
+    rounds.forEach { round -> server.enqueueJson(round.getValue("raw").toString()) }
+
+    val outcome = service.analyzeCore(
+      profile(),
+      "trace-doc",
+      sentences,
+      bypassCache = true,
+    )
+
+    val expected = replay.getValue("expected").jsonObject
+    assertEquals(
+      expected.getValue("successSentenceIds").jsonArray.map { it.jsonPrimitive.content },
+      outcome.result.map { it.sentenceId },
+    )
+    assertEquals(
+      expected.getValue("failureSentenceIds").jsonArray.map { it.jsonPrimitive.content },
+      outcome.failures.map { it.sentenceId },
+    )
+    val expectedSubsets = expected.getValue("repairSubsetSentenceIds").jsonArray.map { subset ->
+      subset.jsonArray.map { it.jsonPrimitive.content }
+    }
+    val observedSubsets = server.requests.drop(1).map { request ->
+      ids.filter { id -> request.body.getValue("messages").toString().contains("\\\"sentenceId\\\":\\\"$id\\\"") }
+    }
+    assertEquals(expectedSubsets, observedSubsets)
+    val expectedAnalyses = expected.getValue("finalAnalyses").jsonArray.map { analysis ->
+      val value = analysis.jsonObject
+      value.getValue("sentenceId").jsonPrimitive.content to value.getValue("components").jsonArray.map { component ->
+        val fields = component.jsonObject
+        Triple(
+          fields.getValue("startToken").jsonPrimitive.content.toInt(),
+          fields.getValue("endToken").jsonPrimitive.content.toInt(),
+          fields.getValue("role").jsonPrimitive.content,
+        )
+      }
+    }
+    assertEquals(
+      expectedAnalyses,
+      outcome.result.map { analysis ->
+        analysis.sentenceId to analysis.components.map { Triple(it.startToken, it.endToken, it.role.name) }
+      },
     )
   }
 

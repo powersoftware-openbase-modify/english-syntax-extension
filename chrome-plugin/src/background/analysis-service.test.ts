@@ -1,4 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
+import { tokenize } from "../language/segmenter";
 import { GrammarRole } from "../shared/grammar";
 import { CORE_SCHEMA_VERSION } from "../shared/versions";
 import type { CoreAnalysis, TokenRange } from "../shared/grammar";
@@ -479,6 +481,83 @@ describe("CachedAnalysisService core orchestration", () => {
 
     expect(adapter.completeJson).toHaveBeenCalledTimes(2);
     expect(cache.core.size).toBe(0);
+  });
+});
+
+describe("shared core evaluation trace replay", () => {
+  it("replays through the production service with cold bypassed cache and shrinking subsets", async () => {
+    const fixture = JSON.parse(
+      readFileSync(
+        new URL("../../../shared-fixtures/core-evaluation-traces.json", import.meta.url),
+        "utf8",
+      ),
+    ) as {
+      tokenizerSnapshot: { sentences: Array<{ id: string; text: string }> };
+      serviceReplay: {
+        inputSentenceIds: string[];
+        rounds: Array<{ subsetSentenceIds: string[]; raw: unknown }>;
+        expected: {
+          successSentenceIds: string[];
+          failureSentenceIds: string[];
+          repairSubsetSentenceIds: string[][];
+          finalAnalyses: Array<{
+            sentenceId: string;
+            components: Array<{ startToken: number; endToken: number; role: string }>;
+          }>;
+        };
+      };
+    };
+    const byId = new Map(fixture.tokenizerSnapshot.sentences.map((item) => [item.id, item]));
+    const sentences = fixture.serviceReplay.inputSentenceIds.map((sentenceId) => {
+      const item = byId.get(sentenceId)!;
+      return { sentenceId, text: item.text, tokens: tokenize(item.text) };
+    });
+    const cache = new MemoryCache();
+    const observedSubsets: string[][] = [];
+    const rawByRound = fixture.serviceReplay.rounds.map(({ raw }) => raw);
+    const completeJson = vi.fn((_profile, messages: AnalysisModelWork["messages"]) => {
+      const ids = sentences
+        .filter(({ sentenceId }) => messages[0]!.content.includes(`"sentenceId":"${sentenceId}"`))
+        .map(({ sentenceId }) => sentenceId);
+      observedSubsets.push(ids);
+      return Promise.resolve(rawByRound[observedSubsets.length - 1]);
+    });
+    const service = new CachedAnalysisService({
+      cache,
+      adapter: { completeJson },
+      scheduler: new DedupeScheduler(),
+      now: () => 42,
+    });
+
+    const outcome = await service.analyzeCore(
+      {
+        ...coreInput(sentences, { ...profile, baseUrl: "http://localhost:11434/v1" }),
+        bypassCache: true,
+      },
+      new AbortController().signal,
+    );
+
+    expect(outcome.cacheHit).toBe(false);
+    expect(outcome.result.map(({ sentenceId }) => sentenceId)).toEqual(
+      fixture.serviceReplay.expected.successSentenceIds,
+    );
+    expect(outcome.failures.map(({ sentenceId }) => sentenceId)).toEqual(
+      fixture.serviceReplay.expected.failureSentenceIds,
+    );
+    expect(observedSubsets.slice(1)).toEqual(
+      fixture.serviceReplay.expected.repairSubsetSentenceIds,
+    );
+    expect(
+      outcome.result.map(({ sentenceId, components }) => ({
+        sentenceId,
+        components: components.map(({ startToken, endToken, role }) => ({
+          startToken,
+          endToken,
+          role,
+        })),
+      })),
+    ).toEqual(fixture.serviceReplay.expected.finalAnalyses);
+    expect(cache.core.size).toBe(fixture.serviceReplay.expected.successSentenceIds.length);
   });
 });
 

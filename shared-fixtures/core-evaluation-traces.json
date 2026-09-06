@@ -1,0 +1,856 @@
+{
+  "schemaVersion": "core-evaluation-trace/v1",
+  "synthetic": true,
+  "corpus": {
+    "id": "accuracy-audit-batch0-fixed",
+    "version": 1,
+    "denominatorSentenceIds": [
+      "rr-fragment-1",
+      "rr-fragment-2",
+      "rr-fragment-3",
+      "rr-fragment-4",
+      "rr-clause-1",
+      "rr-clause-2",
+      "rr-clause-3",
+      "rr-clause-4",
+      "rr-complement-1",
+      "rr-complement-2",
+      "rr-complement-3",
+      "rr-complement-4",
+      "rr-preposition-1",
+      "rr-preposition-2",
+      "rr-preposition-3",
+      "rr-preposition-4",
+      "rr-coordination-1",
+      "rr-coordination-2",
+      "rr-coordination-3",
+      "rr-coordination-4",
+      "ho-fragment-1",
+      "ho-fragment-2",
+      "ho-fragment-3",
+      "ho-fragment-4",
+      "ho-clause-1",
+      "ho-clause-2",
+      "ho-clause-3",
+      "ho-clause-4",
+      "ho-complement-1",
+      "ho-complement-2",
+      "ho-complement-3",
+      "ho-complement-4",
+      "ho-preposition-1",
+      "ho-preposition-2",
+      "ho-preposition-3",
+      "ho-preposition-4",
+      "ho-coordination-1",
+      "ho-coordination-2",
+      "ho-coordination-3",
+      "ho-coordination-4"
+    ],
+    "sentences": [
+      {
+        "id": "rr-fragment-1",
+        "text": "Portable API support across providers.",
+        "split": "rule-regression",
+        "category": "fragment",
+        "source": "Spring AI documentation phrase",
+        "annotationRationale": "Non-clausal noun heading: FRAGMENT_HEAD plus postnominal ATTRIBUTE.",
+        "boundaries": [
+          { "startChar": 0, "endChar": 20, "role": "FRAGMENT_HEAD" },
+          { "startChar": 21, "endChar": 37, "role": "ATTRIBUTE" }
+        ]
+      },
+      {
+        "id": "rr-fragment-2",
+        "text": "Compatible with existing clients.",
+        "split": "rule-regression",
+        "category": "fragment",
+        "source": "Independent rewrite of a compatibility heading",
+        "annotationRationale": "Adjective fragment keeps its selected prepositional complement inside FRAGMENT_HEAD.",
+        "boundaries": [
+          { "startChar": 0, "endChar": 32, "role": "FRAGMENT_HEAD" }
+        ]
+      },
+      {
+        "id": "rr-fragment-3",
+        "text": "Building reliable agents at scale.",
+        "split": "rule-regression",
+        "category": "fragment",
+        "source": "Independent rewrite of a documentation heading",
+        "annotationRationale": "Non-finite activity is FRAGMENT_HEAD; separable at-phrase is ATTRIBUTE.",
+        "boundaries": [
+          { "startChar": 0, "endChar": 24, "role": "FRAGMENT_HEAD" },
+          { "startChar": 25, "endChar": 33, "role": "ATTRIBUTE" }
+        ]
+      },
+      {
+        "id": "rr-fragment-4",
+        "text": "Detailed setup instructions.",
+        "split": "rule-regression",
+        "category": "fragment",
+        "source": "Independent documentation-style heading",
+        "annotationRationale": "A noun heading without a separable phrase is one FRAGMENT_HEAD.",
+        "boundaries": [
+          { "startChar": 0, "endChar": 27, "role": "FRAGMENT_HEAD" }
+        ]
+      },
+      {
+        "id": "rr-clause-1",
+        "text": "The problem is that the cache is stale.",
+        "split": "rule-regression",
+        "category": "clause",
+        "source": "Design specification section 6.4a",
+        "annotationRationale": "Copular PREDICATE followed by a complete PREDICATIVE_CLAUSE.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-clause-2",
+        "text": "Whoever wins gets the prize.",
+        "split": "rule-regression",
+        "category": "clause",
+        "source": "Design specification section 5.3c",
+        "annotationRationale": "Whole initial clause is SUBJECT_CLAUSE.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-clause-3",
+        "text": "Because the road flooded, we waited.",
+        "split": "rule-regression",
+        "category": "clause",
+        "source": "Design specification section 6.4a rewrite",
+        "annotationRationale": "Subordinate clause remains one ADVERBIAL_CLAUSE.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-clause-4",
+        "text": "The tool that she built works.",
+        "split": "rule-regression",
+        "category": "clause",
+        "source": "Independent rewrite",
+        "annotationRationale": "Relative clause includes its introducer, subject, and predicate.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-complement-1",
+        "text": "The change helps developers work faster.",
+        "split": "rule-regression",
+        "category": "object-complement",
+        "source": "Task 21 corrected annotation ruling",
+        "annotationRationale": "developers is OBJECT and work faster is COMPLEMENT, not a clause.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-complement-2",
+        "text": "We consider the tool essential.",
+        "split": "rule-regression",
+        "category": "object-complement",
+        "source": "Design specification section 6.4b",
+        "annotationRationale": "the tool is OBJECT and essential is COMPLEMENT.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-complement-3",
+        "text": "They made the process simple.",
+        "split": "rule-regression",
+        "category": "object-complement",
+        "source": "Independent rewrite",
+        "annotationRationale": "simple predicates a property of OBJECT the process and is COMPLEMENT.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-complement-4",
+        "text": "The flag keeps requests isolated.",
+        "split": "rule-regression",
+        "category": "object-complement",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "requests is OBJECT and isolated is COMPLEMENT.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-preposition-1",
+        "text": "Support for local models.",
+        "split": "rule-regression",
+        "category": "prepositional-attachment",
+        "source": "Independent documentation heading",
+        "annotationRationale": "Postnominal for-phrase is ATTRIBUTE.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-preposition-2",
+        "text": "Four of the largest services failed.",
+        "split": "rule-regression",
+        "category": "prepositional-attachment",
+        "source": "Gold convention quantity rewrite",
+        "annotationRationale": "of-phrase attaches to nominal subject as ATTRIBUTE without a quantity exception.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-preposition-3",
+        "text": "She worked without looking at the code.",
+        "split": "rule-regression",
+        "category": "prepositional-attachment",
+        "source": "Gold convention rewrite",
+        "annotationRationale": "Nested at-phrase stays inside the governing ADVERBIAL.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-preposition-4",
+        "text": "The guide for beginners arrived.",
+        "split": "rule-regression",
+        "category": "prepositional-attachment",
+        "source": "Independent rewrite",
+        "annotationRationale": "Postnominal prepositional phrase is ATTRIBUTE.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-coordination-1",
+        "text": "The system boots, runs, and stops.",
+        "split": "rule-regression",
+        "category": "coordination",
+        "source": "Design specification V5 ruling rewrite",
+        "annotationRationale": "Shared-subject predicates are flat, with FANBOYS as CONJUNCTION.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-coordination-2",
+        "text": "The team shipped and users tested it.",
+        "split": "rule-regression",
+        "category": "coordination",
+        "source": "Independent rewrite",
+        "annotationRationale": "Independent clauses are flattened; and is CONJUNCTION, never COORDINATE_CLAUSE.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-coordination-3",
+        "text": "Read the guide or run the demo.",
+        "split": "rule-regression",
+        "category": "coordination",
+        "source": "Independent imperative rewrite",
+        "annotationRationale": "Shared omitted subject with two predicates and a CONJUNCTION.",
+        "boundaries": []
+      },
+      {
+        "id": "rr-coordination-4",
+        "text": "The cache is small but effective.",
+        "split": "rule-regression",
+        "category": "coordination",
+        "source": "Independent rewrite",
+        "annotationRationale": "Coordinated predicatives retain but as CONJUNCTION.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-fragment-1",
+        "text": "Secure defaults for remote workspaces.",
+        "split": "independent-holdout",
+        "category": "fragment",
+        "source": "Independent documentation-style rewrite",
+        "annotationRationale": "Noun fragment with a separable postnominal ATTRIBUTE; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-fragment-2",
+        "text": "Ready for production use.",
+        "split": "independent-holdout",
+        "category": "fragment",
+        "source": "Independent documentation-style rewrite",
+        "annotationRationale": "Adjective-selected complement stays in FRAGMENT_HEAD; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-fragment-3",
+        "text": "Deploying updates without downtime.",
+        "split": "independent-holdout",
+        "category": "fragment",
+        "source": "Independent documentation-style rewrite",
+        "annotationRationale": "Non-finite fragment plus separable modifier; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-fragment-4",
+        "text": "A compact command reference.",
+        "split": "independent-holdout",
+        "category": "fragment",
+        "source": "Independent documentation-style rewrite",
+        "annotationRationale": "Single nominal FRAGMENT_HEAD; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-clause-1",
+        "text": "It is obvious that the cache is stale.",
+        "split": "independent-holdout",
+        "category": "clause",
+        "source": "Task 21 corrected annotation ruling",
+        "annotationRationale": "obvious is PREDICATIVE and the postponed that-clause is SUBJECT_CLAUSE; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-clause-2",
+        "text": "Whether it succeeds remains uncertain.",
+        "split": "independent-holdout",
+        "category": "clause",
+        "source": "Independent rewrite",
+        "annotationRationale": "Initial interrogative content clause is SUBJECT_CLAUSE; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-clause-3",
+        "text": "The endpoint that failed recovered.",
+        "split": "independent-holdout",
+        "category": "clause",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "that failed is a complete ATTRIBUTIVE_CLAUSE; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-clause-4",
+        "text": "Although logs were sparse, we diagnosed it.",
+        "split": "independent-holdout",
+        "category": "clause",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "Initial subordinate clause is ADVERBIAL_CLAUSE; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-complement-1",
+        "text": "The patch made startup reliable.",
+        "split": "independent-holdout",
+        "category": "object-complement",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "startup is OBJECT, reliable is COMPLEMENT; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-complement-2",
+        "text": "We found the migration painless.",
+        "split": "independent-holdout",
+        "category": "object-complement",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "the migration is OBJECT, painless is COMPLEMENT; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-complement-3",
+        "text": "Retries keep connections healthy.",
+        "split": "independent-holdout",
+        "category": "object-complement",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "connections is OBJECT, healthy is COMPLEMENT; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-complement-4",
+        "text": "They named the channel stable.",
+        "split": "independent-holdout",
+        "category": "object-complement",
+        "source": "Independent rewrite",
+        "annotationRationale": "the channel is OBJECT, stable is COMPLEMENT; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-preposition-1",
+        "text": "A bridge between the runtimes failed.",
+        "split": "independent-holdout",
+        "category": "prepositional-attachment",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "between-phrase postmodifies bridge as ATTRIBUTE; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-preposition-2",
+        "text": "No amount of retries helped.",
+        "split": "independent-holdout",
+        "category": "prepositional-attachment",
+        "source": "Gold convention independent rewrite",
+        "annotationRationale": "of-phrase is ATTRIBUTE despite quantity wording; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-preposition-3",
+        "text": "The worker ran within strict limits.",
+        "split": "independent-holdout",
+        "category": "prepositional-attachment",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "within-phrase is an intact ADVERBIAL; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-preposition-4",
+        "text": "The request from the editor arrived.",
+        "split": "independent-holdout",
+        "category": "prepositional-attachment",
+        "source": "Independent rewrite",
+        "annotationRationale": "from-phrase is postnominal ATTRIBUTE; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-coordination-1",
+        "text": "Workers fetch, validate, and cache responses.",
+        "split": "independent-holdout",
+        "category": "coordination",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "Shared subject predicates are flat; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-coordination-2",
+        "text": "The client retried, but the server refused.",
+        "split": "independent-holdout",
+        "category": "coordination",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "Two clauses are flat around CONJUNCTION but; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-coordination-3",
+        "text": "Choose JSON or return plain text.",
+        "split": "independent-holdout",
+        "category": "coordination",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "Coordinated imperative predicates with CONJUNCTION; never included in prompt.",
+        "boundaries": []
+      },
+      {
+        "id": "ho-coordination-4",
+        "text": "The result is safe and deterministic.",
+        "split": "independent-holdout",
+        "category": "coordination",
+        "source": "Independent technical rewrite",
+        "annotationRationale": "Coordinated predicatives preserve and as CONJUNCTION; never included in prompt.",
+        "boundaries": []
+      }
+    ]
+  },
+  "tokenizerSnapshot": {
+    "id": "synthetic-service-tokenizer",
+    "version": "core-11",
+    "hash": "synthetic-fixture-no-provider-content",
+    "sentences": [
+      {
+        "id": "legal",
+        "text": "Learners read.",
+        "textHash": "synthetic-legal",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Learners",
+            "start": 0,
+            "end": 8,
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "read",
+            "start": 9,
+            "end": 13,
+            "punctuation": false
+          },
+          { "id": 2, "text": ".", "start": 13, "end": 14, "punctuation": true }
+        ]
+      },
+      {
+        "id": "repaired",
+        "text": "Writers revise.",
+        "textHash": "synthetic-repaired",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Writers",
+            "start": 0,
+            "end": 7,
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "revise",
+            "start": 8,
+            "end": 14,
+            "punctuation": false
+          },
+          { "id": 2, "text": ".", "start": 14, "end": 15, "punctuation": true }
+        ]
+      },
+      {
+        "id": "damaged",
+        "text": "Servers respond.",
+        "textHash": "synthetic-damaged",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Servers",
+            "start": 0,
+            "end": 7,
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "respond",
+            "start": 8,
+            "end": 15,
+            "punctuation": false
+          },
+          { "id": 2, "text": ".", "start": 15, "end": 16, "punctuation": true }
+        ]
+      },
+      {
+        "id": "failed",
+        "text": "Clients retry.",
+        "textHash": "synthetic-failed",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Clients",
+            "start": 0,
+            "end": 7,
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "retry",
+            "start": 8,
+            "end": 13,
+            "punctuation": false
+          },
+          { "id": 2, "text": ".", "start": 13, "end": 14, "punctuation": true }
+        ]
+      },
+      {
+        "id": "narrow-a",
+        "text": "Caches persist.",
+        "textHash": "synthetic-narrow-a",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Caches",
+            "start": 0,
+            "end": 6,
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "persist",
+            "start": 7,
+            "end": 14,
+            "punctuation": false
+          },
+          { "id": 2, "text": ".", "start": 14, "end": 15, "punctuation": true }
+        ]
+      },
+      {
+        "id": "narrow-b",
+        "text": "Workers recover.",
+        "textHash": "synthetic-narrow-b",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Workers",
+            "start": 0,
+            "end": 7,
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "recover",
+            "start": 8,
+            "end": 15,
+            "punctuation": false
+          },
+          { "id": 2, "text": ".", "start": 15, "end": 16, "punctuation": true }
+        ]
+      }
+    ]
+  },
+  "serviceReplay": {
+    "inputSentenceIds": [
+      "legal",
+      "repaired",
+      "damaged",
+      "failed",
+      "narrow-a",
+      "narrow-b"
+    ],
+    "gold": [
+      {
+        "sentenceId": "legal",
+        "components": [
+          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
+          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+        ]
+      },
+      {
+        "sentenceId": "repaired",
+        "components": [
+          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
+          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+        ]
+      },
+      {
+        "sentenceId": "damaged",
+        "components": [
+          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
+          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+        ]
+      },
+      {
+        "sentenceId": "failed",
+        "components": [
+          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
+          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+        ]
+      },
+      {
+        "sentenceId": "narrow-a",
+        "components": [
+          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
+          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+        ]
+      },
+      {
+        "sentenceId": "narrow-b",
+        "components": [
+          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
+          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+        ]
+      }
+    ],
+    "rounds": [
+      {
+        "round": 0,
+        "subsetSentenceIds": [
+          "legal",
+          "repaired",
+          "damaged",
+          "failed",
+          "narrow-a",
+          "narrow-b"
+        ],
+        "raw": {
+          "sentences": [
+            {
+              "sentenceId": "legal",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "主语"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "谓语"
+                }
+              ]
+            },
+            { "sentenceId": "repaired", "components": [] },
+            {
+              "sentenceId": "damaged",
+              "unexpected": true,
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "主语"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "谓语"
+                }
+              ]
+            },
+            { "sentenceId": "failed", "components": [] },
+            { "sentenceId": "narrow-a", "components": [] },
+            { "sentenceId": "narrow-b", "components": [] }
+          ]
+        }
+      },
+      {
+        "round": 1,
+        "subsetSentenceIds": [
+          "repaired",
+          "damaged",
+          "failed",
+          "narrow-a",
+          "narrow-b"
+        ],
+        "raw": {
+          "sentences": [
+            {
+              "sentenceId": "repaired",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "主语"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "谓语"
+                }
+              ]
+            },
+            {
+              "sentenceId": "damaged",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "OBJECT",
+                  "translation": "对象"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "谓语"
+                }
+              ]
+            },
+            { "sentenceId": "failed", "components": [] },
+            {
+              "sentenceId": "narrow-a",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "主语"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "谓语"
+                }
+              ]
+            },
+            { "sentenceId": "narrow-b", "components": [] }
+          ]
+        }
+      },
+      {
+        "round": 2,
+        "subsetSentenceIds": ["failed", "narrow-b"],
+        "raw": {
+          "sentences": [
+            { "sentenceId": "failed", "components": [] },
+            {
+              "sentenceId": "narrow-b",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "主语"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "谓语"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "expected": {
+      "successSentenceIds": [
+        "legal",
+        "repaired",
+        "damaged",
+        "narrow-a",
+        "narrow-b"
+      ],
+      "failureSentenceIds": ["failed"],
+      "repairSubsetSentenceIds": [
+        ["repaired", "damaged", "failed", "narrow-a", "narrow-b"],
+        ["failed", "narrow-b"]
+      ],
+      "finalAnalyses": [
+        {
+          "sentenceId": "legal",
+          "components": [
+            { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
+            { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+          ]
+        },
+        {
+          "sentenceId": "repaired",
+          "components": [
+            { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
+            { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+          ]
+        },
+        {
+          "sentenceId": "damaged",
+          "components": [
+            { "startToken": 0, "endToken": 0, "role": "OBJECT" },
+            { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+          ]
+        },
+        {
+          "sentenceId": "narrow-a",
+          "components": [
+            { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
+            { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+          ]
+        },
+        {
+          "sentenceId": "narrow-b",
+          "components": [
+            { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
+            { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
+          ]
+        }
+      ]
+    }
+  },
+  "artifactTemplate": {
+    "run": {
+      "mode": "pipeline",
+      "createdAt": "ISO-8601",
+      "commit": "git-sha",
+      "model": "provider-model-id",
+      "parameters": {},
+      "batchSize": 6,
+      "sentenceOrder": [],
+      "hashes": {
+        "prompt": "sha256",
+        "corpus": "sha256",
+        "tokenizer": "sha256"
+      }
+    },
+    "traces": [
+      {
+        "callId": "call-id",
+        "inputSentenceIds": [],
+        "firstPass": {
+          "raw": {},
+          "subsetSentenceIds": [],
+          "validatorErrors": []
+        },
+        "repairs": [],
+        "final": {
+          "status": "success-or-partial-or-failure",
+          "successSentenceIds": [],
+          "failureSentenceIds": [],
+          "analyses": [],
+          "failures": []
+        }
+      }
+    ],
+    "report": {
+      "firstPass": {},
+      "final": {},
+      "transitions": {},
+      "correctFirstPassRejection": {}
+    }
+  }
+}

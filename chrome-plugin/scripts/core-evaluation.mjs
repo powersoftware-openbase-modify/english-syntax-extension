@@ -16,7 +16,26 @@ function metric(truePositive, predicted, gold) {
 }
 
 function boundaryKey(component) {
-  return `${component.startToken}:${component.endToken}`;
+  const start = component.startChar ?? component.startToken;
+  const end = component.endChar ?? component.endToken;
+  return `${start}:${end}`;
+}
+
+function characterComponent(component, tokens) {
+  const start = tokens?.find(({ id }) => id === component.startToken);
+  const end = tokens?.find(({ id }) => id === component.endToken);
+  if (start === undefined || end === undefined) return component;
+  return { ...component, startChar: start.start, endChar: end.end };
+}
+
+function normalizedCoordinates(sentences, coordinateSystem) {
+  if (coordinateSystem !== "characters") return sentences ?? [];
+  return (sentences ?? []).map((sentence) => ({
+    ...sentence,
+    components: (sentence.components ?? []).map((component) =>
+      characterComponent(component, sentence.tokens),
+    ),
+  }));
 }
 
 function labeledKey(component) {
@@ -52,8 +71,7 @@ function componentsEqualInOrder(gold, predicted) {
     gold.length === predicted.length &&
     gold.every(
       (component, index) =>
-        component.startToken === predicted[index]?.startToken &&
-        component.endToken === predicted[index]?.endToken &&
+        boundaryKey(component) === boundaryKey(predicted[index] ?? {}) &&
         component.role === predicted[index]?.role,
     )
   );
@@ -116,9 +134,9 @@ function indexSentences(sentences) {
   return { indexed, duplicates };
 }
 
-export function scoreCorePredictions(goldSentences, predictedSentences) {
-  const gold = goldSentences ?? [];
-  const predicted = predictedSentences ?? [];
+export function scoreCorePredictions(goldSentences, predictedSentences, options = {}) {
+  const gold = normalizedCoordinates(goldSentences, options.coordinateSystem);
+  const predicted = normalizedCoordinates(predictedSentences, options.coordinateSystem);
   const goldIndex = indexSentences(gold).indexed;
   const predictionIndex = indexSentences(predicted);
   const details = [];
@@ -193,6 +211,75 @@ export function scoreCorePredictions(goldSentences, predictedSentences) {
 
 function spanMatchesForSentence(gold, predicted) {
   return consumeMatches(gold, predicted, boundaryKey);
+}
+
+function exactIds(report) {
+  return new Set(report.details.filter(({ exact }) => exact).map(({ sentenceId }) => sentenceId));
+}
+
+function transition(sentenceIds) {
+  return { count: sentenceIds.length, sentenceIds };
+}
+
+export function scorePipelineTrace(goldSentences, trace, options = {}) {
+  const denominatorIds = trace.denominatorSentenceIds ?? goldSentences.map(normalizedSentenceId);
+  const denominatorSet = new Set(denominatorIds);
+  const fixedGold = goldSentences.filter((sentence) =>
+    denominatorSet.has(normalizedSentenceId(sentence)),
+  );
+  const firstPass = scoreCorePredictions(fixedGold, trace.firstPass.predictions, options);
+  const final = scoreCorePredictions(fixedGold, trace.final.predictions, options);
+  const firstExact = exactIds(firstPass);
+  const finalExact = exactIds(final);
+  const rejected = new Set(
+    (trace.firstPass.validatorErrors ?? []).map(({ sentenceId }) => sentenceId),
+  );
+  const rejectedExact = denominatorIds.filter((id) => firstExact.has(id) && rejected.has(id));
+  const errorKinds = new Map(
+    (trace.firstPass.validatorErrors ?? []).map(({ sentenceId, kinds = [] }) => [
+      sentenceId,
+      kinds,
+    ]),
+  );
+  const denominator = firstExact.size;
+
+  return {
+    denominator: fixedGold.length,
+    firstPass,
+    final,
+    transitions: {
+      repairedToCorrect: transition(
+        denominatorIds.filter((id) => !firstExact.has(id) && finalExact.has(id)),
+      ),
+      correctToWrongOrFailure: transition(
+        denominatorIds.filter((id) => firstExact.has(id) && !finalExact.has(id)),
+      ),
+      finalFailures: transition(
+        denominatorIds.filter((id) => trace.final.failureSentenceIds?.includes(id)),
+      ),
+    },
+    correctFirstPassRejection: {
+      numerator: rejectedExact.length,
+      denominator,
+      rate: denominator === 0 ? null : rejectedExact.length / denominator,
+      displayRate:
+        denominator === 0 ? "N/A" : `${((rejectedExact.length / denominator) * 100).toFixed(2)}%`,
+      grammarSentenceIds: rejectedExact.filter((id) => errorKinds.get(id)?.includes("grammar")),
+      nonGrammarSentenceIds: rejectedExact.filter((id) =>
+        errorKinds.get(id)?.includes("non-grammar"),
+      ),
+    },
+  };
+}
+
+export function formatPipelineTransition(report) {
+  const rejection = report.correctFirstPassRejection;
+  return [
+    `Correct first-pass rejection: ${rejection.displayRate}`,
+    `Wrong to correct: ${report.transitions.repairedToCorrect.count}`,
+    `Correct to wrong/failure: ${report.transitions.correctToWrongOrFailure.count}`,
+    `Final failures: ${report.transitions.finalFailures.count}`,
+  ].join("\n");
 }
 
 export function formatCoreEvaluation(report) {

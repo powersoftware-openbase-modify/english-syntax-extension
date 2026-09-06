@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { scoreCorePredictions } from "./core-evaluation.mjs";
+import {
+  formatPipelineTransition,
+  scoreCorePredictions,
+  scorePipelineTrace,
+} from "./core-evaluation.mjs";
 
 const component = (startToken, endToken, role) => ({ startToken, endToken, role });
 const sentence = (sentenceId, components) => ({ sentenceId, components });
@@ -171,5 +175,132 @@ describe("scoreCorePredictions", () => {
       f1: 0,
     });
     expect(report.roleAccuracyOnExactSpans).toEqual({ correct: 0, matched: 0, accuracy: 0 });
+  });
+
+  it("compares normalized character spans across different token IDs", () => {
+    const gold = [
+      {
+        sentenceId: "retokenized",
+        tokens: [
+          { id: 0, start: 0, end: 3 },
+          { id: 1, start: 4, end: 7 },
+        ],
+        components: [component(0, 1, "SUBJECT")],
+      },
+    ];
+    const predicted = [
+      {
+        sentenceId: "retokenized",
+        tokens: [{ id: 9, start: 0, end: 7 }],
+        components: [component(9, 9, "SUBJECT")],
+      },
+    ];
+
+    const report = scoreCorePredictions(gold, predicted, { coordinateSystem: "characters" });
+
+    expect(report.exactSentence).toEqual({ count: 1, rate: 1 });
+    expect(report.labeledSpan.f1).toBe(1);
+    expect(report.details[0]).toMatchObject({ exact: true, missing: [], extra: [] });
+  });
+});
+
+describe("scorePipelineTrace", () => {
+  const gold = [
+    sentence("legal", [component(0, 0, "SUBJECT")]),
+    sentence("repaired", [component(0, 0, "SUBJECT")]),
+    sentence("damaged", [component(0, 0, "SUBJECT")]),
+    sentence("failed", [component(0, 0, "SUBJECT")]),
+    sentence("narrow-a", [component(0, 0, "SUBJECT")]),
+    sentence("narrow-b", [component(0, 0, "SUBJECT")]),
+  ];
+  const wrong = (id) => sentence(id, [component(0, 0, "OBJECT")]);
+  const exact = (id) => sentence(id, [component(0, 0, "SUBJECT")]);
+  const trace = {
+    denominatorSentenceIds: gold.map(({ sentenceId }) => sentenceId),
+    firstPass: {
+      predictions: [
+        exact("legal"),
+        wrong("repaired"),
+        exact("damaged"),
+        wrong("failed"),
+        wrong("narrow-a"),
+        wrong("narrow-b"),
+      ],
+      acceptedSentenceIds: ["legal"],
+      validatorErrors: [
+        { sentenceId: "repaired", kinds: ["grammar"], errors: [{ path: "x", message: "grammar" }] },
+        {
+          sentenceId: "damaged",
+          kinds: ["non-grammar"],
+          errors: [{ path: "x", message: "unknown field" }],
+        },
+        { sentenceId: "failed", kinds: ["grammar"], errors: [{ path: "x", message: "grammar" }] },
+        { sentenceId: "narrow-a", kinds: ["grammar"], errors: [{ path: "x", message: "grammar" }] },
+        { sentenceId: "narrow-b", kinds: ["grammar"], errors: [{ path: "x", message: "grammar" }] },
+      ],
+    },
+    repairs: [
+      {
+        round: 1,
+        subsetSentenceIds: ["repaired", "damaged", "failed", "narrow-a", "narrow-b"],
+        predictions: [
+          exact("repaired"),
+          wrong("damaged"),
+          wrong("failed"),
+          exact("narrow-a"),
+          wrong("narrow-b"),
+        ],
+      },
+      {
+        round: 2,
+        subsetSentenceIds: ["damaged", "failed", "narrow-b"],
+        predictions: [wrong("damaged"), wrong("failed"), exact("narrow-b")],
+      },
+    ],
+    final: {
+      predictions: [exact("legal"), exact("repaired"), exact("narrow-a"), exact("narrow-b")],
+      failureSentenceIds: ["damaged", "failed"],
+    },
+  };
+
+  it("keeps failures in the fixed denominator and reports all transition classes", () => {
+    const report = scorePipelineTrace(gold, trace);
+
+    expect(report.denominator).toBe(6);
+    expect(report.firstPass.exactSentence.count).toBe(2);
+    expect(report.final.exactSentence).toEqual({ count: 4, rate: 4 / 6 });
+    expect(report.transitions).toEqual({
+      repairedToCorrect: { count: 3, sentenceIds: ["repaired", "narrow-a", "narrow-b"] },
+      correctToWrongOrFailure: { count: 1, sentenceIds: ["damaged"] },
+      finalFailures: { count: 2, sentenceIds: ["damaged", "failed"] },
+    });
+    expect(report.correctFirstPassRejection).toEqual({
+      numerator: 1,
+      denominator: 2,
+      rate: 1 / 2,
+      displayRate: "50.00%",
+      grammarSentenceIds: [],
+      nonGrammarSentenceIds: ["damaged"],
+    });
+  });
+
+  it("reports N/A when no first-pass prediction is exact", () => {
+    const noExact = {
+      ...trace,
+      firstPass: {
+        predictions: gold.map(({ sentenceId }) => wrong(sentenceId)),
+        acceptedSentenceIds: [],
+        validatorErrors: [],
+      },
+    };
+
+    const report = scorePipelineTrace(gold, noExact);
+
+    expect(report.correctFirstPassRejection).toMatchObject({
+      denominator: 0,
+      rate: null,
+      displayRate: "N/A",
+    });
+    expect(formatPipelineTransition(report)).toContain("Correct first-pass rejection: N/A");
   });
 });

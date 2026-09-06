@@ -83,7 +83,18 @@ harness 提供三个口子:`seedProfiles()`(直接写 `chrome.storage.local`)、
 - exact span 上的 role accuracy；
 - 每句的 missing span、extra span、role error，以及缺句/多句/重复句状态。
 
-准确性修改必须以这套指标比较 baseline/candidate，不能只凭某一句手测。黄金 fixture 的 Token ID 由生产 `tokenize()` 解释，因此 tokenizer 变化会在离线自洽测试中显式暴露并要求重审标注。
+准确性修改必须以这套指标比较 baseline/candidate，不能只凭某一句手测。跨 tokenizer 的可比评分先用每次运行保存的 token→原文字符映射，把 Token span 归一成字符半开区间；Token ID 不同但字符边界与 role 相同仍视为相等。失败句始终留在冻结全集分母中。
+
+### 首轮评分与生产链路验收边界
+
+准确性验收分两轨，不能混成一个分数：
+
+1. **首轮轨**直接用 `buildCorePrompt` 请求并评分，用来隔离模型首次回答的成分质量。
+2. **生产链路轨**必须从冷缓存以 `bypassCache: true` 调用真实 `CachedAnalysisService.analyzeCore`，覆盖生产 validator、最多两轮逐轮收窄 repair 与最终失败。adapter 只包装并记录同一次调用的 messages/raw/顺序，不复制 validator 或 repair loop；首轮 raw 与最终结果必须来自同一次 service 调用。Kotlin 侧用相同合成轨迹经真实 `AnalysisService` 独立回放，不能用 TS 终评代替 Kotlin 验证。
+
+`shared-fixtures/core-evaluation-traces.json` 是 versioned、synthetic、脱敏的离线契约，固定验证首轮合法、错→对、语法 exact 但非语法字段错后修坏、三轮失败、两句逐轮收窄，以及双端最终 span/role、成功/失败集合和 repair subset 一致。真实模型 artifact 只存 gitignored `.superpowers/acceptance/`，保存 commit、模型参数、批大小/顺序、prompt/corpus/tokenizer 快照及 SHA-256，不含密钥。正确首轮分母为 0 时拒绝率展示 `N/A`。
+
+手动 runner 默认仍是首轮模式；`--mode pipeline` 才走生产链路，且要求显式给独立 `--candidate` 文件。`--baseline` 永远只读，禁止和 candidate 同路径。上线判断以同配置、同句集三次配对运行的最终整句 exact 与 labeled-span F1 均值为主，同时检查范围、类别与逐句 repair 修坏；只有离线合成轨迹通过不能宣称真实准确性验收完成。
 
 ### 商店截图
 
