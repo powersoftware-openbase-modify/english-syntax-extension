@@ -461,6 +461,20 @@ class AnalysisValidatorTest {
   }
 
   @Test
+  fun `accepts an object complement after an object's ATTRIBUTIVE_CLAUSE`() {
+    assertAccepted(
+      "We consider the movie that she directed a masterpiece.",
+      """
+      {"startToken":0,"endToken":0,"role":"SUBJECT","translation":"我们"},
+      {"startToken":1,"endToken":1,"role":"PREDICATE","translation":"认为"},
+      {"startToken":2,"endToken":3,"role":"OBJECT","translation":"这部电影"},
+      {"startToken":4,"endToken":6,"role":"ATTRIBUTIVE_CLAUSE","translation":"她导演的"},
+      {"startToken":7,"endToken":8,"role":"COMPLEMENT","translation":"一部杰作"}
+      """.trimIndent(),
+    )
+  }
+
+  @Test
   fun `rejects an ATTRIBUTIVE_CLAUSE followed immediately by the object it should contain`() {
     // 主句宾语不可能出现在定语从句之后,出现了就说明从句自己的宾语被切了出来。
     assertGrammarError(
@@ -474,7 +488,7 @@ class AnalysisValidatorTest {
       """.trimIndent(),
       "sentences[0].components[3]",
       "an ATTRIBUTIVE_CLAUSE keeps its whole internal structure in one component; absorb the " +
-        "object, predicative, or complement that follows it",
+        "object or predicative that follows it",
     )
   }
 

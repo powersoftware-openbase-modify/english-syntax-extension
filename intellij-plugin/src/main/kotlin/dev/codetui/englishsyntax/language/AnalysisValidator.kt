@@ -172,14 +172,13 @@ private const val MIN_CLAUSE_LEXICAL_TOKENS = 2
 
 /**
  * 定语从句修饰的名词在从句之前，主句宾语只能出现在主句谓语之后——所以紧跟在
- * `ATTRIBUTIVE_CLAUSE` 后面的宾语 / 表语 / 补语一定是从句自己的，说明从句被切开了
- * （实测 `that will reach` + `about $650 billion`）。主句谓语与主句状语跟在从句后面
- * 都是合法的，不在这条里。
+ * `ATTRIBUTIVE_CLAUSE` 后面的宾语 / 表语一定是从句自己的，说明从句被切开了。
+ * 宾补结构 `consider the movie that she directed a masterpiece` 的补语跟在宾语定从之后合法；
+ * 双宾结构的低频误杀由这个保守门接受。主句谓语与主句状语跟在从句后面也合法。
  */
 private val clauseInternalFollowers = setOf(
   GrammarRole.OBJECT,
   GrammarRole.PREDICATIVE,
-  GrammarRole.COMPLEMENT,
 )
 
 /**
@@ -295,7 +294,7 @@ private fun collectGrammarErrors(
       errors += error(
         componentPath,
         "an ATTRIBUTIVE_CLAUSE keeps its whole internal structure in one component; absorb the " +
-          "object, predicative, or complement that follows it",
+          "object or predicative that follows it",
       )
     }
 

@@ -744,7 +744,7 @@ describe("core analysis grammar constraints", () => {
   const CLAUSE_INTRODUCER_ONLY_MESSAGE =
     "a clause component must cover a whole clause: extend it through the clause's own subject, predicate, and any objects or adverbials instead of a single word";
   const CLAUSE_SPLIT_MESSAGE =
-    "an ATTRIBUTIVE_CLAUSE keeps its whole internal structure in one component; absorb the object, predicative, or complement that follows it";
+    "an ATTRIBUTIVE_CLAUSE keeps its whole internal structure in one component; absorb the object or predicative that follows it";
   const DANGLING_PREPOSITION_MESSAGE =
     "a component must not end on a preposition; merge the phrase that preposition governs into the same component";
 
@@ -766,6 +766,30 @@ describe("core analysis grammar constraints", () => {
       path: "sentences[0].components[3]",
       message: CLAUSE_INTRODUCER_ONLY_MESSAGE,
     });
+  });
+
+  it("accepts an object complement after an object's ATTRIBUTIVE_CLAUSE", () => {
+    const sentence = sentenceOf("We consider the movie that she directed a masterpiece.");
+    const result = validateCoreBatch(
+      {
+        sentences: [
+          {
+            sentenceId: sentence.sentenceId,
+            components: [
+              { startToken: 0, endToken: 0, role: "SUBJECT", translation: "我们" },
+              { startToken: 1, endToken: 1, role: "PREDICATE", translation: "认为" },
+              { startToken: 2, endToken: 3, role: "OBJECT", translation: "这部电影" },
+              { startToken: 4, endToken: 6, role: "ATTRIBUTIVE_CLAUSE", translation: "她导演的" },
+              { startToken: 7, endToken: 8, role: "COMPLEMENT", translation: "一部杰作" },
+            ],
+          },
+        ],
+      },
+      [sentence],
+      "profile-1",
+    );
+
+    expect(result.ok).toBe(true);
   });
 
   it("rejects an ATTRIBUTIVE_CLAUSE followed immediately by the object it should contain", () => {

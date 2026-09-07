@@ -324,7 +324,7 @@
       "expected": [
         {
           "path": "sentences[0].components[1]",
-          "message": "an ATTRIBUTIVE_CLAUSE keeps its whole internal structure in one component; absorb the object, predicative, or complement that follows it"
+          "message": "an ATTRIBUTIVE_CLAUSE keeps its whole internal structure in one component; absorb the object or predicative that follows it"
         }
       ]
     },
