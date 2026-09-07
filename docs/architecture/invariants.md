@@ -128,7 +128,7 @@
 
 ### I-10.1 双端分句必须从同一批自定义候选边界出发
 
-**规则** TS 与 Kotlin 都按「句末标点串 + 可选收尾引号/括号 + 后随空白」产生候选边界。强非终结缩写（称谓等）始终向后合并；可收句缩写 `U.S.` / `Ph.D.` / `Inc.` / `Ltd.` / `Co.` / `Corp.` / `etc.` 只在下一片段以小写词或数字开头时合并，遇大写新句保留边界。token regex 内部空白统一使用显式 JS Unicode whitespace class（含 NBSP、U+2000–U+200A），不得用平台 `\s+`。initial、编号和无实词片段仍按双端同构规则处理；`rebuildTokens` 只对 segmentBlock 已 trim 的生产句文本无损。不得分别从平台边界后处理。
+**规则** TS 与 Kotlin 都按「句末标点串 + 可选收尾引号/括号 + 后随空白」产生候选边界。强非终结缩写（称谓等）始终向后合并；可收句缩写 `U.S.` / `Ph.D.` / `Inc.` / `Ltd.` / `Co.` / `Corp.` / `etc.` 只在下一片段以小写词或数字开头时合并，遇大写新句保留边界。token regex 内部空白统一使用显式 JS Unicode whitespace class（含 NBSP、U+2000–U+200A），不得用平台 `\s+`。initial、编号和无实词片段仍按双端同构规则处理；尾部剥离也只能用该显式类，不能用 JVM `trimEnd()` 的更大集合。共享向量固定 `Acme Inc.\u00a0It opened.` 为两句、`Acme Inc.\u001cIt opened.` 为一句；`rebuildTokens` 只对 segmentBlock 已 trim 的生产句文本无损。不得分别从平台边界后处理。
 
 **为什么** 两个平台的原始边界本来就不一致；例如编号列表文本会分别切成不同段数。后处理只能修当前已知样例，无法把两套上游边界变成同一个算法。规范化句文本、Token ID 与跨端缓存键会随之漂移。
 

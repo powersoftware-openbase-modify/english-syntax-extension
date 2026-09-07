@@ -1326,5 +1326,115 @@
         ]
       }
     ]
+  },
+  {
+    "name": "inc-nbsp-tail",
+    "block": "Acme Inc. It opened.",
+    "sentences": [
+      {
+        "text": "Acme Inc.",
+        "start": 0,
+        "end": 9,
+        "tokens": [
+          {
+            "text": "Acme",
+            "start": 0,
+            "end": 4,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "Inc.",
+            "start": 5,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          }
+        ]
+      },
+      {
+        "text": "It opened.",
+        "start": 10,
+        "end": 20,
+        "tokens": [
+          {
+            "text": "It",
+            "start": 0,
+            "end": 2,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "opened",
+            "start": 3,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 9,
+            "end": 10,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "inc-u001c-tail",
+    "block": "Acme Inc.\u001cIt opened.",
+    "sentences": [
+      {
+        "text": "Acme Inc.\u001cIt opened.",
+        "start": 0,
+        "end": 20,
+        "tokens": [
+          {
+            "text": "Acme",
+            "start": 0,
+            "end": 4,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "Inc.",
+            "start": 5,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "\u001c",
+            "start": 9,
+            "end": 10,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "text": "It",
+            "start": 10,
+            "end": 12,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "opened",
+            "start": 13,
+            "end": 19,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 19,
+            "end": 20,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      }
+    ]
   }
 ]

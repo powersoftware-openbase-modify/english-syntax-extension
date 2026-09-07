@@ -78,7 +78,16 @@ private val javascriptWhitespace = Regex("^[$jsWhitespaceClass]$")
 data class SegmentedSentence(val text: String, val start: Int, val end: Int)
 
 private fun mergesIntoNext(text: String, nextText: String): Boolean {
-  val trimmed = text.trimEnd()
+  // TS 只剥共享的显式 JavaScript whitespace 类；JVM trimEnd 还会多剥 U+001C–U+001F，
+  // 若未来候选片段来源变化，会让双端在缩写边界上分叉。
+  var trimmedEnd = text.length
+  while (
+    trimmedEnd > 0 &&
+    javascriptWhitespace.matches(text[trimmedEnd - 1].toString())
+  ) {
+    trimmedEnd -= 1
+  }
+  val trimmed = text.substring(0, trimmedEnd)
   return alwaysNonTerminalEnd.containsMatchIn(trimmed) ||
     initialEnd.containsMatchIn(trimmed) ||
     (contextSensitiveEnd.containsMatchIn(trimmed) && continuationStart.containsMatchIn(nextText)) ||
