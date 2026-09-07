@@ -648,6 +648,79 @@ describe("core analysis grammar constraints", () => {
     });
   });
 
+  it("rejects an overlong whole-sentence fragment component", () => {
+    const sentence = sentenceOf("The quick brown fox jumps over the lazy dog near the river bank.");
+    expect(
+      grammarErrors(sentence, [
+        {
+          startToken: 0,
+          endToken: sentence.tokens.at(-1)!.id,
+          role: "FRAGMENT_HEAD",
+          translation: "整句片段",
+        },
+      ]),
+    ).toContainEqual({
+      path: "sentences[0].components",
+      message:
+        "a whole-sentence fragment component must not exceed 10 lexical tokens; split it into a fragment head plus its modifiers",
+    });
+  });
+
+  it.each([
+    ["What a wonderful surprise!", "INDEPENDENT_ELEMENT"],
+    [
+      "A fast reliable secure modern accessible unified developer experience platform",
+      "FRAGMENT_HEAD",
+    ],
+    [
+      "A fast reliable secure modern accessible unified developer experience platform",
+      "APPOSITIVE",
+    ],
+  ])("accepts a bounded whole-sentence fragment role: %s as %s", (text, role) => {
+    const sentence = sentenceOf(text);
+    expect(
+      validateCoreBatch(
+        {
+          sentences: [
+            {
+              sentenceId: sentence.sentenceId,
+              components: [
+                { startToken: 0, endToken: sentence.tokens.at(-1)!.id, role, translation: "片段" },
+              ],
+            },
+          ],
+        },
+        [sentence],
+        "profile-1",
+      ).ok,
+    ).toBe(true);
+  });
+
+  it("keeps the known short complete-sentence FRAGMENT_HEAD gap visible", () => {
+    const sentence = sentenceOf("The system works correctly.");
+    expect(
+      validateCoreBatch(
+        {
+          sentences: [
+            {
+              sentenceId: sentence.sentenceId,
+              components: [
+                {
+                  startToken: 0,
+                  endToken: sentence.tokens.at(-1)!.id,
+                  role: "FRAGMENT_HEAD",
+                  translation: "系统正常工作",
+                },
+              ],
+            },
+          ],
+        },
+        [sentence],
+        "profile-1",
+      ).ok,
+    ).toBe(true);
+  });
+
   it("accepts a short fragment covered by one component", () => {
     // 三个实词以下的片段(标题、列表项)本来就没有可拆的同层结构,拆了只是噪音。
     const sentence = sentenceOf("Detailed usage instructions.");

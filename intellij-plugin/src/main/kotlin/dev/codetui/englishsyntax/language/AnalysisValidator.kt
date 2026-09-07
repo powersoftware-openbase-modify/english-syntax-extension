@@ -142,6 +142,12 @@ internal val subordinatingConjunctions = setOf(
  * 一整块译文，正是「看着像翻译、不像成分分析」的那种输出。
  */
 private const val MIN_SPLITTABLE_LEXICAL_TOKENS = 4
+private const val MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS = 10
+private val wholeSentenceFragmentRoles = setOf(
+  GrammarRole.FRAGMENT_HEAD,
+  GrammarRole.INDEPENDENT_ELEMENT,
+  GrammarRole.APPOSITIVE,
+)
 
 /**
  * 五类从句角色。`Complex-sentence rule` 要求从句整块输出、不拆内部结构，
@@ -315,19 +321,34 @@ private fun collectGrammarErrors(
     }
   }
 
-  // 一个成分包住整句 = 没有划分。旧规则只认 COORDINATE_CLAUSE，换成 SUBJECT 就一路通过。
+  // 单成分整句的豁免集是片段语义角色；10 是挑战集审阅后的启发式上限，不是语法定律。
   val lexicalTokenCount = tokens.count { !it.punctuation }
   val only = components.singleOrNull()
+  val onlyLexicalCount = only?.let {
+    lexicalTexts(tokens, TokenRange(it.startToken, it.endToken)).size
+  } ?: 0
+  val coversWholeSentence = onlyLexicalCount == lexicalTokenCount
   if (
     only != null &&
-    only.role != GrammarRole.FRAGMENT_HEAD &&
+    only.role !in wholeSentenceFragmentRoles &&
     lexicalTokenCount >= MIN_SPLITTABLE_LEXICAL_TOKENS &&
-    lexicalTexts(tokens, TokenRange(only.startToken, only.endToken)).size == lexicalTokenCount
+    coversWholeSentence
   ) {
     errors += error(
       "$path.components",
       "one component must not cover the whole sentence; split it into peer components " +
         "(subject, predicate, object, adverbial, …)",
+    )
+  }
+  if (
+    only != null &&
+    only.role in wholeSentenceFragmentRoles &&
+    onlyLexicalCount > MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS &&
+    coversWholeSentence
+  ) {
+    errors += error(
+      "$path.components",
+      "a whole-sentence fragment component must not exceed $MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS lexical tokens; split it into a fragment head plus its modifiers",
     )
   }
 

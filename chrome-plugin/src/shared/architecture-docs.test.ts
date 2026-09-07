@@ -186,6 +186,13 @@ describe("架构文档与代码同步", () => {
     expectDocumentedNumber("CORE_SCHEMA_VERSION", CORE_SCHEMA_VERSION);
     expectDocumentedNumber("MAX_SENTENCES_PER_REQUEST", MAX_SENTENCES_PER_REQUEST);
     expectDocumentedNumber(
+      "MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS",
+      literalNumber(
+        sourceOf("language/analysis-validator.ts"),
+        "MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS",
+      ),
+    );
+    expectDocumentedNumber(
       "MODEL_REQUEST_CONCURRENCY",
       literalNumber(sourceOf("background/service-worker.ts"), "MODEL_REQUEST_CONCURRENCY"),
     );

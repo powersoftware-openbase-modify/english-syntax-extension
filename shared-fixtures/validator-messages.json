@@ -11,6 +11,7 @@
     "an ATTRIBUTIVE_CLAUSE keeps its whole internal structure",
     "a component must not end on a preposition",
     "one component must not cover the whole sentence",
+    "a whole-sentence fragment component must not exceed 10 lexical tokens",
     "COORDINATE_CLAUSE is deprecated",
     "a non-clausal fragment must contain at most one FRAGMENT_HEAD",
     "FRAGMENT_HEAD marks a non-clausal fragment"
@@ -399,6 +400,34 @@
         {
           "path": "sentences[0].components",
           "message": "one component must not cover the whole sentence; split it into peer components (subject, predicate, object, adverbial, …)"
+        }
+      ]
+    },
+    {
+      "id": "overlong-whole-sentence-fragment",
+      "sentence": {
+        "id": "overlong-whole-sentence-fragment",
+        "text": "The quick brown fox jumps over the lazy dog near the river bank."
+      },
+      "raw": {
+        "sentences": [
+          {
+            "sentenceId": "overlong-whole-sentence-fragment",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 13,
+                "role": "FRAGMENT_HEAD",
+                "translation": "整句片段"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": [
+        {
+          "path": "sentences[0].components",
+          "message": "a whole-sentence fragment component must not exceed 10 lexical tokens; split it into a fragment head plus its modifiers"
         }
       ]
     },

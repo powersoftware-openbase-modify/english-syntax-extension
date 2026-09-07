@@ -180,6 +180,12 @@ const SUBORDINATING_CONJUNCTIONS: ReadonlySet<string> = new Set([
  * 一整块译文,正是「看着像翻译、不像成分分析」的那种输出。
  */
 const MIN_SPLITTABLE_LEXICAL_TOKENS = 4;
+const MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS = 10;
+const WHOLE_SENTENCE_FRAGMENT_ROLES: ReadonlySet<GrammarRole> = new Set([
+  GrammarRole.FRAGMENT_HEAD,
+  GrammarRole.INDEPENDENT_ELEMENT,
+  GrammarRole.APPOSITIVE,
+]);
 
 /**
  * 五类从句角色。`Complex-sentence rule` 要求从句整块输出、不拆内部结构,
@@ -400,19 +406,33 @@ function collectGrammarErrors(
     }
   });
 
-  // 一个成分包住整句 = 没有划分。旧规则只认 COORDINATE_CLAUSE,换成 SUBJECT 就一路通过。
+  // 单成分整句的豁免集是片段语义角色；10 是挑战集审阅后的启发式上限，不是语法定律。
   const lexicalTokenCount = tokens.filter((token) => !token.punctuation).length;
   const only = components.length === 1 ? components[0] : undefined;
+  const onlyLexicalCount = only === undefined ? 0 : lexicalTexts(tokens, only).length;
+  const coversWholeSentence = onlyLexicalCount === lexicalTokenCount;
   if (
     only !== undefined &&
-    only.role !== GrammarRole.FRAGMENT_HEAD &&
+    !WHOLE_SENTENCE_FRAGMENT_ROLES.has(only.role) &&
     lexicalTokenCount >= MIN_SPLITTABLE_LEXICAL_TOKENS &&
-    lexicalTexts(tokens, only).length === lexicalTokenCount
+    coversWholeSentence
   ) {
     addError(
       errors,
       `${path}.components`,
       "one component must not cover the whole sentence; split it into peer components (subject, predicate, object, adverbial, …)",
+    );
+  }
+  if (
+    only !== undefined &&
+    WHOLE_SENTENCE_FRAGMENT_ROLES.has(only.role) &&
+    onlyLexicalCount > MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS &&
+    coversWholeSentence
+  ) {
+    addError(
+      errors,
+      `${path}.components`,
+      `a whole-sentence fragment component must not exceed ${MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS} lexical tokens; split it into a fragment head plus its modifiers`,
     );
   }
 

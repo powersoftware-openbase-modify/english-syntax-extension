@@ -188,7 +188,7 @@ DetailAnalysis  = { sentenceId, focus, structures[], grammarPoints[], explanatio
 10. `PREDICATE` 的**首个 lexical word** 不得是限定词、主格人称代词或 `that`——动词组不可能以它们开头，命中即说明主语被吞进了谓语；
 11. `PREDICATE` 的**非首位 lexical words** 不得含限定词（`the/a/an/this/these/those/my/your/his/her/its/our/their`）——限定词是名词短语的左边界，出现在动词组内部说明宾语/表语/补语被吞了进来。`that` 刻意不在这一条里，它更常作宾语从句引导词；
 12. `COORDINATE_CLAUSE` 的首个 lexical word 是从属连词（`because/although/as/if/when/while/since/until/that/…`）且整句**没有** `CONJUNCTION` 成分时非法——从属连词引导的是从句，不是并列分句。有 `CONJUNCTION` 时放行，因为 `Because A, B, and C` 里第一个并列分句本来就以从属连词开头；
-13. 单个成分覆盖了句子**全部**非标点 token 且句子实词数 ≥ 4 时非法（不论 role）——那等于没有划分，卡片会退化成一整块译文。**唯一豁免:该成分是 `FRAGMENT_HEAD`**——不成句的片段本来就没有可拆的同层结构,多词标题/名词短语整体一个 `FRAGMENT_HEAD` 是合法输出。三个实词以内的片段（标题、列表项）没有可拆的同层结构，不触发。
+13. 单个成分覆盖了句子**全部**非标点 token 且句子实词数 ≥ 4 时通常非法——那等于没有划分，卡片会退化成一整块译文。片段语义角色 `{FRAGMENT_HEAD, INDEPENDENT_ELEMENT, APPOSITIVE}` 在实词数不超过 `MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS = 10` 时豁免；超过 10 仍非法并要求拆成片段主体与修饰语。10 是真实标题挑战集审阅后的启发式上限，不是语法定律。短完整句整体误标 `FRAGMENT_HEAD` 仍刻意不靠词表拦截。
 14. （历史判据,已被第 8 条覆盖)曾要求「出现 2 个以上 `COORDINATE_CLAUSE` 时,整句必须另有一个 `CONJUNCTION` 成分或一个 `;` token」;`COORDINATE_CLAUSE` 废弃后任何数量都直接非法,这条不再单独执行。
 15. 五类从句角色（`SUBJECT_CLAUSE` / `OBJECT_CLAUSE` / `PREDICATIVE_CLAUSE` / `ATTRIBUTIVE_CLAUSE` / `ADVERBIAL_CLAUSE`）的成分不得只有 1 个 lexical word——从句至少是引导词 + 谓语，或主语 + 谓语。实测线上把 `that` 单独标成 `ATTRIBUTIVE_CLAUSE`、把 `developers` 标成 `SUBJECT_CLAUSE`，从句剩下的部分平铺到主句层，页面上出现两个同级"谓语"，引导词底下还挂着整个从句的译文。
 16. `ATTRIBUTIVE_CLAUSE` 的**下一个成分**不得是 `OBJECT` / `PREDICATIVE`——定语从句修饰的名词在从句之前，所以紧跟在从句后面的宾语/表语一定是从句自己的（实测 `that will reach` + `about $650 billion`）。`COMPLEMENT` 刻意豁免：宾补结构 `We consider the movie that she directed a masterpiece.` 中补语合法跟在宾语定从之后；主句谓语与主句状语跟在从句后面也合法。

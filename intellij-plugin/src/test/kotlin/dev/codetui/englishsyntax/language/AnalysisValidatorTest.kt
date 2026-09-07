@@ -383,6 +383,43 @@ class AnalysisValidatorTest {
   }
 
   @Test
+  fun `rejects an overlong whole-sentence fragment component`() {
+    val text = "The quick brown fox jumps over the lazy dog near the river bank."
+    val request = sentence(text)
+    assertGrammarError(
+      text,
+      """{"startToken":0,"endToken":${request.tokens.last().id},"role":"FRAGMENT_HEAD","translation":"整句片段"}""",
+      "sentences[0].components",
+      "a whole-sentence fragment component must not exceed 10 lexical tokens; split it into a fragment head plus its modifiers",
+    )
+  }
+
+  @Test
+  fun `accepts bounded whole-sentence fragment roles`() {
+    listOf(
+      "What a wonderful surprise!" to GrammarRole.INDEPENDENT_ELEMENT,
+      "A fast reliable secure modern accessible unified developer experience platform" to GrammarRole.FRAGMENT_HEAD,
+      "A fast reliable secure modern accessible unified developer experience platform" to GrammarRole.APPOSITIVE,
+    ).forEach { (text, role) ->
+      val request = sentence(text)
+      assertAccepted(
+        text,
+        """{"startToken":0,"endToken":${request.tokens.last().id},"role":"${role.name}","translation":"片段"}""",
+      )
+    }
+  }
+
+  @Test
+  fun `keeps the known short complete-sentence FRAGMENT_HEAD gap visible`() {
+    val text = "The system works correctly."
+    val request = sentence(text)
+    assertAccepted(
+      text,
+      """{"startToken":0,"endToken":${request.tokens.last().id},"role":"FRAGMENT_HEAD","translation":"系统正常工作"}""",
+    )
+  }
+
+  @Test
   fun `accepts a short fragment covered by one component`() {
     // 三个实词以下的片段(标题、列表项)本来就没有可拆的同层结构,拆了只是噪音。
     assertAccepted(
