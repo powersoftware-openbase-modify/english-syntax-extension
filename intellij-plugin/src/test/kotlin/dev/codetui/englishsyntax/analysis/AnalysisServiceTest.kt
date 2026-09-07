@@ -257,15 +257,23 @@ class AnalysisServiceTest {
   @Test
   fun `shared evaluation trace replays through production service with identical shrinking subsets`() = runBlocking {
     val fixture = json.parseToJsonElement(FixtureLoader.text("core-evaluation-traces.json")).jsonObject
-    val replay = fixture.getValue("serviceReplay").jsonObject
+    assertEquals("core-evaluation-trace/v1", fixture.getValue("schemaVersion").jsonPrimitive.content)
+    val trace = fixture.getValue("traces").jsonArray.first().jsonObject
     val snapshots = fixture.getValue("tokenizerSnapshot").jsonObject.getValue("sentences").jsonArray
       .associate { item ->
         val value = item.jsonObject
         value.getValue("id").jsonPrimitive.content to value.getValue("text").jsonPrimitive.content
       }
-    val ids = replay.getValue("inputSentenceIds").jsonArray.map { it.jsonPrimitive.content }
+    val ids = trace.getValue("inputSentenceIds").jsonArray.map { it.jsonPrimitive.content }
+    val denominator = fixture.getValue("corpus").jsonObject.getValue("denominatorSentenceIds").jsonArray
+      .map { it.jsonPrimitive.content }
+    assertEquals(denominator.take(6), ids)
     val sentences = ids.map { id -> sentence(id, snapshots.getValue(id)) }
-    val rounds = replay.getValue("rounds").jsonArray.map { it.jsonObject }
+    val firstPass = trace.getValue("firstPass").jsonObject
+    val repairs = trace.getValue("repairs").jsonArray.map { it.jsonObject }
+    val rounds = listOf(firstPass) + repairs
+    assertEquals(ids, firstPass.getValue("subsetSentenceIds").jsonArray.map { it.jsonPrimitive.content })
+    assertEquals(listOf(1, 2), repairs.map { it.getValue("round").jsonPrimitive.content.toInt() })
     rounds.forEach { round -> server.enqueueJson(round.getValue("raw").toString()) }
 
     val outcome = service.analyzeCore(
@@ -275,23 +283,29 @@ class AnalysisServiceTest {
       bypassCache = true,
     )
 
-    val expected = replay.getValue("expected").jsonObject
+    assertEquals(3, server.requests.size)
+    val final = trace.getValue("final").jsonObject
     assertEquals(
-      expected.getValue("successSentenceIds").jsonArray.map { it.jsonPrimitive.content },
+      final.getValue("successSentenceIds").jsonArray.map { it.jsonPrimitive.content },
       outcome.result.map { it.sentenceId },
     )
     assertEquals(
-      expected.getValue("failureSentenceIds").jsonArray.map { it.jsonPrimitive.content },
+      final.getValue("failureSentenceIds").jsonArray.map { it.jsonPrimitive.content },
       outcome.failures.map { it.sentenceId },
     )
-    val expectedSubsets = expected.getValue("repairSubsetSentenceIds").jsonArray.map { subset ->
-      subset.jsonArray.map { it.jsonPrimitive.content }
+    val expectedSubsets = repairs.map { repair ->
+      repair.getValue("subsetSentenceIds").jsonArray.map { it.jsonPrimitive.content }
     }
     val observedSubsets = server.requests.drop(1).map { request ->
       ids.filter { id -> request.body.getValue("messages").toString().contains("\\\"sentenceId\\\":\\\"$id\\\"") }
     }
     assertEquals(expectedSubsets, observedSubsets)
-    val expectedAnalyses = expected.getValue("finalAnalyses").jsonArray.map { analysis ->
+    assertTrue(observedSubsets.flatten().none { it == ids[0] })
+    val firstErrors = firstPass.getValue("validatorErrors").jsonArray
+    assertTrue(firstErrors.any { it.jsonObject.getValue("sentenceId").jsonPrimitive.content == ids[1] })
+    assertTrue(firstErrors.any { it.jsonObject.getValue("sentenceId").jsonPrimitive.content == ids[2] })
+    assertEquals(listOf(ids[3]), final.getValue("failureSentenceIds").jsonArray.map { it.jsonPrimitive.content })
+    val expectedAnalyses = final.getValue("analyses").jsonArray.map { analysis ->
       val value = analysis.jsonObject
       value.getValue("sentenceId").jsonPrimitive.content to value.getValue("components").jsonArray.map { component ->
         val fields = component.jsonObject

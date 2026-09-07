@@ -55,8 +55,16 @@
         "source": "Spring AI documentation phrase",
         "annotationRationale": "Non-clausal noun heading: FRAGMENT_HEAD plus postnominal ATTRIBUTE.",
         "boundaries": [
-          { "startChar": 0, "endChar": 20, "role": "FRAGMENT_HEAD" },
-          { "startChar": 21, "endChar": 37, "role": "ATTRIBUTE" }
+          {
+            "startChar": 0,
+            "endChar": 20,
+            "role": "FRAGMENT_HEAD"
+          },
+          {
+            "startChar": 21,
+            "endChar": 37,
+            "role": "ATTRIBUTE"
+          }
         ]
       },
       {
@@ -67,7 +75,11 @@
         "source": "Independent rewrite of a compatibility heading",
         "annotationRationale": "Adjective fragment keeps its selected prepositional complement inside FRAGMENT_HEAD.",
         "boundaries": [
-          { "startChar": 0, "endChar": 32, "role": "FRAGMENT_HEAD" }
+          {
+            "startChar": 0,
+            "endChar": 32,
+            "role": "FRAGMENT_HEAD"
+          }
         ]
       },
       {
@@ -78,8 +90,16 @@
         "source": "Independent rewrite of a documentation heading",
         "annotationRationale": "Non-finite activity is FRAGMENT_HEAD; separable at-phrase is ATTRIBUTE.",
         "boundaries": [
-          { "startChar": 0, "endChar": 24, "role": "FRAGMENT_HEAD" },
-          { "startChar": 25, "endChar": 33, "role": "ATTRIBUTE" }
+          {
+            "startChar": 0,
+            "endChar": 24,
+            "role": "FRAGMENT_HEAD"
+          },
+          {
+            "startChar": 25,
+            "endChar": 33,
+            "role": "ATTRIBUTE"
+          }
         ]
       },
       {
@@ -90,7 +110,11 @@
         "source": "Independent documentation-style heading",
         "annotationRationale": "A noun heading without a separable phrase is one FRAGMENT_HEAD.",
         "boundaries": [
-          { "startChar": 0, "endChar": 27, "role": "FRAGMENT_HEAD" }
+          {
+            "startChar": 0,
+            "endChar": 27,
+            "role": "FRAGMENT_HEAD"
+          }
         ]
       },
       {
@@ -100,7 +124,23 @@
         "category": "clause",
         "source": "Design specification section 6.4a",
         "annotationRationale": "Copular PREDICATE followed by a complete PREDICATIVE_CLAUSE.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 11,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 12,
+            "endChar": 14,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 15,
+            "endChar": 38,
+            "role": "PREDICATIVE_CLAUSE"
+          }
+        ]
       },
       {
         "id": "rr-clause-2",
@@ -109,7 +149,23 @@
         "category": "clause",
         "source": "Design specification section 5.3c",
         "annotationRationale": "Whole initial clause is SUBJECT_CLAUSE.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 12,
+            "role": "SUBJECT_CLAUSE"
+          },
+          {
+            "startChar": 13,
+            "endChar": 17,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 18,
+            "endChar": 27,
+            "role": "OBJECT"
+          }
+        ]
       },
       {
         "id": "rr-clause-3",
@@ -118,7 +174,23 @@
         "category": "clause",
         "source": "Design specification section 6.4a rewrite",
         "annotationRationale": "Subordinate clause remains one ADVERBIAL_CLAUSE.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 24,
+            "role": "ADVERBIAL_CLAUSE"
+          },
+          {
+            "startChar": 26,
+            "endChar": 28,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 29,
+            "endChar": 35,
+            "role": "PREDICATE"
+          }
+        ]
       },
       {
         "id": "rr-clause-4",
@@ -127,7 +199,23 @@
         "category": "clause",
         "source": "Independent rewrite",
         "annotationRationale": "Relative clause includes its introducer, subject, and predicate.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 8,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 9,
+            "endChar": 23,
+            "role": "ATTRIBUTIVE_CLAUSE"
+          },
+          {
+            "startChar": 24,
+            "endChar": 29,
+            "role": "PREDICATE"
+          }
+        ]
       },
       {
         "id": "rr-complement-1",
@@ -136,7 +224,28 @@
         "category": "object-complement",
         "source": "Task 21 corrected annotation ruling",
         "annotationRationale": "developers is OBJECT and work faster is COMPLEMENT, not a clause.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 10,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 11,
+            "endChar": 16,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 17,
+            "endChar": 27,
+            "role": "OBJECT"
+          },
+          {
+            "startChar": 28,
+            "endChar": 39,
+            "role": "COMPLEMENT"
+          }
+        ]
       },
       {
         "id": "rr-complement-2",
@@ -145,7 +254,28 @@
         "category": "object-complement",
         "source": "Design specification section 6.4b",
         "annotationRationale": "the tool is OBJECT and essential is COMPLEMENT.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 2,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 3,
+            "endChar": 11,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 12,
+            "endChar": 20,
+            "role": "OBJECT"
+          },
+          {
+            "startChar": 21,
+            "endChar": 30,
+            "role": "COMPLEMENT"
+          }
+        ]
       },
       {
         "id": "rr-complement-3",
@@ -154,7 +284,28 @@
         "category": "object-complement",
         "source": "Independent rewrite",
         "annotationRationale": "simple predicates a property of OBJECT the process and is COMPLEMENT.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 4,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 5,
+            "endChar": 9,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 10,
+            "endChar": 21,
+            "role": "OBJECT"
+          },
+          {
+            "startChar": 22,
+            "endChar": 28,
+            "role": "COMPLEMENT"
+          }
+        ]
       },
       {
         "id": "rr-complement-4",
@@ -163,7 +314,28 @@
         "category": "object-complement",
         "source": "Independent technical rewrite",
         "annotationRationale": "requests is OBJECT and isolated is COMPLEMENT.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 8,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 9,
+            "endChar": 14,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 15,
+            "endChar": 23,
+            "role": "OBJECT"
+          },
+          {
+            "startChar": 24,
+            "endChar": 32,
+            "role": "COMPLEMENT"
+          }
+        ]
       },
       {
         "id": "rr-preposition-1",
@@ -172,7 +344,18 @@
         "category": "prepositional-attachment",
         "source": "Independent documentation heading",
         "annotationRationale": "Postnominal for-phrase is ATTRIBUTE.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 7,
+            "role": "FRAGMENT_HEAD"
+          },
+          {
+            "startChar": 8,
+            "endChar": 24,
+            "role": "ATTRIBUTE"
+          }
+        ]
       },
       {
         "id": "rr-preposition-2",
@@ -181,7 +364,23 @@
         "category": "prepositional-attachment",
         "source": "Gold convention quantity rewrite",
         "annotationRationale": "of-phrase attaches to nominal subject as ATTRIBUTE without a quantity exception.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 4,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 5,
+            "endChar": 28,
+            "role": "ATTRIBUTE"
+          },
+          {
+            "startChar": 29,
+            "endChar": 35,
+            "role": "PREDICATE"
+          }
+        ]
       },
       {
         "id": "rr-preposition-3",
@@ -190,7 +389,23 @@
         "category": "prepositional-attachment",
         "source": "Gold convention rewrite",
         "annotationRationale": "Nested at-phrase stays inside the governing ADVERBIAL.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 3,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 4,
+            "endChar": 10,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 11,
+            "endChar": 38,
+            "role": "ADVERBIAL"
+          }
+        ]
       },
       {
         "id": "rr-preposition-4",
@@ -199,7 +414,23 @@
         "category": "prepositional-attachment",
         "source": "Independent rewrite",
         "annotationRationale": "Postnominal prepositional phrase is ATTRIBUTE.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 9,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 10,
+            "endChar": 23,
+            "role": "ATTRIBUTE"
+          },
+          {
+            "startChar": 24,
+            "endChar": 31,
+            "role": "PREDICATE"
+          }
+        ]
       },
       {
         "id": "rr-coordination-1",
@@ -208,7 +439,33 @@
         "category": "coordination",
         "source": "Design specification V5 ruling rewrite",
         "annotationRationale": "Shared-subject predicates are flat, with FANBOYS as CONJUNCTION.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 10,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 11,
+            "endChar": 16,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 18,
+            "endChar": 22,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 24,
+            "endChar": 27,
+            "role": "CONJUNCTION"
+          },
+          {
+            "startChar": 28,
+            "endChar": 33,
+            "role": "PREDICATE"
+          }
+        ]
       },
       {
         "id": "rr-coordination-2",
@@ -217,7 +474,38 @@
         "category": "coordination",
         "source": "Independent rewrite",
         "annotationRationale": "Independent clauses are flattened; and is CONJUNCTION, never COORDINATE_CLAUSE.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 8,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 9,
+            "endChar": 16,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 17,
+            "endChar": 20,
+            "role": "CONJUNCTION"
+          },
+          {
+            "startChar": 21,
+            "endChar": 26,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 27,
+            "endChar": 33,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 34,
+            "endChar": 36,
+            "role": "OBJECT"
+          }
+        ]
       },
       {
         "id": "rr-coordination-3",
@@ -226,7 +514,33 @@
         "category": "coordination",
         "source": "Independent imperative rewrite",
         "annotationRationale": "Shared omitted subject with two predicates and a CONJUNCTION.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 4,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 5,
+            "endChar": 14,
+            "role": "OBJECT"
+          },
+          {
+            "startChar": 15,
+            "endChar": 17,
+            "role": "CONJUNCTION"
+          },
+          {
+            "startChar": 18,
+            "endChar": 21,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 22,
+            "endChar": 30,
+            "role": "OBJECT"
+          }
+        ]
       },
       {
         "id": "rr-coordination-4",
@@ -235,7 +549,33 @@
         "category": "coordination",
         "source": "Independent rewrite",
         "annotationRationale": "Coordinated predicatives retain but as CONJUNCTION.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 9,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 10,
+            "endChar": 12,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 13,
+            "endChar": 18,
+            "role": "PREDICATIVE"
+          },
+          {
+            "startChar": 19,
+            "endChar": 22,
+            "role": "CONJUNCTION"
+          },
+          {
+            "startChar": 23,
+            "endChar": 32,
+            "role": "PREDICATIVE"
+          }
+        ]
       },
       {
         "id": "ho-fragment-1",
@@ -244,7 +584,18 @@
         "category": "fragment",
         "source": "Independent documentation-style rewrite",
         "annotationRationale": "Noun fragment with a separable postnominal ATTRIBUTE; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 15,
+            "role": "FRAGMENT_HEAD"
+          },
+          {
+            "startChar": 16,
+            "endChar": 37,
+            "role": "ATTRIBUTE"
+          }
+        ]
       },
       {
         "id": "ho-fragment-2",
@@ -253,7 +604,13 @@
         "category": "fragment",
         "source": "Independent documentation-style rewrite",
         "annotationRationale": "Adjective-selected complement stays in FRAGMENT_HEAD; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 24,
+            "role": "FRAGMENT_HEAD"
+          }
+        ]
       },
       {
         "id": "ho-fragment-3",
@@ -262,7 +619,18 @@
         "category": "fragment",
         "source": "Independent documentation-style rewrite",
         "annotationRationale": "Non-finite fragment plus separable modifier; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 17,
+            "role": "FRAGMENT_HEAD"
+          },
+          {
+            "startChar": 18,
+            "endChar": 34,
+            "role": "ATTRIBUTE"
+          }
+        ]
       },
       {
         "id": "ho-fragment-4",
@@ -271,7 +639,13 @@
         "category": "fragment",
         "source": "Independent documentation-style rewrite",
         "annotationRationale": "Single nominal FRAGMENT_HEAD; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 27,
+            "role": "FRAGMENT_HEAD"
+          }
+        ]
       },
       {
         "id": "ho-clause-1",
@@ -280,7 +654,28 @@
         "category": "clause",
         "source": "Task 21 corrected annotation ruling",
         "annotationRationale": "obvious is PREDICATIVE and the postponed that-clause is SUBJECT_CLAUSE; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 2,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 3,
+            "endChar": 5,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 6,
+            "endChar": 13,
+            "role": "PREDICATIVE"
+          },
+          {
+            "startChar": 14,
+            "endChar": 37,
+            "role": "SUBJECT_CLAUSE"
+          }
+        ]
       },
       {
         "id": "ho-clause-2",
@@ -289,7 +684,23 @@
         "category": "clause",
         "source": "Independent rewrite",
         "annotationRationale": "Initial interrogative content clause is SUBJECT_CLAUSE; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 19,
+            "role": "SUBJECT_CLAUSE"
+          },
+          {
+            "startChar": 20,
+            "endChar": 27,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 28,
+            "endChar": 37,
+            "role": "PREDICATIVE"
+          }
+        ]
       },
       {
         "id": "ho-clause-3",
@@ -298,7 +709,23 @@
         "category": "clause",
         "source": "Independent technical rewrite",
         "annotationRationale": "that failed is a complete ATTRIBUTIVE_CLAUSE; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 12,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 13,
+            "endChar": 24,
+            "role": "ATTRIBUTIVE_CLAUSE"
+          },
+          {
+            "startChar": 25,
+            "endChar": 34,
+            "role": "PREDICATE"
+          }
+        ]
       },
       {
         "id": "ho-clause-4",
@@ -307,7 +734,28 @@
         "category": "clause",
         "source": "Independent technical rewrite",
         "annotationRationale": "Initial subordinate clause is ADVERBIAL_CLAUSE; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 25,
+            "role": "ADVERBIAL_CLAUSE"
+          },
+          {
+            "startChar": 27,
+            "endChar": 29,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 30,
+            "endChar": 39,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 40,
+            "endChar": 42,
+            "role": "OBJECT"
+          }
+        ]
       },
       {
         "id": "ho-complement-1",
@@ -316,7 +764,28 @@
         "category": "object-complement",
         "source": "Independent technical rewrite",
         "annotationRationale": "startup is OBJECT, reliable is COMPLEMENT; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 9,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 10,
+            "endChar": 14,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 15,
+            "endChar": 22,
+            "role": "OBJECT"
+          },
+          {
+            "startChar": 23,
+            "endChar": 31,
+            "role": "COMPLEMENT"
+          }
+        ]
       },
       {
         "id": "ho-complement-2",
@@ -325,7 +794,28 @@
         "category": "object-complement",
         "source": "Independent technical rewrite",
         "annotationRationale": "the migration is OBJECT, painless is COMPLEMENT; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 2,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 3,
+            "endChar": 8,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 9,
+            "endChar": 22,
+            "role": "OBJECT"
+          },
+          {
+            "startChar": 23,
+            "endChar": 31,
+            "role": "COMPLEMENT"
+          }
+        ]
       },
       {
         "id": "ho-complement-3",
@@ -334,7 +824,28 @@
         "category": "object-complement",
         "source": "Independent technical rewrite",
         "annotationRationale": "connections is OBJECT, healthy is COMPLEMENT; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 7,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 8,
+            "endChar": 12,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 13,
+            "endChar": 24,
+            "role": "OBJECT"
+          },
+          {
+            "startChar": 25,
+            "endChar": 32,
+            "role": "COMPLEMENT"
+          }
+        ]
       },
       {
         "id": "ho-complement-4",
@@ -343,7 +854,28 @@
         "category": "object-complement",
         "source": "Independent rewrite",
         "annotationRationale": "the channel is OBJECT, stable is COMPLEMENT; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 4,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 5,
+            "endChar": 10,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 11,
+            "endChar": 22,
+            "role": "OBJECT"
+          },
+          {
+            "startChar": 23,
+            "endChar": 29,
+            "role": "COMPLEMENT"
+          }
+        ]
       },
       {
         "id": "ho-preposition-1",
@@ -352,7 +884,23 @@
         "category": "prepositional-attachment",
         "source": "Independent technical rewrite",
         "annotationRationale": "between-phrase postmodifies bridge as ATTRIBUTE; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 8,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 9,
+            "endChar": 29,
+            "role": "ATTRIBUTE"
+          },
+          {
+            "startChar": 30,
+            "endChar": 36,
+            "role": "PREDICATE"
+          }
+        ]
       },
       {
         "id": "ho-preposition-2",
@@ -361,7 +909,23 @@
         "category": "prepositional-attachment",
         "source": "Gold convention independent rewrite",
         "annotationRationale": "of-phrase is ATTRIBUTE despite quantity wording; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 9,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 10,
+            "endChar": 20,
+            "role": "ATTRIBUTE"
+          },
+          {
+            "startChar": 21,
+            "endChar": 27,
+            "role": "PREDICATE"
+          }
+        ]
       },
       {
         "id": "ho-preposition-3",
@@ -370,7 +934,23 @@
         "category": "prepositional-attachment",
         "source": "Independent technical rewrite",
         "annotationRationale": "within-phrase is an intact ADVERBIAL; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 10,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 11,
+            "endChar": 14,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 15,
+            "endChar": 35,
+            "role": "ADVERBIAL"
+          }
+        ]
       },
       {
         "id": "ho-preposition-4",
@@ -379,7 +959,23 @@
         "category": "prepositional-attachment",
         "source": "Independent rewrite",
         "annotationRationale": "from-phrase is postnominal ATTRIBUTE; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 11,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 12,
+            "endChar": 27,
+            "role": "ATTRIBUTE"
+          },
+          {
+            "startChar": 28,
+            "endChar": 35,
+            "role": "PREDICATE"
+          }
+        ]
       },
       {
         "id": "ho-coordination-1",
@@ -388,7 +984,38 @@
         "category": "coordination",
         "source": "Independent technical rewrite",
         "annotationRationale": "Shared subject predicates are flat; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 7,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 8,
+            "endChar": 13,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 15,
+            "endChar": 23,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 25,
+            "endChar": 28,
+            "role": "CONJUNCTION"
+          },
+          {
+            "startChar": 29,
+            "endChar": 34,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 35,
+            "endChar": 44,
+            "role": "OBJECT"
+          }
+        ]
       },
       {
         "id": "ho-coordination-2",
@@ -397,7 +1024,33 @@
         "category": "coordination",
         "source": "Independent technical rewrite",
         "annotationRationale": "Two clauses are flat around CONJUNCTION but; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 10,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 11,
+            "endChar": 18,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 20,
+            "endChar": 23,
+            "role": "CONJUNCTION"
+          },
+          {
+            "startChar": 24,
+            "endChar": 34,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 35,
+            "endChar": 42,
+            "role": "PREDICATE"
+          }
+        ]
       },
       {
         "id": "ho-coordination-3",
@@ -406,7 +1059,33 @@
         "category": "coordination",
         "source": "Independent technical rewrite",
         "annotationRationale": "Coordinated imperative predicates with CONJUNCTION; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 6,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 7,
+            "endChar": 11,
+            "role": "OBJECT"
+          },
+          {
+            "startChar": 12,
+            "endChar": 14,
+            "role": "CONJUNCTION"
+          },
+          {
+            "startChar": 15,
+            "endChar": 21,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 22,
+            "endChar": 32,
+            "role": "OBJECT"
+          }
+        ]
       },
       {
         "id": "ho-coordination-4",
@@ -415,442 +1094,4883 @@
         "category": "coordination",
         "source": "Independent technical rewrite",
         "annotationRationale": "Coordinated predicatives preserve and as CONJUNCTION; never included in prompt.",
-        "boundaries": []
+        "boundaries": [
+          {
+            "startChar": 0,
+            "endChar": 10,
+            "role": "SUBJECT"
+          },
+          {
+            "startChar": 11,
+            "endChar": 13,
+            "role": "PREDICATE"
+          },
+          {
+            "startChar": 14,
+            "endChar": 18,
+            "role": "PREDICATIVE"
+          },
+          {
+            "startChar": 19,
+            "endChar": 22,
+            "role": "CONJUNCTION"
+          },
+          {
+            "startChar": 23,
+            "endChar": 36,
+            "role": "PREDICATIVE"
+          }
+        ]
       }
     ]
   },
   "tokenizerSnapshot": {
-    "id": "synthetic-service-tokenizer",
+    "id": "production-tokenizer",
     "version": "core-11",
-    "hash": "synthetic-fixture-no-provider-content",
+    "hash": "26753d28f96a6b05a62a6a4ce320c28c13fdf509a6f513d6f8896f85fa2d7a45",
     "sentences": [
       {
-        "id": "legal",
-        "text": "Learners read.",
-        "textHash": "synthetic-legal",
+        "id": "rr-fragment-1",
+        "text": "Portable API support across providers.",
+        "textHash": "04250b71d61b97b062ab9c1fdfa035dcc04d04e7c5a0f6e37e519dc7a54041f4",
         "tokens": [
           {
             "id": 0,
-            "text": "Learners",
+            "text": "Portable",
             "start": 0,
             "end": 8,
+            "leadingWhitespace": "",
             "punctuation": false
           },
           {
             "id": 1,
-            "text": "read",
+            "text": "API",
+            "start": 9,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "support",
+            "start": 13,
+            "end": 20,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "across",
+            "start": 21,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "providers",
+            "start": 28,
+            "end": 37,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 37,
+            "end": 38,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-fragment-2",
+        "text": "Compatible with existing clients.",
+        "textHash": "70e7e2828d1aac52a4ee2f14489b7ed66a9ad7c293ca1372f31bd0c4fad88a0e",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Compatible",
+            "start": 0,
+            "end": 10,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "with",
+            "start": 11,
+            "end": 15,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "existing",
+            "start": 16,
+            "end": 24,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "clients",
+            "start": 25,
+            "end": 32,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": ".",
+            "start": 32,
+            "end": 33,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-fragment-3",
+        "text": "Building reliable agents at scale.",
+        "textHash": "eb9063efe6b0dd6b2134d626c7bea394e2f64762298f5d11b34a5786fccf9755",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Building",
+            "start": 0,
+            "end": 8,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "reliable",
+            "start": 9,
+            "end": 17,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "agents",
+            "start": 18,
+            "end": 24,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "at",
+            "start": 25,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "scale",
+            "start": 28,
+            "end": 33,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 33,
+            "end": 34,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-fragment-4",
+        "text": "Detailed setup instructions.",
+        "textHash": "6594572ac2f0635b73218d7592d9df03fb19cbbfce270b202ab3a20cb10698d8",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Detailed",
+            "start": 0,
+            "end": 8,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "setup",
+            "start": 9,
+            "end": 14,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "instructions",
+            "start": 15,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": ".",
+            "start": 27,
+            "end": 28,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-clause-1",
+        "text": "The problem is that the cache is stale.",
+        "textHash": "2ade657b407451932c47dd10f92758dc1317e355db9a5013399e4e65dabb5511",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "problem",
+            "start": 4,
+            "end": 11,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "is",
+            "start": 12,
+            "end": 14,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "that",
+            "start": 15,
+            "end": 19,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "the",
+            "start": 20,
+            "end": 23,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "cache",
+            "start": 24,
+            "end": 29,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": "is",
+            "start": 30,
+            "end": 32,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 7,
+            "text": "stale",
+            "start": 33,
+            "end": 38,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 8,
+            "text": ".",
+            "start": 38,
+            "end": 39,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-clause-2",
+        "text": "Whoever wins gets the prize.",
+        "textHash": "8edf50edc7642ceaec672eeedab69eea2337690c249e3d8b2acb3b33afca3053",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Whoever",
+            "start": 0,
+            "end": 7,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "wins",
+            "start": 8,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "gets",
+            "start": 13,
+            "end": 17,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "the",
+            "start": 18,
+            "end": 21,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "prize",
+            "start": 22,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 27,
+            "end": 28,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-clause-3",
+        "text": "Because the road flooded, we waited.",
+        "textHash": "86f461d30d3c70cd7dd8b4ca505b9218589d45e8539a7e8d91aa2a81c9fb017e",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Because",
+            "start": 0,
+            "end": 7,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "the",
+            "start": 8,
+            "end": 11,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "road",
+            "start": 12,
+            "end": 16,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "flooded",
+            "start": 17,
+            "end": 24,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": ",",
+            "start": 24,
+            "end": 25,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "id": 5,
+            "text": "we",
+            "start": 26,
+            "end": 28,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": "waited",
+            "start": 29,
+            "end": 35,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 7,
+            "text": ".",
+            "start": 35,
+            "end": 36,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-clause-4",
+        "text": "The tool that she built works.",
+        "textHash": "d5e02a58f8f7cab78a751283e271ac97873787f8a0055c75b3cf3cb5a596c475",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "tool",
+            "start": 4,
+            "end": 8,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "that",
             "start": 9,
             "end": 13,
+            "leadingWhitespace": " ",
             "punctuation": false
           },
-          { "id": 2, "text": ".", "start": 13, "end": 14, "punctuation": true }
+          {
+            "id": 3,
+            "text": "she",
+            "start": 14,
+            "end": 17,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "built",
+            "start": 18,
+            "end": 23,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "works",
+            "start": 24,
+            "end": 29,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": ".",
+            "start": 29,
+            "end": 30,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
         ]
       },
       {
-        "id": "repaired",
-        "text": "Writers revise.",
-        "textHash": "synthetic-repaired",
+        "id": "rr-complement-1",
+        "text": "The change helps developers work faster.",
+        "textHash": "b4ee0854d817064c3c99fa9d429f9100f97ea024d7c4258e080dab191a26b97c",
         "tokens": [
           {
             "id": 0,
-            "text": "Writers",
+            "text": "The",
             "start": 0,
-            "end": 7,
+            "end": 3,
+            "leadingWhitespace": "",
             "punctuation": false
           },
           {
             "id": 1,
-            "text": "revise",
-            "start": 8,
-            "end": 14,
+            "text": "change",
+            "start": 4,
+            "end": 10,
+            "leadingWhitespace": " ",
             "punctuation": false
           },
-          { "id": 2, "text": ".", "start": 14, "end": 15, "punctuation": true }
+          {
+            "id": 2,
+            "text": "helps",
+            "start": 11,
+            "end": 16,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "developers",
+            "start": 17,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "work",
+            "start": 28,
+            "end": 32,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "faster",
+            "start": 33,
+            "end": 39,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": ".",
+            "start": 39,
+            "end": 40,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
         ]
       },
       {
-        "id": "damaged",
-        "text": "Servers respond.",
-        "textHash": "synthetic-damaged",
+        "id": "rr-complement-2",
+        "text": "We consider the tool essential.",
+        "textHash": "4d6962d26a88892f60959cbfaf2d35d66923c1dc490cc376209a200a4cb2f518",
         "tokens": [
           {
             "id": 0,
-            "text": "Servers",
+            "text": "We",
             "start": 0,
-            "end": 7,
+            "end": 2,
+            "leadingWhitespace": "",
             "punctuation": false
           },
           {
             "id": 1,
-            "text": "respond",
-            "start": 8,
+            "text": "consider",
+            "start": 3,
+            "end": 11,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "the",
+            "start": 12,
             "end": 15,
+            "leadingWhitespace": " ",
             "punctuation": false
           },
-          { "id": 2, "text": ".", "start": 15, "end": 16, "punctuation": true }
+          {
+            "id": 3,
+            "text": "tool",
+            "start": 16,
+            "end": 20,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "essential",
+            "start": 21,
+            "end": 30,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 30,
+            "end": 31,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
         ]
       },
       {
-        "id": "failed",
-        "text": "Clients retry.",
-        "textHash": "synthetic-failed",
+        "id": "rr-complement-3",
+        "text": "They made the process simple.",
+        "textHash": "62a48d9ac52add77067d5325878518430d9ba174badfafb782a6157be34c4022",
         "tokens": [
           {
             "id": 0,
-            "text": "Clients",
+            "text": "They",
             "start": 0,
-            "end": 7,
+            "end": 4,
+            "leadingWhitespace": "",
             "punctuation": false
           },
           {
             "id": 1,
-            "text": "retry",
-            "start": 8,
-            "end": 13,
+            "text": "made",
+            "start": 5,
+            "end": 9,
+            "leadingWhitespace": " ",
             "punctuation": false
           },
-          { "id": 2, "text": ".", "start": 13, "end": 14, "punctuation": true }
+          {
+            "id": 2,
+            "text": "the",
+            "start": 10,
+            "end": 13,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "process",
+            "start": 14,
+            "end": 21,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "simple",
+            "start": 22,
+            "end": 28,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 28,
+            "end": 29,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
         ]
       },
       {
-        "id": "narrow-a",
-        "text": "Caches persist.",
-        "textHash": "synthetic-narrow-a",
+        "id": "rr-complement-4",
+        "text": "The flag keeps requests isolated.",
+        "textHash": "b0bd156648a99661422f4cf3a74ac24dba4a1ff6c62539582dd34a5904a01e45",
         "tokens": [
           {
             "id": 0,
-            "text": "Caches",
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "flag",
+            "start": 4,
+            "end": 8,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "keeps",
+            "start": 9,
+            "end": 14,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "requests",
+            "start": 15,
+            "end": 23,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "isolated",
+            "start": 24,
+            "end": 32,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 32,
+            "end": 33,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-preposition-1",
+        "text": "Support for local models.",
+        "textHash": "c0a7f189b38dd276b54e26a3e1b7cfa256043e78d20eb9fdef518edb6afa4802",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Support",
+            "start": 0,
+            "end": 7,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "for",
+            "start": 8,
+            "end": 11,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "local",
+            "start": 12,
+            "end": 17,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "models",
+            "start": 18,
+            "end": 24,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": ".",
+            "start": 24,
+            "end": 25,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-preposition-2",
+        "text": "Four of the largest services failed.",
+        "textHash": "0aa282431b4df724335248e787c202bca88668163f4a191181b88411d831a661",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Four",
+            "start": 0,
+            "end": 4,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "of",
+            "start": 5,
+            "end": 7,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "the",
+            "start": 8,
+            "end": 11,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "largest",
+            "start": 12,
+            "end": 19,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "services",
+            "start": 20,
+            "end": 28,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "failed",
+            "start": 29,
+            "end": 35,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": ".",
+            "start": 35,
+            "end": 36,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-preposition-3",
+        "text": "She worked without looking at the code.",
+        "textHash": "b8adc63ad5d072daa4da167a4d3efd5e48b84fb87f69f5ec42d62203742d41a5",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "She",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "worked",
+            "start": 4,
+            "end": 10,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "without",
+            "start": 11,
+            "end": 18,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "looking",
+            "start": 19,
+            "end": 26,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "at",
+            "start": 27,
+            "end": 29,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "the",
+            "start": 30,
+            "end": 33,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": "code",
+            "start": 34,
+            "end": 38,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 7,
+            "text": ".",
+            "start": 38,
+            "end": 39,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-preposition-4",
+        "text": "The guide for beginners arrived.",
+        "textHash": "b2fa543984e3c6c12eea0bc177370abe419ca36fe57d866b970444f493bfc8a4",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "guide",
+            "start": 4,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "for",
+            "start": 10,
+            "end": 13,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "beginners",
+            "start": 14,
+            "end": 23,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "arrived",
+            "start": 24,
+            "end": 31,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 31,
+            "end": 32,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-coordination-1",
+        "text": "The system boots, runs, and stops.",
+        "textHash": "b1d06b3d1c20f563eec13ed126ca0956f58f59c4cc6326c678865b82cafe9704",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "system",
+            "start": 4,
+            "end": 10,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "boots",
+            "start": 11,
+            "end": 16,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": ",",
+            "start": 16,
+            "end": 17,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "id": 4,
+            "text": "runs",
+            "start": 18,
+            "end": 22,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ",",
+            "start": 22,
+            "end": 23,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "id": 6,
+            "text": "and",
+            "start": 24,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 7,
+            "text": "stops",
+            "start": 28,
+            "end": 33,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 8,
+            "text": ".",
+            "start": 33,
+            "end": 34,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-coordination-2",
+        "text": "The team shipped and users tested it.",
+        "textHash": "291998b3c1b97fc6e1dffd5904a1b9107e146a5de2e1b87886876df65fc8fb9a",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "team",
+            "start": 4,
+            "end": 8,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "shipped",
+            "start": 9,
+            "end": 16,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "and",
+            "start": 17,
+            "end": 20,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "users",
+            "start": 21,
+            "end": 26,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "tested",
+            "start": 27,
+            "end": 33,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": "it",
+            "start": 34,
+            "end": 36,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 7,
+            "text": ".",
+            "start": 36,
+            "end": 37,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-coordination-3",
+        "text": "Read the guide or run the demo.",
+        "textHash": "6c68ed4133d32cda0abf3757c55180783667389b384e004a2ebc60242b6e55f1",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Read",
+            "start": 0,
+            "end": 4,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "the",
+            "start": 5,
+            "end": 8,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "guide",
+            "start": 9,
+            "end": 14,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "or",
+            "start": 15,
+            "end": 17,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "run",
+            "start": 18,
+            "end": 21,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "the",
+            "start": 22,
+            "end": 25,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": "demo",
+            "start": 26,
+            "end": 30,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 7,
+            "text": ".",
+            "start": 30,
+            "end": 31,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "rr-coordination-4",
+        "text": "The cache is small but effective.",
+        "textHash": "780ccada9f7150708018f4e18ddf97f70182c5cf46d2e6d06ebf72c1b9cd4f3b",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "cache",
+            "start": 4,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "is",
+            "start": 10,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "small",
+            "start": 13,
+            "end": 18,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "but",
+            "start": 19,
+            "end": 22,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "effective",
+            "start": 23,
+            "end": 32,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": ".",
+            "start": 32,
+            "end": 33,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-fragment-1",
+        "text": "Secure defaults for remote workspaces.",
+        "textHash": "63033c40c2ea0a86bdf9eda3959272402892e1b89694da40f03fddc7a8f51e04",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Secure",
             "start": 0,
             "end": 6,
+            "leadingWhitespace": "",
             "punctuation": false
           },
           {
             "id": 1,
-            "text": "persist",
+            "text": "defaults",
             "start": 7,
-            "end": 14,
+            "end": 15,
+            "leadingWhitespace": " ",
             "punctuation": false
           },
-          { "id": 2, "text": ".", "start": 14, "end": 15, "punctuation": true }
+          {
+            "id": 2,
+            "text": "for",
+            "start": 16,
+            "end": 19,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "remote",
+            "start": 20,
+            "end": 26,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "workspaces",
+            "start": 27,
+            "end": 37,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 37,
+            "end": 38,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
         ]
       },
       {
-        "id": "narrow-b",
-        "text": "Workers recover.",
-        "textHash": "synthetic-narrow-b",
+        "id": "ho-fragment-2",
+        "text": "Ready for production use.",
+        "textHash": "f68dc77b1b6e916a7ebbb70692053af77c9b0274322ba3db0837d62aab225da7",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Ready",
+            "start": 0,
+            "end": 5,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "for",
+            "start": 6,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "production",
+            "start": 10,
+            "end": 20,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "use",
+            "start": 21,
+            "end": 24,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": ".",
+            "start": 24,
+            "end": 25,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-fragment-3",
+        "text": "Deploying updates without downtime.",
+        "textHash": "a2ee7bc9174d18cd2e5bb6051ec378b7cf1f2b7892cb41d2e2b5adb2079a1e13",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Deploying",
+            "start": 0,
+            "end": 9,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "updates",
+            "start": 10,
+            "end": 17,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "without",
+            "start": 18,
+            "end": 25,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "downtime",
+            "start": 26,
+            "end": 34,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": ".",
+            "start": 34,
+            "end": 35,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-fragment-4",
+        "text": "A compact command reference.",
+        "textHash": "a8b30474eceefdca51a76b4c1a16c082dfc2ea2029c8db2fd620b97b765b1686",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "A",
+            "start": 0,
+            "end": 1,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "compact",
+            "start": 2,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "command",
+            "start": 10,
+            "end": 17,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "reference",
+            "start": 18,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": ".",
+            "start": 27,
+            "end": 28,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-clause-1",
+        "text": "It is obvious that the cache is stale.",
+        "textHash": "6edf060e523780e5aa298470d1905ad38727e547f87b1c7b433261c5f140f19d",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "It",
+            "start": 0,
+            "end": 2,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "is",
+            "start": 3,
+            "end": 5,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "obvious",
+            "start": 6,
+            "end": 13,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "that",
+            "start": 14,
+            "end": 18,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "the",
+            "start": 19,
+            "end": 22,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "cache",
+            "start": 23,
+            "end": 28,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": "is",
+            "start": 29,
+            "end": 31,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 7,
+            "text": "stale",
+            "start": 32,
+            "end": 37,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 8,
+            "text": ".",
+            "start": 37,
+            "end": 38,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-clause-2",
+        "text": "Whether it succeeds remains uncertain.",
+        "textHash": "c8622afac9000666fc5cb0a46b26debb8dc51f6c47464536270cb81a01ef46e6",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Whether",
+            "start": 0,
+            "end": 7,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "it",
+            "start": 8,
+            "end": 10,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "succeeds",
+            "start": 11,
+            "end": 19,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "remains",
+            "start": 20,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "uncertain",
+            "start": 28,
+            "end": 37,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 37,
+            "end": 38,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-clause-3",
+        "text": "The endpoint that failed recovered.",
+        "textHash": "a14100b4a35a1099fda65aff18dee5d6d25a51c0e05cd40f10eff050d570d034",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "endpoint",
+            "start": 4,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "that",
+            "start": 13,
+            "end": 17,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "failed",
+            "start": 18,
+            "end": 24,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "recovered",
+            "start": 25,
+            "end": 34,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 34,
+            "end": 35,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-clause-4",
+        "text": "Although logs were sparse, we diagnosed it.",
+        "textHash": "3c74126c08a7eaae17941e0889f755f5812aea6dcfb01b39cfe7ce4a643d5e08",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Although",
+            "start": 0,
+            "end": 8,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "logs",
+            "start": 9,
+            "end": 13,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "were",
+            "start": 14,
+            "end": 18,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "sparse",
+            "start": 19,
+            "end": 25,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": ",",
+            "start": 25,
+            "end": 26,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "id": 5,
+            "text": "we",
+            "start": 27,
+            "end": 29,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": "diagnosed",
+            "start": 30,
+            "end": 39,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 7,
+            "text": "it",
+            "start": 40,
+            "end": 42,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 8,
+            "text": ".",
+            "start": 42,
+            "end": 43,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-complement-1",
+        "text": "The patch made startup reliable.",
+        "textHash": "885117576625a62424da4cfb0aa200cb0a3c0eca0bcfc8fa119d60f7690a5891",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "patch",
+            "start": 4,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "made",
+            "start": 10,
+            "end": 14,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "startup",
+            "start": 15,
+            "end": 22,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "reliable",
+            "start": 23,
+            "end": 31,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 31,
+            "end": 32,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-complement-2",
+        "text": "We found the migration painless.",
+        "textHash": "c3f8631a965cd9d5f7a997d9e48d57ec7a52e8d467022e3e1c9c3d1951a91233",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "We",
+            "start": 0,
+            "end": 2,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "found",
+            "start": 3,
+            "end": 8,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "the",
+            "start": 9,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "migration",
+            "start": 13,
+            "end": 22,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "painless",
+            "start": 23,
+            "end": 31,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 31,
+            "end": 32,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-complement-3",
+        "text": "Retries keep connections healthy.",
+        "textHash": "1ce003fa25640326fbc5c5fbbe90a789f3748f76f1235ffc10dfdd8c53f56969",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Retries",
+            "start": 0,
+            "end": 7,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "keep",
+            "start": 8,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "connections",
+            "start": 13,
+            "end": 24,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "healthy",
+            "start": 25,
+            "end": 32,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": ".",
+            "start": 32,
+            "end": 33,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-complement-4",
+        "text": "They named the channel stable.",
+        "textHash": "94ed32a5f41f6785910e953912d11820c08afeec9c92375801f7c9635b41f3ac",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "They",
+            "start": 0,
+            "end": 4,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "named",
+            "start": 5,
+            "end": 10,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "the",
+            "start": 11,
+            "end": 14,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "channel",
+            "start": 15,
+            "end": 22,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "stable",
+            "start": 23,
+            "end": 29,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 29,
+            "end": 30,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-preposition-1",
+        "text": "A bridge between the runtimes failed.",
+        "textHash": "23ed7940e2e79916b60cd2f840fae1fa6112b18f8cf0590d943e80f45dea8093",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "A",
+            "start": 0,
+            "end": 1,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "bridge",
+            "start": 2,
+            "end": 8,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "between",
+            "start": 9,
+            "end": 16,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "the",
+            "start": 17,
+            "end": 20,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "runtimes",
+            "start": 21,
+            "end": 29,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "failed",
+            "start": 30,
+            "end": 36,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": ".",
+            "start": 36,
+            "end": 37,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-preposition-2",
+        "text": "No amount of retries helped.",
+        "textHash": "c8bfd61287db356703996b6f04a3c8d7944d78edeae769d356d41bb818e0ba54",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "No",
+            "start": 0,
+            "end": 2,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "amount",
+            "start": 3,
+            "end": 9,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "of",
+            "start": 10,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "retries",
+            "start": 13,
+            "end": 20,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "helped",
+            "start": 21,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": ".",
+            "start": 27,
+            "end": 28,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-preposition-3",
+        "text": "The worker ran within strict limits.",
+        "textHash": "0ea63c8f8970656c0b02d0d4413db1ec4f1029912707fbe74984c062008e36ab",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "worker",
+            "start": 4,
+            "end": 10,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "ran",
+            "start": 11,
+            "end": 14,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "within",
+            "start": 15,
+            "end": 21,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "strict",
+            "start": 22,
+            "end": 28,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "limits",
+            "start": 29,
+            "end": 35,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": ".",
+            "start": 35,
+            "end": 36,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-preposition-4",
+        "text": "The request from the editor arrived.",
+        "textHash": "070137c45495e0dadaba27ff628ec905574d8d2fadb688a9f64827e6655f9b1d",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "request",
+            "start": 4,
+            "end": 11,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "from",
+            "start": 12,
+            "end": 16,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "the",
+            "start": 17,
+            "end": 20,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "editor",
+            "start": 21,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "arrived",
+            "start": 28,
+            "end": 35,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": ".",
+            "start": 35,
+            "end": 36,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-coordination-1",
+        "text": "Workers fetch, validate, and cache responses.",
+        "textHash": "47191691c96958fd05b8e3b423d44eb99e65ad75590ae90aa80ba31535d458fb",
         "tokens": [
           {
             "id": 0,
             "text": "Workers",
             "start": 0,
             "end": 7,
+            "leadingWhitespace": "",
             "punctuation": false
           },
           {
             "id": 1,
-            "text": "recover",
+            "text": "fetch",
             "start": 8,
-            "end": 15,
+            "end": 13,
+            "leadingWhitespace": " ",
             "punctuation": false
           },
-          { "id": 2, "text": ".", "start": 15, "end": 16, "punctuation": true }
+          {
+            "id": 2,
+            "text": ",",
+            "start": 13,
+            "end": 14,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "id": 3,
+            "text": "validate",
+            "start": 15,
+            "end": 23,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": ",",
+            "start": 23,
+            "end": 24,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "id": 5,
+            "text": "and",
+            "start": 25,
+            "end": 28,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": "cache",
+            "start": 29,
+            "end": 34,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 7,
+            "text": "responses",
+            "start": 35,
+            "end": 44,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 8,
+            "text": ".",
+            "start": 44,
+            "end": 45,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-coordination-2",
+        "text": "The client retried, but the server refused.",
+        "textHash": "6267db3cfb9b6e580edbb156babc885674d7e525b65c0d93e9399fbb72c0a4d1",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "client",
+            "start": 4,
+            "end": 10,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "retried",
+            "start": 11,
+            "end": 18,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": ",",
+            "start": 18,
+            "end": 19,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "id": 4,
+            "text": "but",
+            "start": 20,
+            "end": 23,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "the",
+            "start": 24,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": "server",
+            "start": 28,
+            "end": 34,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 7,
+            "text": "refused",
+            "start": 35,
+            "end": 42,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 8,
+            "text": ".",
+            "start": 42,
+            "end": 43,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-coordination-3",
+        "text": "Choose JSON or return plain text.",
+        "textHash": "2131d6762d1c430b44dc06bdaa5e3b984d923e29cc602f714c384aa3fb532acd",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "Choose",
+            "start": 0,
+            "end": 6,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "JSON",
+            "start": 7,
+            "end": 11,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "or",
+            "start": 12,
+            "end": 14,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "return",
+            "start": 15,
+            "end": 21,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "plain",
+            "start": 22,
+            "end": 27,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "text",
+            "start": 28,
+            "end": 32,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": ".",
+            "start": 32,
+            "end": 33,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      },
+      {
+        "id": "ho-coordination-4",
+        "text": "The result is safe and deterministic.",
+        "textHash": "c6fccf5e946d4b226c5b2fcab3a2c00d7df6e23554697e4ffe799cbf8e8da242",
+        "tokens": [
+          {
+            "id": 0,
+            "text": "The",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "id": 1,
+            "text": "result",
+            "start": 4,
+            "end": 10,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 2,
+            "text": "is",
+            "start": 11,
+            "end": 13,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 3,
+            "text": "safe",
+            "start": 14,
+            "end": 18,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 4,
+            "text": "and",
+            "start": 19,
+            "end": 22,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 5,
+            "text": "deterministic",
+            "start": 23,
+            "end": 36,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "id": 6,
+            "text": ".",
+            "start": 36,
+            "end": 37,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
         ]
       }
     ]
   },
-  "serviceReplay": {
-    "inputSentenceIds": [
-      "legal",
-      "repaired",
-      "damaged",
-      "failed",
-      "narrow-a",
-      "narrow-b"
+  "run": {
+    "mode": "pipeline",
+    "createdAt": "2026-09-04T00:00:00.000Z",
+    "commit": "synthetic",
+    "model": "synthetic",
+    "parameters": {
+      "temperature": 0
+    },
+    "batchSize": 6,
+    "sentenceOrder": [
+      "rr-fragment-1",
+      "rr-fragment-2",
+      "rr-fragment-3",
+      "rr-fragment-4",
+      "rr-clause-1",
+      "rr-clause-2",
+      "rr-clause-3",
+      "rr-clause-4",
+      "rr-complement-1",
+      "rr-complement-2",
+      "rr-complement-3",
+      "rr-complement-4",
+      "rr-preposition-1",
+      "rr-preposition-2",
+      "rr-preposition-3",
+      "rr-preposition-4",
+      "rr-coordination-1",
+      "rr-coordination-2",
+      "rr-coordination-3",
+      "rr-coordination-4",
+      "ho-fragment-1",
+      "ho-fragment-2",
+      "ho-fragment-3",
+      "ho-fragment-4",
+      "ho-clause-1",
+      "ho-clause-2",
+      "ho-clause-3",
+      "ho-clause-4",
+      "ho-complement-1",
+      "ho-complement-2",
+      "ho-complement-3",
+      "ho-complement-4",
+      "ho-preposition-1",
+      "ho-preposition-2",
+      "ho-preposition-3",
+      "ho-preposition-4",
+      "ho-coordination-1",
+      "ho-coordination-2",
+      "ho-coordination-3",
+      "ho-coordination-4"
     ],
-    "gold": [
-      {
-        "sentenceId": "legal",
-        "components": [
-          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
-          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-        ]
-      },
-      {
-        "sentenceId": "repaired",
-        "components": [
-          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
-          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-        ]
-      },
-      {
-        "sentenceId": "damaged",
-        "components": [
-          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
-          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-        ]
-      },
-      {
-        "sentenceId": "failed",
-        "components": [
-          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
-          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-        ]
-      },
-      {
-        "sentenceId": "narrow-a",
-        "components": [
-          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
-          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-        ]
-      },
-      {
-        "sentenceId": "narrow-b",
-        "components": [
-          { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
-          { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-        ]
-      }
-    ],
-    "rounds": [
-      {
-        "round": 0,
-        "subsetSentenceIds": [
-          "legal",
-          "repaired",
-          "damaged",
-          "failed",
-          "narrow-a",
-          "narrow-b"
+    "hashes": {
+      "prompt": "7efdd42d6b2a8e16365f4022795163555e08357419dc7f261361c7f8612bb3c6",
+      "corpus": "33731fed7713615f8b0ce058710e084253720a532ae54bb189923bbab919572e",
+      "tokenizer": "26753d28f96a6b05a62a6a4ce320c28c13fdf509a6f513d6f8896f85fa2d7a45",
+      "messages": "1adf53cef38be7c441e56bcccf6e9a86d22511b836832d3dfbdb8e6ca514b353"
+    }
+  },
+  "traces": [
+    {
+      "callId": "synthetic-call-1",
+      "inputSentenceIds": [
+        "rr-fragment-1",
+        "rr-fragment-2",
+        "rr-fragment-3",
+        "rr-fragment-4",
+        "rr-clause-1",
+        "rr-clause-2"
+      ],
+      "firstPass": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "synthetic first pass: rr-fragment-1 rr-fragment-2 rr-fragment-3 rr-fragment-4 rr-clause-1 rr-clause-2"
+          }
         ],
         "raw": {
           "sentences": [
             {
-              "sentenceId": "legal",
+              "sentenceId": "rr-fragment-1",
               "components": [
                 {
                   "startToken": 0,
-                  "endToken": 0,
-                  "role": "SUBJECT",
-                  "translation": "主语"
+                  "endToken": 2,
+                  "role": "FRAGMENT_HEAD",
+                  "translation": "synthetic"
                 },
                 {
-                  "startToken": 1,
-                  "endToken": 1,
-                  "role": "PREDICATE",
-                  "translation": "谓语"
+                  "startToken": 3,
+                  "endToken": 4,
+                  "role": "ATTRIBUTE",
+                  "translation": "synthetic"
                 }
               ]
             },
-            { "sentenceId": "repaired", "components": [] },
             {
-              "sentenceId": "damaged",
-              "unexpected": true,
+              "sentenceId": "rr-fragment-2",
+              "components": []
+            },
+            {
+              "sentenceId": "rr-fragment-3",
               "components": [
                 {
                   "startToken": 0,
-                  "endToken": 0,
-                  "role": "SUBJECT",
-                  "translation": "主语"
+                  "endToken": 2,
+                  "role": "FRAGMENT_HEAD",
+                  "translation": "synthetic"
                 },
                 {
-                  "startToken": 1,
-                  "endToken": 1,
-                  "role": "PREDICATE",
-                  "translation": "谓语"
+                  "startToken": 3,
+                  "endToken": 4,
+                  "role": "ATTRIBUTE",
+                  "translation": "synthetic"
                 }
-              ]
+              ],
+              "unexpected": true
             },
-            { "sentenceId": "failed", "components": [] },
-            { "sentenceId": "narrow-a", "components": [] },
-            { "sentenceId": "narrow-b", "components": [] }
+            {
+              "sentenceId": "rr-fragment-4",
+              "components": []
+            },
+            {
+              "sentenceId": "rr-clause-1",
+              "components": []
+            },
+            {
+              "sentenceId": "rr-clause-2",
+              "components": []
+            }
           ]
-        }
-      },
-      {
-        "round": 1,
+        },
         "subsetSentenceIds": [
-          "repaired",
-          "damaged",
-          "failed",
-          "narrow-a",
-          "narrow-b"
+          "rr-fragment-1",
+          "rr-fragment-2",
+          "rr-fragment-3",
+          "rr-fragment-4",
+          "rr-clause-1",
+          "rr-clause-2"
         ],
-        "raw": {
-          "sentences": [
-            {
-              "sentenceId": "repaired",
-              "components": [
-                {
-                  "startToken": 0,
-                  "endToken": 0,
-                  "role": "SUBJECT",
-                  "translation": "主语"
-                },
-                {
-                  "startToken": 1,
-                  "endToken": 1,
-                  "role": "PREDICATE",
-                  "translation": "谓语"
-                }
-              ]
-            },
-            {
-              "sentenceId": "damaged",
-              "components": [
-                {
-                  "startToken": 0,
-                  "endToken": 0,
-                  "role": "OBJECT",
-                  "translation": "对象"
-                },
-                {
-                  "startToken": 1,
-                  "endToken": 1,
-                  "role": "PREDICATE",
-                  "translation": "谓语"
-                }
-              ]
-            },
-            { "sentenceId": "failed", "components": [] },
-            {
-              "sentenceId": "narrow-a",
-              "components": [
-                {
-                  "startToken": 0,
-                  "endToken": 0,
-                  "role": "SUBJECT",
-                  "translation": "主语"
-                },
-                {
-                  "startToken": 1,
-                  "endToken": 1,
-                  "role": "PREDICATE",
-                  "translation": "谓语"
-                }
-              ]
-            },
-            { "sentenceId": "narrow-b", "components": [] }
-          ]
-        }
+        "validatorErrors": [
+          {
+            "sentenceId": "rr-fragment-2",
+            "errors": [
+              {
+                "path": "sentences[1].components",
+                "message": "must be a non-empty array",
+                "kind": "grammar"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-fragment-3",
+            "errors": [
+              {
+                "path": "sentences[2]",
+                "message": "contains unknown fields",
+                "kind": "non-grammar"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-fragment-4",
+            "errors": [
+              {
+                "path": "sentences[3].components",
+                "message": "must be a non-empty array",
+                "kind": "grammar"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-clause-1",
+            "errors": [
+              {
+                "path": "sentences[4].components",
+                "message": "must be a non-empty array",
+                "kind": "grammar"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-clause-2",
+            "errors": [
+              {
+                "path": "sentences[5].components",
+                "message": "must be a non-empty array",
+                "kind": "grammar"
+              }
+            ]
+          }
+        ]
       },
-      {
-        "round": 2,
-        "subsetSentenceIds": ["failed", "narrow-b"],
-        "raw": {
-          "sentences": [
-            { "sentenceId": "failed", "components": [] },
+      "repairs": [
+        {
+          "round": 1,
+          "messages": [
             {
-              "sentenceId": "narrow-b",
-              "components": [
+              "role": "user",
+              "content": "synthetic repair 1: rr-fragment-2 rr-fragment-3 rr-fragment-4 rr-clause-1 rr-clause-2"
+            }
+          ],
+          "raw": {
+            "sentences": [
+              {
+                "sentenceId": "rr-fragment-2",
+                "components": [
+                  {
+                    "startToken": 0,
+                    "endToken": 3,
+                    "role": "FRAGMENT_HEAD",
+                    "translation": "synthetic"
+                  }
+                ]
+              },
+              {
+                "sentenceId": "rr-fragment-3",
+                "components": [
+                  {
+                    "startToken": 0,
+                    "endToken": 4,
+                    "role": "FRAGMENT_HEAD",
+                    "translation": "synthetic"
+                  }
+                ]
+              },
+              {
+                "sentenceId": "rr-fragment-4",
+                "components": []
+              },
+              {
+                "sentenceId": "rr-clause-1",
+                "components": [
+                  {
+                    "startToken": 0,
+                    "endToken": 1,
+                    "role": "SUBJECT",
+                    "translation": "synthetic"
+                  },
+                  {
+                    "startToken": 2,
+                    "endToken": 2,
+                    "role": "PREDICATE",
+                    "translation": "synthetic"
+                  },
+                  {
+                    "startToken": 3,
+                    "endToken": 7,
+                    "role": "PREDICATIVE_CLAUSE",
+                    "translation": "synthetic"
+                  }
+                ]
+              },
+              {
+                "sentenceId": "rr-clause-2",
+                "components": []
+              }
+            ]
+          },
+          "subsetSentenceIds": [
+            "rr-fragment-2",
+            "rr-fragment-3",
+            "rr-fragment-4",
+            "rr-clause-1",
+            "rr-clause-2"
+          ],
+          "validatorErrors": [
+            {
+              "sentenceId": "rr-fragment-4",
+              "errors": [
                 {
-                  "startToken": 0,
-                  "endToken": 0,
-                  "role": "SUBJECT",
-                  "translation": "主语"
-                },
+                  "path": "sentences[2].components",
+                  "message": "must be a non-empty array",
+                  "kind": "grammar"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-clause-2",
+              "errors": [
                 {
-                  "startToken": 1,
-                  "endToken": 1,
-                  "role": "PREDICATE",
-                  "translation": "谓语"
+                  "path": "sentences[4].components",
+                  "message": "must be a non-empty array",
+                  "kind": "grammar"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "messages": [
+            {
+              "role": "user",
+              "content": "synthetic repair 2: rr-fragment-4 rr-clause-2"
+            }
+          ],
+          "raw": {
+            "sentences": [
+              {
+                "sentenceId": "rr-fragment-4",
+                "components": []
+              },
+              {
+                "sentenceId": "rr-clause-2",
+                "components": [
+                  {
+                    "startToken": 0,
+                    "endToken": 1,
+                    "role": "SUBJECT_CLAUSE",
+                    "translation": "synthetic"
+                  },
+                  {
+                    "startToken": 2,
+                    "endToken": 2,
+                    "role": "PREDICATE",
+                    "translation": "synthetic"
+                  },
+                  {
+                    "startToken": 3,
+                    "endToken": 4,
+                    "role": "OBJECT",
+                    "translation": "synthetic"
+                  }
+                ]
+              }
+            ]
+          },
+          "subsetSentenceIds": [
+            "rr-fragment-4",
+            "rr-clause-2"
+          ],
+          "validatorErrors": [
+            {
+              "sentenceId": "rr-fragment-4",
+              "errors": [
+                {
+                  "path": "sentences[0].components",
+                  "message": "must be a non-empty array",
+                  "kind": "grammar"
                 }
               ]
             }
           ]
         }
-      }
-    ],
-    "expected": {
-      "successSentenceIds": [
-        "legal",
-        "repaired",
-        "damaged",
-        "narrow-a",
-        "narrow-b"
       ],
-      "failureSentenceIds": ["failed"],
-      "repairSubsetSentenceIds": [
-        ["repaired", "damaged", "failed", "narrow-a", "narrow-b"],
-        ["failed", "narrow-b"]
-      ],
-      "finalAnalyses": [
-        {
-          "sentenceId": "legal",
-          "components": [
-            { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
-            { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-          ]
-        },
-        {
-          "sentenceId": "repaired",
-          "components": [
-            { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
-            { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-          ]
-        },
-        {
-          "sentenceId": "damaged",
-          "components": [
-            { "startToken": 0, "endToken": 0, "role": "OBJECT" },
-            { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-          ]
-        },
-        {
-          "sentenceId": "narrow-a",
-          "components": [
-            { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
-            { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-          ]
-        },
-        {
-          "sentenceId": "narrow-b",
-          "components": [
-            { "startToken": 0, "endToken": 0, "role": "SUBJECT" },
-            { "startToken": 1, "endToken": 1, "role": "PREDICATE" }
-          ]
-        }
-      ]
-    }
-  },
-  "artifactTemplate": {
-    "run": {
-      "mode": "pipeline",
-      "createdAt": "ISO-8601",
-      "commit": "git-sha",
-      "model": "provider-model-id",
-      "parameters": {},
-      "batchSize": 6,
-      "sentenceOrder": [],
-      "hashes": {
-        "prompt": "sha256",
-        "corpus": "sha256",
-        "tokenizer": "sha256"
+      "final": {
+        "status": "partial",
+        "successSentenceIds": [
+          "rr-fragment-1",
+          "rr-fragment-2",
+          "rr-fragment-3",
+          "rr-clause-1",
+          "rr-clause-2"
+        ],
+        "failureSentenceIds": [
+          "rr-fragment-4"
+        ],
+        "analyses": [
+          {
+            "sentenceId": "rr-fragment-1",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 2,
+                "role": "FRAGMENT_HEAD"
+              },
+              {
+                "startToken": 3,
+                "endToken": 4,
+                "role": "ATTRIBUTE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-fragment-2",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 3,
+                "role": "FRAGMENT_HEAD"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-fragment-3",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 4,
+                "role": "FRAGMENT_HEAD"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-clause-1",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 7,
+                "role": "PREDICATIVE_CLAUSE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-clause-2",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT_CLAUSE"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 4,
+                "role": "OBJECT"
+              }
+            ]
+          }
+        ],
+        "failures": [
+          {
+            "sentenceId": "rr-fragment-4",
+            "code": "INVALID_MODEL_OUTPUT"
+          }
+        ]
       }
     },
-    "traces": [
-      {
-        "callId": "call-id",
-        "inputSentenceIds": [],
-        "firstPass": {
-          "raw": {},
-          "subsetSentenceIds": [],
-          "validatorErrors": []
+    {
+      "callId": "synthetic-call-2",
+      "inputSentenceIds": [
+        "rr-clause-3",
+        "rr-clause-4",
+        "rr-complement-1",
+        "rr-complement-2",
+        "rr-complement-3",
+        "rr-complement-4"
+      ],
+      "firstPass": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "synthetic first pass: rr-clause-3 rr-clause-4 rr-complement-1 rr-complement-2 rr-complement-3 rr-complement-4"
+          }
+        ],
+        "raw": {
+          "sentences": [
+            {
+              "sentenceId": "rr-clause-3",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 3,
+                  "role": "ADVERBIAL_CLAUSE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 5,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 6,
+                  "endToken": 6,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-clause-4",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 4,
+                  "role": "ATTRIBUTIVE_CLAUSE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 5,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-complement-1",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 5,
+                  "role": "COMPLEMENT",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-complement-2",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 3,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "COMPLEMENT",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-complement-3",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 3,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "COMPLEMENT",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-complement-4",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "COMPLEMENT",
+                  "translation": "synthetic"
+                }
+              ]
+            }
+          ]
         },
-        "repairs": [],
-        "final": {
-          "status": "success-or-partial-or-failure",
-          "successSentenceIds": [],
-          "failureSentenceIds": [],
-          "analyses": [],
-          "failures": []
-        }
+        "subsetSentenceIds": [
+          "rr-clause-3",
+          "rr-clause-4",
+          "rr-complement-1",
+          "rr-complement-2",
+          "rr-complement-3",
+          "rr-complement-4"
+        ],
+        "validatorErrors": []
+      },
+      "repairs": [],
+      "final": {
+        "status": "success",
+        "successSentenceIds": [
+          "rr-clause-3",
+          "rr-clause-4",
+          "rr-complement-1",
+          "rr-complement-2",
+          "rr-complement-3",
+          "rr-complement-4"
+        ],
+        "failureSentenceIds": [],
+        "analyses": [
+          {
+            "sentenceId": "rr-clause-3",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 3,
+                "role": "ADVERBIAL_CLAUSE"
+              },
+              {
+                "startToken": 5,
+                "endToken": 5,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 6,
+                "endToken": 6,
+                "role": "PREDICATE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-clause-4",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 4,
+                "role": "ATTRIBUTIVE_CLAUSE"
+              },
+              {
+                "startToken": 5,
+                "endToken": 5,
+                "role": "PREDICATE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-complement-1",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "OBJECT"
+              },
+              {
+                "startToken": 4,
+                "endToken": 5,
+                "role": "COMPLEMENT"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-complement-2",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 1,
+                "endToken": 1,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 2,
+                "endToken": 3,
+                "role": "OBJECT"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "COMPLEMENT"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-complement-3",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 1,
+                "endToken": 1,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 2,
+                "endToken": 3,
+                "role": "OBJECT"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "COMPLEMENT"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-complement-4",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "OBJECT"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "COMPLEMENT"
+              }
+            ]
+          }
+        ],
+        "failures": []
       }
-    ],
-    "report": {
-      "firstPass": {},
-      "final": {},
-      "transitions": {},
-      "correctFirstPassRejection": {}
+    },
+    {
+      "callId": "synthetic-call-3",
+      "inputSentenceIds": [
+        "rr-preposition-1",
+        "rr-preposition-2",
+        "rr-preposition-3",
+        "rr-preposition-4",
+        "rr-coordination-1",
+        "rr-coordination-2"
+      ],
+      "firstPass": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "synthetic first pass: rr-preposition-1 rr-preposition-2 rr-preposition-3 rr-preposition-4 rr-coordination-1 rr-coordination-2"
+          }
+        ],
+        "raw": {
+          "sentences": [
+            {
+              "sentenceId": "rr-preposition-1",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "FRAGMENT_HEAD",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 3,
+                  "role": "ATTRIBUTE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-preposition-2",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 4,
+                  "role": "ATTRIBUTE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 5,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-preposition-3",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 6,
+                  "role": "ADVERBIAL",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-preposition-4",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 3,
+                  "role": "ATTRIBUTE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-coordination-1",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 6,
+                  "endToken": 6,
+                  "role": "CONJUNCTION",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 7,
+                  "endToken": 7,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-coordination-2",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "CONJUNCTION",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 5,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 6,
+                  "endToken": 6,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                }
+              ]
+            }
+          ]
+        },
+        "subsetSentenceIds": [
+          "rr-preposition-1",
+          "rr-preposition-2",
+          "rr-preposition-3",
+          "rr-preposition-4",
+          "rr-coordination-1",
+          "rr-coordination-2"
+        ],
+        "validatorErrors": []
+      },
+      "repairs": [],
+      "final": {
+        "status": "success",
+        "successSentenceIds": [
+          "rr-preposition-1",
+          "rr-preposition-2",
+          "rr-preposition-3",
+          "rr-preposition-4",
+          "rr-coordination-1",
+          "rr-coordination-2"
+        ],
+        "failureSentenceIds": [],
+        "analyses": [
+          {
+            "sentenceId": "rr-preposition-1",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "FRAGMENT_HEAD"
+              },
+              {
+                "startToken": 1,
+                "endToken": 3,
+                "role": "ATTRIBUTE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-preposition-2",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 1,
+                "endToken": 4,
+                "role": "ATTRIBUTE"
+              },
+              {
+                "startToken": 5,
+                "endToken": 5,
+                "role": "PREDICATE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-preposition-3",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 1,
+                "endToken": 1,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 2,
+                "endToken": 6,
+                "role": "ADVERBIAL"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-preposition-4",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 3,
+                "role": "ATTRIBUTE"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "PREDICATE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-coordination-1",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 6,
+                "endToken": 6,
+                "role": "CONJUNCTION"
+              },
+              {
+                "startToken": 7,
+                "endToken": 7,
+                "role": "PREDICATE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-coordination-2",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "CONJUNCTION"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 5,
+                "endToken": 5,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 6,
+                "endToken": 6,
+                "role": "OBJECT"
+              }
+            ]
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "callId": "synthetic-call-4",
+      "inputSentenceIds": [
+        "rr-coordination-3",
+        "rr-coordination-4",
+        "ho-fragment-1",
+        "ho-fragment-2",
+        "ho-fragment-3",
+        "ho-fragment-4"
+      ],
+      "firstPass": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "synthetic first pass: rr-coordination-3 rr-coordination-4 ho-fragment-1 ho-fragment-2 ho-fragment-3 ho-fragment-4"
+          }
+        ],
+        "raw": {
+          "sentences": [
+            {
+              "sentenceId": "rr-coordination-3",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 2,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "CONJUNCTION",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 6,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "rr-coordination-4",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "PREDICATIVE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "CONJUNCTION",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 5,
+                  "role": "PREDICATIVE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-fragment-1",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "FRAGMENT_HEAD",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 4,
+                  "role": "ATTRIBUTE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-fragment-2",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 3,
+                  "role": "FRAGMENT_HEAD",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-fragment-3",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "FRAGMENT_HEAD",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 3,
+                  "role": "ATTRIBUTE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-fragment-4",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 3,
+                  "role": "FRAGMENT_HEAD",
+                  "translation": "synthetic"
+                }
+              ]
+            }
+          ]
+        },
+        "subsetSentenceIds": [
+          "rr-coordination-3",
+          "rr-coordination-4",
+          "ho-fragment-1",
+          "ho-fragment-2",
+          "ho-fragment-3",
+          "ho-fragment-4"
+        ],
+        "validatorErrors": []
+      },
+      "repairs": [],
+      "final": {
+        "status": "success",
+        "successSentenceIds": [
+          "rr-coordination-3",
+          "rr-coordination-4",
+          "ho-fragment-1",
+          "ho-fragment-2",
+          "ho-fragment-3",
+          "ho-fragment-4"
+        ],
+        "failureSentenceIds": [],
+        "analyses": [
+          {
+            "sentenceId": "rr-coordination-3",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 1,
+                "endToken": 2,
+                "role": "OBJECT"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "CONJUNCTION"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 5,
+                "endToken": 6,
+                "role": "OBJECT"
+              }
+            ]
+          },
+          {
+            "sentenceId": "rr-coordination-4",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "PREDICATIVE"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "CONJUNCTION"
+              },
+              {
+                "startToken": 5,
+                "endToken": 5,
+                "role": "PREDICATIVE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-fragment-1",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "FRAGMENT_HEAD"
+              },
+              {
+                "startToken": 2,
+                "endToken": 4,
+                "role": "ATTRIBUTE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-fragment-2",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 3,
+                "role": "FRAGMENT_HEAD"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-fragment-3",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "FRAGMENT_HEAD"
+              },
+              {
+                "startToken": 2,
+                "endToken": 3,
+                "role": "ATTRIBUTE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-fragment-4",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 3,
+                "role": "FRAGMENT_HEAD"
+              }
+            ]
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "callId": "synthetic-call-5",
+      "inputSentenceIds": [
+        "ho-clause-1",
+        "ho-clause-2",
+        "ho-clause-3",
+        "ho-clause-4",
+        "ho-complement-1",
+        "ho-complement-2"
+      ],
+      "firstPass": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "synthetic first pass: ho-clause-1 ho-clause-2 ho-clause-3 ho-clause-4 ho-complement-1 ho-complement-2"
+          }
+        ],
+        "raw": {
+          "sentences": [
+            {
+              "sentenceId": "ho-clause-1",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "PREDICATIVE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 7,
+                  "role": "SUBJECT_CLAUSE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-clause-2",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 2,
+                  "role": "SUBJECT_CLAUSE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "PREDICATIVE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-clause-3",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 3,
+                  "role": "ATTRIBUTIVE_CLAUSE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-clause-4",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 3,
+                  "role": "ADVERBIAL_CLAUSE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 5,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 6,
+                  "endToken": 6,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 7,
+                  "endToken": 7,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-complement-1",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "COMPLEMENT",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-complement-2",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 3,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "COMPLEMENT",
+                  "translation": "synthetic"
+                }
+              ]
+            }
+          ]
+        },
+        "subsetSentenceIds": [
+          "ho-clause-1",
+          "ho-clause-2",
+          "ho-clause-3",
+          "ho-clause-4",
+          "ho-complement-1",
+          "ho-complement-2"
+        ],
+        "validatorErrors": []
+      },
+      "repairs": [],
+      "final": {
+        "status": "success",
+        "successSentenceIds": [
+          "ho-clause-1",
+          "ho-clause-2",
+          "ho-clause-3",
+          "ho-clause-4",
+          "ho-complement-1",
+          "ho-complement-2"
+        ],
+        "failureSentenceIds": [],
+        "analyses": [
+          {
+            "sentenceId": "ho-clause-1",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 1,
+                "endToken": 1,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATIVE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 7,
+                "role": "SUBJECT_CLAUSE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-clause-2",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 2,
+                "role": "SUBJECT_CLAUSE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "PREDICATIVE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-clause-3",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 3,
+                "role": "ATTRIBUTIVE_CLAUSE"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "PREDICATE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-clause-4",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 3,
+                "role": "ADVERBIAL_CLAUSE"
+              },
+              {
+                "startToken": 5,
+                "endToken": 5,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 6,
+                "endToken": 6,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 7,
+                "endToken": 7,
+                "role": "OBJECT"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-complement-1",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "OBJECT"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "COMPLEMENT"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-complement-2",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 1,
+                "endToken": 1,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 2,
+                "endToken": 3,
+                "role": "OBJECT"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "COMPLEMENT"
+              }
+            ]
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "callId": "synthetic-call-6",
+      "inputSentenceIds": [
+        "ho-complement-3",
+        "ho-complement-4",
+        "ho-preposition-1",
+        "ho-preposition-2",
+        "ho-preposition-3",
+        "ho-preposition-4"
+      ],
+      "firstPass": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "synthetic first pass: ho-complement-3 ho-complement-4 ho-preposition-1 ho-preposition-2 ho-preposition-3 ho-preposition-4"
+          }
+        ],
+        "raw": {
+          "sentences": [
+            {
+              "sentenceId": "ho-complement-3",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "COMPLEMENT",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-complement-4",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 3,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "COMPLEMENT",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-preposition-1",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 4,
+                  "role": "ATTRIBUTE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 5,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-preposition-2",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 3,
+                  "role": "ATTRIBUTE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-preposition-3",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 5,
+                  "role": "ADVERBIAL",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-preposition-4",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 4,
+                  "role": "ATTRIBUTE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 5,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                }
+              ]
+            }
+          ]
+        },
+        "subsetSentenceIds": [
+          "ho-complement-3",
+          "ho-complement-4",
+          "ho-preposition-1",
+          "ho-preposition-2",
+          "ho-preposition-3",
+          "ho-preposition-4"
+        ],
+        "validatorErrors": []
+      },
+      "repairs": [],
+      "final": {
+        "status": "success",
+        "successSentenceIds": [
+          "ho-complement-3",
+          "ho-complement-4",
+          "ho-preposition-1",
+          "ho-preposition-2",
+          "ho-preposition-3",
+          "ho-preposition-4"
+        ],
+        "failureSentenceIds": [],
+        "analyses": [
+          {
+            "sentenceId": "ho-complement-3",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 1,
+                "endToken": 1,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "OBJECT"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "COMPLEMENT"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-complement-4",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 1,
+                "endToken": 1,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 2,
+                "endToken": 3,
+                "role": "OBJECT"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "COMPLEMENT"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-preposition-1",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 4,
+                "role": "ATTRIBUTE"
+              },
+              {
+                "startToken": 5,
+                "endToken": 5,
+                "role": "PREDICATE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-preposition-2",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 3,
+                "role": "ATTRIBUTE"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "PREDICATE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-preposition-3",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 5,
+                "role": "ADVERBIAL"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-preposition-4",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 4,
+                "role": "ATTRIBUTE"
+              },
+              {
+                "startToken": 5,
+                "endToken": 5,
+                "role": "PREDICATE"
+              }
+            ]
+          }
+        ],
+        "failures": []
+      }
+    },
+    {
+      "callId": "synthetic-call-7",
+      "inputSentenceIds": [
+        "ho-coordination-1",
+        "ho-coordination-2",
+        "ho-coordination-3",
+        "ho-coordination-4"
+      ],
+      "firstPass": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "synthetic first pass: ho-coordination-1 ho-coordination-2 ho-coordination-3 ho-coordination-4"
+          }
+        ],
+        "raw": {
+          "sentences": [
+            {
+              "sentenceId": "ho-coordination-1",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 5,
+                  "role": "CONJUNCTION",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 6,
+                  "endToken": 6,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 7,
+                  "endToken": 7,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-coordination-2",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "CONJUNCTION",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 6,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 7,
+                  "endToken": 7,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-coordination-3",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 0,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 1,
+                  "endToken": 1,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "CONJUNCTION",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 5,
+                  "role": "OBJECT",
+                  "translation": "synthetic"
+                }
+              ]
+            },
+            {
+              "sentenceId": "ho-coordination-4",
+              "components": [
+                {
+                  "startToken": 0,
+                  "endToken": 1,
+                  "role": "SUBJECT",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 2,
+                  "endToken": 2,
+                  "role": "PREDICATE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 3,
+                  "endToken": 3,
+                  "role": "PREDICATIVE",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 4,
+                  "endToken": 4,
+                  "role": "CONJUNCTION",
+                  "translation": "synthetic"
+                },
+                {
+                  "startToken": 5,
+                  "endToken": 5,
+                  "role": "PREDICATIVE",
+                  "translation": "synthetic"
+                }
+              ]
+            }
+          ]
+        },
+        "subsetSentenceIds": [
+          "ho-coordination-1",
+          "ho-coordination-2",
+          "ho-coordination-3",
+          "ho-coordination-4"
+        ],
+        "validatorErrors": []
+      },
+      "repairs": [],
+      "final": {
+        "status": "success",
+        "successSentenceIds": [
+          "ho-coordination-1",
+          "ho-coordination-2",
+          "ho-coordination-3",
+          "ho-coordination-4"
+        ],
+        "failureSentenceIds": [],
+        "analyses": [
+          {
+            "sentenceId": "ho-coordination-1",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 1,
+                "endToken": 1,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 5,
+                "endToken": 5,
+                "role": "CONJUNCTION"
+              },
+              {
+                "startToken": 6,
+                "endToken": 6,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 7,
+                "endToken": 7,
+                "role": "OBJECT"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-coordination-2",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "CONJUNCTION"
+              },
+              {
+                "startToken": 5,
+                "endToken": 6,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 7,
+                "endToken": 7,
+                "role": "PREDICATE"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-coordination-3",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 1,
+                "endToken": 1,
+                "role": "OBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "CONJUNCTION"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 4,
+                "endToken": 5,
+                "role": "OBJECT"
+              }
+            ]
+          },
+          {
+            "sentenceId": "ho-coordination-4",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "PREDICATIVE"
+              },
+              {
+                "startToken": 4,
+                "endToken": 4,
+                "role": "CONJUNCTION"
+              },
+              {
+                "startToken": 5,
+                "endToken": 5,
+                "role": "PREDICATIVE"
+              }
+            ]
+          }
+        ],
+        "failures": []
+      }
     }
+  ],
+  "report": {
+    "firstPass": {},
+    "final": {},
+    "transitions": {},
+    "correctFirstPassRejection": {},
+    "bySplit": {},
+    "byCategory": {}
   }
 }

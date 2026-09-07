@@ -492,29 +492,42 @@ describe("shared core evaluation trace replay", () => {
         "utf8",
       ),
     ) as {
+      schemaVersion: string;
+      corpus: { denominatorSentenceIds: string[] };
       tokenizerSnapshot: { sentences: Array<{ id: string; text: string }> };
-      serviceReplay: {
+      traces: Array<{
         inputSentenceIds: string[];
-        rounds: Array<{ subsetSentenceIds: string[]; raw: unknown }>;
-        expected: {
+        firstPass: { subsetSentenceIds: string[]; raw: unknown; validatorErrors: unknown[] };
+        repairs: Array<{
+          round: number;
+          subsetSentenceIds: string[];
+          raw: unknown;
+          validatorErrors: unknown[];
+        }>;
+        final: {
           successSentenceIds: string[];
           failureSentenceIds: string[];
-          repairSubsetSentenceIds: string[][];
-          finalAnalyses: Array<{
+          analyses: Array<{
             sentenceId: string;
             components: Array<{ startToken: number; endToken: number; role: string }>;
           }>;
         };
-      };
+      }>;
     };
+    expect(fixture.schemaVersion).toBe("core-evaluation-trace/v1");
+    const trace = fixture.traces[0]!;
+    expect(trace.firstPass.subsetSentenceIds).toEqual(trace.inputSentenceIds);
+    expect(trace.repairs.map(({ round }) => round)).toEqual([1, 2]);
+    expect(trace.inputSentenceIds).toEqual(fixture.corpus.denominatorSentenceIds.slice(0, 6));
     const byId = new Map(fixture.tokenizerSnapshot.sentences.map((item) => [item.id, item]));
-    const sentences = fixture.serviceReplay.inputSentenceIds.map((sentenceId) => {
+    const sentences = trace.inputSentenceIds.map((sentenceId) => {
       const item = byId.get(sentenceId)!;
       return { sentenceId, text: item.text, tokens: tokenize(item.text) };
     });
     const cache = new MemoryCache();
     const observedSubsets: string[][] = [];
-    const rawByRound = fixture.serviceReplay.rounds.map(({ raw }) => raw);
+    const rounds = [trace.firstPass, ...trace.repairs];
+    const rawByRound = rounds.map(({ raw }) => raw);
     const completeJson = vi.fn((_profile, messages: AnalysisModelWork["messages"]) => {
       const ids = sentences
         .filter(({ sentenceId }) => messages[0]!.content.includes(`"sentenceId":"${sentenceId}"`))
@@ -538,14 +551,16 @@ describe("shared core evaluation trace replay", () => {
     );
 
     expect(outcome.cacheHit).toBe(false);
+    expect(completeJson).toHaveBeenCalledTimes(3);
+    expect(observedSubsets).toEqual(rounds.map(({ subsetSentenceIds }) => subsetSentenceIds));
     expect(outcome.result.map(({ sentenceId }) => sentenceId)).toEqual(
-      fixture.serviceReplay.expected.successSentenceIds,
+      trace.final.successSentenceIds,
     );
     expect(outcome.failures.map(({ sentenceId }) => sentenceId)).toEqual(
-      fixture.serviceReplay.expected.failureSentenceIds,
+      trace.final.failureSentenceIds,
     );
     expect(observedSubsets.slice(1)).toEqual(
-      fixture.serviceReplay.expected.repairSubsetSentenceIds,
+      trace.repairs.map(({ subsetSentenceIds }) => subsetSentenceIds),
     );
     expect(
       outcome.result.map(({ sentenceId, components }) => ({
@@ -556,8 +571,18 @@ describe("shared core evaluation trace replay", () => {
           role,
         })),
       })),
-    ).toEqual(fixture.serviceReplay.expected.finalAnalyses);
-    expect(cache.core.size).toBe(fixture.serviceReplay.expected.successSentenceIds.length);
+    ).toEqual(trace.final.analyses);
+    expect(cache.core.size).toBe(trace.final.successSentenceIds.length);
+    const legalId = trace.inputSentenceIds[0]!;
+    expect(outcome.result.find(({ sentenceId }) => sentenceId === legalId)).toBeDefined();
+    expect(observedSubsets.slice(1).flat()).not.toContain(legalId);
+    expect(rounds[0]!.validatorErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ sentenceId: trace.inputSentenceIds[1] }),
+        expect.objectContaining({ sentenceId: trace.inputSentenceIds[2] }),
+      ]),
+    );
+    expect(trace.final.failureSentenceIds).toEqual([trace.inputSentenceIds[3]]);
   });
 });
 

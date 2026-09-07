@@ -1,3 +1,325 @@
+import { createHash } from "node:crypto";
+
+const ARTIFACT_SCHEMA_VERSION = "core-evaluation-trace/v1";
+const GRAMMAR_ROLES = new Set([
+  "SUBJECT",
+  "PREDICATE",
+  "OBJECT",
+  "PREDICATIVE",
+  "ATTRIBUTE",
+  "ADVERBIAL",
+  "COMPLEMENT",
+  "APPOSITIVE",
+  "INDEPENDENT_ELEMENT",
+  "CONJUNCTION",
+  "SUBJECT_CLAUSE",
+  "OBJECT_CLAUSE",
+  "PREDICATIVE_CLAUSE",
+  "ATTRIBUTIVE_CLAUSE",
+  "ADVERBIAL_CLAUSE",
+  "COORDINATE_CLAUSE",
+  "FRAGMENT_HEAD",
+]);
+
+const sha256Json = (value) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
+
+function requireValue(condition, message) {
+  if (!condition) throw new Error(`Invalid ${ARTIFACT_SCHEMA_VERSION}: ${message}`);
+}
+
+function requireUniqueStrings(values, label) {
+  requireValue(Array.isArray(values) && values.every((value) => typeof value === "string"), label);
+  requireValue(new Set(values).size === values.length, `${label} must be unique`);
+}
+
+function validateRound(round, inputIds, expectedRound) {
+  requireValue(round && typeof round === "object", `round ${expectedRound}`);
+  if (expectedRound > 0)
+    requireValue(round.round === expectedRound, `repair round ${expectedRound}`);
+  requireUniqueStrings(round.subsetSentenceIds, `round ${expectedRound} subsetSentenceIds`);
+  requireValue(
+    round.subsetSentenceIds.length > 0,
+    `round ${expectedRound} subset must not be empty`,
+  );
+  requireValue(
+    round.subsetSentenceIds.every((id) => inputIds.has(id)),
+    `round ${expectedRound} subset must belong to its trace`,
+  );
+  requireValue(
+    Array.isArray(round.messages) && round.messages.length > 0,
+    `round ${expectedRound} messages`,
+  );
+  requireValue(round.raw && typeof round.raw === "object", `round ${expectedRound} raw`);
+  requireValue(Array.isArray(round.validatorErrors), `round ${expectedRound} validatorErrors`);
+  for (const rejection of round.validatorErrors) {
+    requireValue(inputIds.has(rejection.sentenceId), "validator error sentenceId");
+    requireValue(
+      Array.isArray(rejection.errors) && rejection.errors.length > 0,
+      "validator errors",
+    );
+    for (const error of rejection.errors) {
+      requireValue(
+        typeof error.path === "string" && typeof error.message === "string",
+        "validator error",
+      );
+      requireValue(
+        error.kind === "grammar" || error.kind === "non-grammar",
+        "validator error kind",
+      );
+    }
+  }
+}
+
+export function validateCoreEvaluationArtifactV1(artifact) {
+  requireValue(artifact?.schemaVersion === ARTIFACT_SCHEMA_VERSION, "schemaVersion");
+  requireValue(typeof artifact.synthetic === "boolean", "synthetic");
+  const corpus = artifact.corpus;
+  requireValue(corpus && typeof corpus.id === "string" && corpus.id.length > 0, "corpus id");
+  requireValue(Number.isInteger(corpus.version) && corpus.version > 0, "corpus version");
+  requireUniqueStrings(corpus.denominatorSentenceIds, "corpus denominatorSentenceIds");
+  requireValue(Array.isArray(corpus.sentences) && corpus.sentences.length > 0, "corpus sentences");
+  const corpusIds = corpus.sentences.map(({ id }) => id);
+  requireValue(
+    JSON.stringify(corpus.denominatorSentenceIds) === JSON.stringify(corpusIds),
+    "corpus denominator must exactly match sentence order",
+  );
+  for (const sentence of corpus.sentences) {
+    requireValue(
+      [
+        sentence.id,
+        sentence.text,
+        sentence.split,
+        sentence.category,
+        sentence.source,
+        sentence.annotationRationale,
+      ].every((value) => typeof value === "string" && value.trim().length > 0),
+      `corpus sentence metadata ${sentence.id}`,
+    );
+    requireValue(
+      Array.isArray(sentence.boundaries) && sentence.boundaries.length > 0,
+      `boundaries ${sentence.id}`,
+    );
+    let previousEnd = -1;
+    for (const boundary of sentence.boundaries) {
+      requireValue(
+        Number.isInteger(boundary.startChar) &&
+          Number.isInteger(boundary.endChar) &&
+          boundary.startChar >= 0 &&
+          boundary.endChar > boundary.startChar &&
+          boundary.endChar <= sentence.text.length &&
+          boundary.startChar >= previousEnd,
+        `boundary range ${sentence.id}`,
+      );
+      requireValue(GRAMMAR_ROLES.has(boundary.role), `boundary role ${sentence.id}`);
+      previousEnd = boundary.endChar;
+    }
+  }
+  const allowedSplits = new Set(["rule-regression", "independent-holdout"]);
+  const allowedCategories = new Set([
+    "fragment",
+    "clause",
+    "object-complement",
+    "prepositional-attachment",
+    "coordination",
+  ]);
+  requireValue(
+    corpus.sentences.every(
+      ({ split, category }) => allowedSplits.has(split) && allowedCategories.has(category),
+    ),
+    "corpus split/category",
+  );
+  for (const split of allowedSplits) {
+    for (const category of allowedCategories) {
+      requireValue(
+        corpus.sentences.filter(
+          (sentence) => sentence.split === split && sentence.category === category,
+        ).length >= 4,
+        `corpus matrix ${split}/${category}`,
+      );
+    }
+  }
+  const snapshot = artifact.tokenizerSnapshot;
+  requireValue(
+    snapshot && typeof snapshot.id === "string" && typeof snapshot.version === "string",
+    "tokenizer snapshot",
+  );
+  requireValue(/^[a-f0-9]{64}$/u.test(snapshot.hash), "tokenizer SHA-256 hash");
+  requireValue(
+    Array.isArray(snapshot.sentences) && snapshot.sentences.length > 0,
+    "tokenizer sentences",
+  );
+  const tokenizerIds = snapshot.sentences.map(({ id, sentenceId }) => id ?? sentenceId);
+  requireUniqueStrings(tokenizerIds, "tokenizer sentence IDs");
+  requireValue(
+    snapshot.sentences.every(
+      ({ text, textHash, tokens }) =>
+        typeof text === "string" &&
+        typeof textHash === "string" &&
+        textHash.length > 0 &&
+        Array.isArray(tokens),
+    ),
+    "complete tokenizer sentence snapshots",
+  );
+  requireValue(artifact.run && ["first-pass", "pipeline"].includes(artifact.run.mode), "run mode");
+  requireValue(
+    [artifact.run.createdAt, artifact.run.commit, artifact.run.model].every(
+      (value) => typeof value === "string" && value.length > 0,
+    ) &&
+      artifact.run.parameters &&
+      typeof artifact.run.parameters === "object" &&
+      Number.isInteger(artifact.run.batchSize) &&
+      artifact.run.batchSize > 0,
+    "run metadata",
+  );
+  requireUniqueStrings(artifact.run.sentenceOrder, "run sentenceOrder");
+  requireValue(
+    ["prompt", "corpus", "tokenizer", "messages"].every(
+      (key) =>
+        typeof artifact.run.hashes?.[key] === "string" &&
+        /^[a-f0-9]{64}$/u.test(artifact.run.hashes[key]),
+    ),
+    "run hashes",
+  );
+  requireValue(Array.isArray(artifact.traces) && artifact.traces.length > 0, "traces");
+  const traceIds = new Set();
+  const coveredTraceIds = [];
+  for (const trace of artifact.traces) {
+    requireValue(
+      typeof trace.callId === "string" && !traceIds.has(trace.callId),
+      "unique trace callId",
+    );
+    traceIds.add(trace.callId);
+    requireUniqueStrings(trace.inputSentenceIds, "trace inputSentenceIds");
+    coveredTraceIds.push(...trace.inputSentenceIds);
+    const inputIds = new Set(trace.inputSentenceIds);
+    validateRound(trace.firstPass, inputIds, 0);
+    requireValue(
+      JSON.stringify(trace.firstPass.subsetSentenceIds) === JSON.stringify(trace.inputSentenceIds),
+      "first-pass subset must equal trace input",
+    );
+    requireValue(Array.isArray(trace.repairs) && trace.repairs.length <= 2, "repairs");
+    trace.repairs.forEach((round, index) => validateRound(round, inputIds, index + 1));
+    requireValue(
+      trace.final && ["success", "partial", "failure"].includes(trace.final.status),
+      "final status",
+    );
+    requireUniqueStrings(trace.final.successSentenceIds, "final successSentenceIds");
+    requireUniqueStrings(trace.final.failureSentenceIds, "final failureSentenceIds");
+    const finalIds = [...trace.final.successSentenceIds, ...trace.final.failureSentenceIds];
+    requireValue(
+      finalIds.length === trace.inputSentenceIds.length &&
+        new Set(finalIds).size === finalIds.length &&
+        trace.inputSentenceIds.every((id) => finalIds.includes(id)),
+      "final success/failure IDs must partition trace input",
+    );
+    requireValue(
+      Array.isArray(trace.final.analyses) && Array.isArray(trace.final.failures),
+      "final outcome",
+    );
+    requireValue(
+      JSON.stringify(trace.final.analyses.map(normalizedSentenceId)) ===
+        JSON.stringify(trace.final.successSentenceIds) &&
+        JSON.stringify(trace.final.failures.map(normalizedSentenceId)) ===
+          JSON.stringify(trace.final.failureSentenceIds),
+      "final analyses/failures must match final sentence IDs",
+    );
+  }
+  const allMessages = artifact.traces.flatMap(({ firstPass, repairs }) => [
+    firstPass.messages,
+    ...repairs.map(({ messages }) => messages),
+  ]);
+  requireValue(snapshot.hash === sha256Json(snapshot.sentences), "tokenizer hash content");
+  requireValue(artifact.run.hashes.corpus === sha256Json(corpus), "corpus hash content");
+  requireValue(
+    artifact.run.hashes.tokenizer === sha256Json(snapshot.sentences),
+    "run tokenizer hash content",
+  );
+  requireValue(artifact.run.hashes.messages === sha256Json(allMessages), "messages hash content");
+  requireValue(
+    artifact.run.hashes.prompt === sha256Json(allMessages.flat().map(({ content }) => content)),
+    "prompt hash content",
+  );
+  requireValue(
+    JSON.stringify(tokenizerIds) === JSON.stringify(corpus.denominatorSentenceIds),
+    "tokenizer IDs must exactly match corpus denominator",
+  );
+  requireValue(
+    JSON.stringify(coveredTraceIds) === JSON.stringify(corpus.denominatorSentenceIds),
+    "trace sentence IDs must cover corpus exactly once in denominator order",
+  );
+  requireValue(
+    JSON.stringify(artifact.run.sentenceOrder) === JSON.stringify(corpus.denominatorSentenceIds),
+    "run sentenceOrder must exactly match corpus denominator",
+  );
+  requireValue(artifact.report && typeof artifact.report === "object", "report");
+  return artifact;
+}
+
+function artifactScoringInput(artifact) {
+  const tokensById = new Map(
+    artifact.tokenizerSnapshot.sentences.map(({ id, sentenceId, tokens }) => [
+      id ?? sentenceId,
+      tokens,
+    ]),
+  );
+  const attachTokens = (sentences) =>
+    sentences.map((sentence) => ({
+      ...sentence,
+      sentenceId: normalizedSentenceId(sentence),
+      tokens: tokensById.get(normalizedSentenceId(sentence)),
+      components: sentence.components ?? sentence.boundaries,
+    }));
+  const first = artifact.traces.flatMap(
+    ({ firstPass }) => firstPass.predictions ?? firstPass.raw?.sentences ?? [],
+  );
+  const final = artifact.traces.flatMap(({ final: outcome }) => outcome.analyses ?? []);
+  const failures = artifact.traces.flatMap(
+    ({ final: outcome }) => outcome.failureSentenceIds ?? [],
+  );
+  return {
+    gold: attachTokens(artifact.corpus.sentences),
+    first: attachTokens(first),
+    final: attachTokens(final),
+    failures,
+  };
+}
+
+export function scoreCoreEvaluationArtifacts(baselineArtifact, candidateArtifact) {
+  validateCoreEvaluationArtifactV1(baselineArtifact);
+  validateCoreEvaluationArtifactV1(candidateArtifact);
+  requireValue(
+    JSON.stringify(baselineArtifact.corpus) === JSON.stringify(candidateArtifact.corpus),
+    "baseline and candidate corpus snapshots must match",
+  );
+  const score = (artifact) => {
+    const { gold, first, final, failures } = artifactScoringInput(artifact);
+    const options = {
+      coordinateSystem: "characters",
+      corpusMetadata: artifact.corpus.sentences,
+      splits: ["rule-regression", "independent-holdout"],
+      categories: [
+        "fragment",
+        "clause",
+        "object-complement",
+        "prepositional-attachment",
+        "coordination",
+      ],
+    };
+    const trace = {
+      denominatorSentenceIds: artifact.corpus.denominatorSentenceIds,
+      firstPass: {
+        predictions: first,
+        validatorErrors: artifact.traces.flatMap(
+          ({ firstPass }) => firstPass.validatorErrors ?? [],
+        ),
+      },
+      final: { predictions: final, failureSentenceIds: failures },
+    };
+    return scorePipelineTrace(gold, trace, options);
+  };
+  return { baseline: score(baselineArtifact), candidate: score(candidateArtifact) };
+}
+
 function ratio(numerator, denominator) {
   return denominator === 0 ? 0 : numerator / denominator;
 }
@@ -21,21 +343,55 @@ function boundaryKey(component) {
   return `${start}:${end}`;
 }
 
-function characterComponent(component, tokens) {
-  const start = tokens?.find(({ id }) => id === component.startToken);
-  const end = tokens?.find(({ id }) => id === component.endToken);
-  if (start === undefined || end === undefined) return component;
+function characterComponent(component, tokenIndex, sentenceId) {
+  if (Number.isInteger(component.startChar) && Number.isInteger(component.endChar)) {
+    if (component.startChar < 0 || component.endChar <= component.startChar) {
+      throw new Error(`Invalid character span for ${sentenceId}`);
+    }
+    return component;
+  }
+  if (!Number.isInteger(component.startToken) || !Number.isInteger(component.endToken)) {
+    throw new Error(`Missing token span for ${sentenceId}`);
+  }
+  if (component.endToken < component.startToken) {
+    throw new Error(`Inverted token span for ${sentenceId}`);
+  }
+  const start = tokenIndex.get(component.startToken);
+  const end = tokenIndex.get(component.endToken);
+  if (start === undefined || end === undefined) {
+    throw new Error(`Unmappable token span for ${sentenceId}`);
+  }
+  if (
+    !Number.isInteger(start.start) ||
+    !Number.isInteger(start.end) ||
+    !Number.isInteger(end.start) ||
+    !Number.isInteger(end.end) ||
+    start.start < 0 ||
+    start.end <= start.start ||
+    end.end <= end.start ||
+    end.end <= start.start
+  ) {
+    throw new Error(`Invalid token character mapping for ${sentenceId}`);
+  }
   return { ...component, startChar: start.start, endChar: end.end };
 }
 
 function normalizedCoordinates(sentences, coordinateSystem) {
   if (coordinateSystem !== "characters") return sentences ?? [];
-  return (sentences ?? []).map((sentence) => ({
-    ...sentence,
-    components: (sentence.components ?? []).map((component) =>
-      characterComponent(component, sentence.tokens),
-    ),
-  }));
+  return (sentences ?? []).map((sentence) => {
+    const sentenceId = normalizedSentenceId(sentence);
+    const tokenIndex = new Map();
+    for (const token of sentence.tokens ?? []) {
+      if (tokenIndex.has(token.id)) throw new Error(`Duplicate token ID for ${sentenceId}`);
+      tokenIndex.set(token.id, token);
+    }
+    return {
+      ...sentence,
+      components: (sentence.components ?? []).map((component) =>
+        characterComponent(component, tokenIndex, sentenceId),
+      ),
+    };
+  });
 }
 
 function labeledKey(component) {
@@ -221,12 +577,46 @@ function transition(sentenceIds) {
   return { count: sentenceIds.length, sentenceIds };
 }
 
+function requireFixedDenominator(goldSentences, denominatorIds) {
+  const goldIds = goldSentences.map(normalizedSentenceId);
+  if (new Set(goldIds).size !== goldIds.length) throw new Error("Gold sentence IDs must be unique");
+  if (new Set(denominatorIds).size !== denominatorIds.length) {
+    throw new Error("Denominator sentence IDs must be unique");
+  }
+  const goldSet = new Set(goldIds);
+  const denominatorSet = new Set(denominatorIds);
+  if (denominatorIds.some((id) => !goldSet.has(id))) {
+    throw new Error("Denominator contains an unknown sentence ID");
+  }
+  if (goldIds.some((id) => !denominatorSet.has(id))) {
+    throw new Error("Denominator is missing a gold sentence ID");
+  }
+  return denominatorIds.map((id) => goldSentences[goldIds.indexOf(id)]);
+}
+
+function scorePipelineSubset(goldSentences, trace, options) {
+  const ids = new Set(goldSentences.map(normalizedSentenceId));
+  const subset = (sentences) =>
+    (sentences ?? []).filter((item) => ids.has(normalizedSentenceId(item)));
+  return scorePipelineTrace(
+    goldSentences,
+    {
+      ...trace,
+      denominatorSentenceIds: goldSentences.map(normalizedSentenceId),
+      firstPass: { ...trace.firstPass, predictions: subset(trace.firstPass.predictions) },
+      final: {
+        ...trace.final,
+        predictions: subset(trace.final.predictions),
+        failureSentenceIds: (trace.final.failureSentenceIds ?? []).filter((id) => ids.has(id)),
+      },
+    },
+    { ...options, corpusMetadata: undefined },
+  );
+}
+
 export function scorePipelineTrace(goldSentences, trace, options = {}) {
   const denominatorIds = trace.denominatorSentenceIds ?? goldSentences.map(normalizedSentenceId);
-  const denominatorSet = new Set(denominatorIds);
-  const fixedGold = goldSentences.filter((sentence) =>
-    denominatorSet.has(normalizedSentenceId(sentence)),
-  );
+  const fixedGold = requireFixedDenominator(goldSentences, denominatorIds);
   const firstPass = scoreCorePredictions(fixedGold, trace.firstPass.predictions, options);
   const final = scoreCorePredictions(fixedGold, trace.final.predictions, options);
   const firstExact = exactIds(firstPass);
@@ -236,12 +626,34 @@ export function scorePipelineTrace(goldSentences, trace, options = {}) {
   );
   const rejectedExact = denominatorIds.filter((id) => firstExact.has(id) && rejected.has(id));
   const errorKinds = new Map(
-    (trace.firstPass.validatorErrors ?? []).map(({ sentenceId, kinds = [] }) => [
+    (trace.firstPass.validatorErrors ?? []).map(({ sentenceId, kinds, errors = [] }) => [
       sentenceId,
-      kinds,
+      kinds ?? [...new Set(errors.map(({ kind }) => kind).filter(Boolean))],
     ]),
   );
   const denominator = firstExact.size;
+
+  const groups = (field, declaredValues) =>
+    Object.fromEntries(
+      (
+        declaredValues ?? [...new Set((options.corpusMetadata ?? []).map((item) => item[field]))]
+      ).map((value) => {
+        const groupIds = new Set(
+          (options.corpusMetadata ?? [])
+            .filter((item) => item[field] === value)
+            .map(({ id, sentenceId }) => id ?? sentenceId),
+        );
+        const groupGold = fixedGold.filter((sentence) =>
+          groupIds.has(normalizedSentenceId(sentence)),
+        );
+        return [
+          value,
+          groupGold.length === 0
+            ? { denominator: 0, status: "N/A" }
+            : scorePipelineSubset(groupGold, trace, options),
+        ];
+      }),
+    );
 
   return {
     denominator: fixedGold.length,
@@ -269,6 +681,8 @@ export function scorePipelineTrace(goldSentences, trace, options = {}) {
         errorKinds.get(id)?.includes("non-grammar"),
       ),
     },
+    bySplit: groups("split", options.splits),
+    byCategory: groups("category", options.categories),
   };
 }
 

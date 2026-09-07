@@ -1,13 +1,217 @@
 import { describe, expect, it } from "vitest";
 
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { URL } from "node:url";
+
 import {
   formatPipelineTransition,
   scoreCorePredictions,
   scorePipelineTrace,
+  scoreCoreEvaluationArtifacts,
+  validateCoreEvaluationArtifactV1,
 } from "./core-evaluation.mjs";
 
 const component = (startToken, endToken, role) => ({ startToken, endToken, role });
 const sentence = (sentenceId, components) => ({ sentenceId, components });
+const cloneJson = (value) => JSON.parse(JSON.stringify(value));
+
+describe("core-evaluation-trace/v1 contract", () => {
+  it("validates the shared synthetic artifact and its complete 40-sentence corpus", () => {
+    const artifact = JSON.parse(
+      readFileSync(
+        new URL("../../shared-fixtures/core-evaluation-traces.json", import.meta.url),
+        "utf8",
+      ),
+    );
+
+    expect(() => validateCoreEvaluationArtifactV1(artifact)).not.toThrow();
+    expect(artifact.corpus.sentences).toHaveLength(40);
+    expect(artifact.corpus.denominatorSentenceIds).toEqual(
+      artifact.corpus.sentences.map(({ id }) => id),
+    );
+    expect(artifact.corpus.sentences.every(({ boundaries }) => boundaries.length > 0)).toBe(true);
+    expect(artifact.tokenizerSnapshot.sentences.map(({ id }) => id)).toEqual(
+      artifact.corpus.denominatorSentenceIds,
+    );
+    expect(artifact.traces.flatMap(({ inputSentenceIds }) => inputSentenceIds)).toEqual(
+      artifact.corpus.denominatorSentenceIds,
+    );
+    expect(artifact).not.toHaveProperty("serviceReplay");
+    expect(artifact).not.toHaveProperty("artifactTemplate");
+    expect(
+      Object.fromEntries(
+        ["rule-regression", "independent-holdout"].map((split) => [
+          split,
+          Object.fromEntries(
+            [
+              "fragment",
+              "clause",
+              "object-complement",
+              "prepositional-attachment",
+              "coordination",
+            ].map((category) => [
+              category,
+              artifact.corpus.sentences.filter(
+                (sentence) => sentence.split === split && sentence.category === category,
+              ).length,
+            ]),
+          ),
+        ]),
+      ),
+    ).toEqual({
+      "rule-regression": {
+        fragment: 4,
+        clause: 4,
+        "object-complement": 4,
+        "prepositional-attachment": 4,
+        coordination: 4,
+      },
+      "independent-holdout": {
+        fragment: 4,
+        clause: 4,
+        "object-complement": 4,
+        "prepositional-attachment": 4,
+        coordination: 4,
+      },
+    });
+  });
+
+  it("rejects duplicate trace coverage and inconsistent final partitions", () => {
+    const artifact = JSON.parse(
+      readFileSync(
+        new URL("../../shared-fixtures/core-evaluation-traces.json", import.meta.url),
+        "utf8",
+      ),
+    );
+    const duplicateTraceCoverage = cloneJson(artifact);
+    duplicateTraceCoverage.traces[0].inputSentenceIds.push(
+      duplicateTraceCoverage.traces[0].inputSentenceIds[0],
+    );
+    const missingFinalSentence = cloneJson(artifact);
+    missingFinalSentence.traces[0].final.successSentenceIds.pop();
+
+    expect(() => validateCoreEvaluationArtifactV1(duplicateTraceCoverage)).toThrow(
+      /trace.*(?:unique|exactly once)/iu,
+    );
+    expect(() => validateCoreEvaluationArtifactV1(missingFinalSentence)).toThrow(
+      /final.*partition/iu,
+    );
+  });
+
+  it("pins the two Task 21 character-span rulings", () => {
+    const artifact = JSON.parse(
+      readFileSync(
+        new URL("../../shared-fixtures/core-evaluation-traces.json", import.meta.url),
+        "utf8",
+      ),
+    );
+    const byId = new Map(artifact.corpus.sentences.map((item) => [item.id, item.boundaries]));
+
+    expect(byId.get("rr-complement-1")).toEqual([
+      { startChar: 0, endChar: 10, role: "SUBJECT" },
+      { startChar: 11, endChar: 16, role: "PREDICATE" },
+      { startChar: 17, endChar: 27, role: "OBJECT" },
+      { startChar: 28, endChar: 39, role: "COMPLEMENT" },
+    ]);
+    expect(byId.get("ho-clause-1")).toEqual([
+      { startChar: 0, endChar: 2, role: "SUBJECT" },
+      { startChar: 3, endChar: 5, role: "PREDICATE" },
+      { startChar: 6, endChar: 13, role: "PREDICATIVE" },
+      { startChar: 14, endChar: 37, role: "SUBJECT_CLAUSE" },
+    ]);
+  });
+
+  it("proves the synthetic legal, repaired, damaged, failed, and narrowing semantics", () => {
+    const artifact = JSON.parse(
+      readFileSync(
+        new URL("../../shared-fixtures/core-evaluation-traces.json", import.meta.url),
+        "utf8",
+      ),
+    );
+    const report = scoreCoreEvaluationArtifacts(artifact, artifact).candidate;
+    const firstTrace = artifact.traces[0];
+
+    expect(firstTrace.repairs.map(({ subsetSentenceIds }) => subsetSentenceIds)).toEqual([
+      firstTrace.inputSentenceIds.slice(1),
+      [firstTrace.inputSentenceIds[3], firstTrace.inputSentenceIds[5]],
+    ]);
+    expect(report.transitions.repairedToCorrect.sentenceIds).toEqual([
+      firstTrace.inputSentenceIds[1],
+      firstTrace.inputSentenceIds[4],
+      firstTrace.inputSentenceIds[5],
+    ]);
+    expect(report.transitions.correctToWrongOrFailure.sentenceIds).toEqual([
+      firstTrace.inputSentenceIds[2],
+    ]);
+    expect(report.transitions.finalFailures.sentenceIds).toEqual([firstTrace.inputSentenceIds[3]]);
+    expect(report.correctFirstPassRejection.nonGrammarSentenceIds).toEqual([
+      firstTrace.inputSentenceIds[2],
+    ]);
+  });
+
+  it("requires classified grammar and non-grammar validator errors", () => {
+    const artifact = JSON.parse(
+      readFileSync(
+        new URL("../../shared-fixtures/core-evaluation-traces.json", import.meta.url),
+        "utf8",
+      ),
+    );
+    const errors = artifact.traces.flatMap(({ firstPass, repairs }) => [
+      ...firstPass.validatorErrors,
+      ...repairs.flatMap((round) => round.validatorErrors),
+    ]);
+
+    expect(errors.some(({ errors: items }) => items.some(({ kind }) => kind === "grammar"))).toBe(
+      true,
+    );
+    expect(
+      errors.some(({ errors: items }) => items.some(({ kind }) => kind === "non-grammar")),
+    ).toBe(true);
+  });
+
+  it("compares saved artifacts in character coordinates across tokenizer snapshots", () => {
+    const baseline = JSON.parse(
+      readFileSync(
+        new URL("../../shared-fixtures/core-evaluation-traces.json", import.meta.url),
+        "utf8",
+      ),
+    );
+    const candidate = cloneJson(baseline);
+    const shiftedIds = new Map();
+    for (const snapshot of candidate.tokenizerSnapshot.sentences) {
+      const sentenceMap = new Map();
+      for (const token of snapshot.tokens) {
+        sentenceMap.set(token.id, token.id + 100);
+        token.id += 100;
+      }
+      shiftedIds.set(snapshot.id, sentenceMap);
+    }
+    const shiftAnalyses = (analyses) => {
+      for (const analysis of analyses) {
+        const sentenceMap = shiftedIds.get(analysis.sentenceId);
+        for (const item of analysis.components ?? []) {
+          item.startToken = sentenceMap.get(item.startToken);
+          item.endToken = sentenceMap.get(item.endToken);
+        }
+      }
+    };
+    for (const trace of candidate.traces) {
+      shiftAnalyses(trace.firstPass.raw.sentences);
+      shiftAnalyses(trace.final.analyses);
+    }
+    const sha256Json = (value) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
+    candidate.tokenizerSnapshot.hash = sha256Json(candidate.tokenizerSnapshot.sentences);
+    candidate.run.hashes.tokenizer = candidate.tokenizerSnapshot.hash;
+
+    const reports = scoreCoreEvaluationArtifacts(baseline, candidate);
+
+    expect(reports.baseline.final.exactSentence.rate).toBe(
+      reports.candidate.final.exactSentence.rate,
+    );
+    expect(reports.baseline.final.labeledSpan.f1).toBe(reports.candidate.final.labeledSpan.f1);
+  });
+});
 
 describe("scoreCorePredictions", () => {
   it("scores a perfect prediction", () => {
@@ -202,6 +406,38 @@ describe("scoreCorePredictions", () => {
     expect(report.labeledSpan.f1).toBe(1);
     expect(report.details[0]).toMatchObject({ exact: true, missing: [], extra: [] });
   });
+
+  it.each([
+    ["a missing start token", [{ id: 1, start: 0, end: 3 }], component(0, 1, "SUBJECT")],
+    [
+      "a duplicate token ID",
+      [
+        { id: 0, start: 0, end: 3 },
+        { id: 0, start: 4, end: 7 },
+      ],
+      component(0, 0, "SUBJECT"),
+    ],
+    [
+      "an inverted token range",
+      [
+        { id: 0, start: 0, end: 3 },
+        { id: 1, start: 4, end: 7 },
+      ],
+      component(1, 0, "SUBJECT"),
+    ],
+    [
+      "an inverted character mapping",
+      [
+        { id: 0, start: 4, end: 3 },
+        { id: 1, start: 5, end: 7 },
+      ],
+      component(0, 1, "SUBJECT"),
+    ],
+  ])("rejects %s instead of falling back to token coordinates", (_label, tokens, badComponent) => {
+    const input = [{ sentenceId: "bad", tokens, components: [badComponent] }];
+
+    expect(() => scoreCorePredictions(input, input, { coordinateSystem: "characters" })).toThrow();
+  });
 });
 
 describe("scorePipelineTrace", () => {
@@ -302,5 +538,46 @@ describe("scorePipelineTrace", () => {
       displayRate: "N/A",
     });
     expect(formatPipelineTransition(report)).toContain("Correct first-pass rejection: N/A");
+  });
+
+  it.each([
+    ["unknown", ["legal", "unknown"]],
+    ["duplicate", ["legal", "legal"]],
+    ["missing", gold.slice(0, -1).map(({ sentenceId }) => sentenceId)],
+  ])("rejects a %s fixed denominator", (_label, denominatorSentenceIds) => {
+    expect(() => scorePipelineTrace(gold, { ...trace, denominatorSentenceIds })).toThrow();
+  });
+
+  it("reports N/A metrics for declared empty groups", () => {
+    const corpusMetadata = gold.map(({ sentenceId }) => ({
+      id: sentenceId,
+      split: "rule-regression",
+      category: "fragment",
+    }));
+
+    const report = scorePipelineTrace(gold, trace, {
+      corpusMetadata,
+      splits: ["rule-regression", "independent-holdout"],
+      categories: ["fragment", "clause"],
+    });
+
+    expect(report.bySplit["independent-holdout"]).toEqual({ denominator: 0, status: "N/A" });
+    expect(report.byCategory.clause).toEqual({ denominator: 0, status: "N/A" });
+  });
+
+  it("reports first and final metrics by split and category with fixed denominators", () => {
+    const corpusMetadata = gold.map(({ sentenceId }, index) => ({
+      id: sentenceId,
+      split: index < 3 ? "rule-regression" : "independent-holdout",
+      category: index % 2 === 0 ? "fragment" : "clause",
+    }));
+
+    const report = scorePipelineTrace(gold, trace, { corpusMetadata });
+
+    expect(report.bySplit["rule-regression"].denominator).toBe(3);
+    expect(report.bySplit["independent-holdout"].denominator).toBe(3);
+    expect(report.byCategory.fragment.denominator + report.byCategory.clause.denominator).toBe(6);
+    expect(report.bySplit["rule-regression"].firstPass.exactSentence.count).toBe(2);
+    expect(report.byCategory.fragment).toHaveProperty("transitions.repairedToCorrect");
   });
 });

@@ -92,9 +92,9 @@ harness 提供三个口子:`seedProfiles()`(直接写 `chrome.storage.local`)、
 1. **首轮轨**直接用 `buildCorePrompt` 请求并评分，用来隔离模型首次回答的成分质量。
 2. **生产链路轨**必须从冷缓存以 `bypassCache: true` 调用真实 `CachedAnalysisService.analyzeCore`，覆盖生产 validator、最多两轮逐轮收窄 repair 与最终失败。adapter 只包装并记录同一次调用的 messages/raw/顺序，不复制 validator 或 repair loop；首轮 raw 与最终结果必须来自同一次 service 调用。Kotlin 侧用相同合成轨迹经真实 `AnalysisService` 独立回放，不能用 TS 终评代替 Kotlin 验证。
 
-`shared-fixtures/core-evaluation-traces.json` 是 versioned、synthetic、脱敏的离线契约，固定验证首轮合法、错→对、语法 exact 但非语法字段错后修坏、三轮失败、两句逐轮收窄，以及双端最终 span/role、成功/失败集合和 repair subset 一致。真实模型 artifact 只存 gitignored `.superpowers/acceptance/`，保存 commit、模型参数、批大小/顺序、prompt/corpus/tokenizer 快照及 SHA-256，不含密钥。正确首轮分母为 0 时拒绝率展示 `N/A`。
+`shared-fixtures/core-evaluation-traces.json` 是 versioned、synthetic、脱敏的离线契约，固定验证首轮合法、错→对、语法 exact 但非语法字段错后修坏、三轮失败、两句逐轮收窄，以及双端最终 span/role、成功/失败集合和 repair subset 一致。该 fixture 同时冻结 40 句人工复核 corpus：两个 split × 五个 category × 每格四句，每句都有非空字符半开区间、role、来源与标注理由；Task 21 的两处裁定只在这里体现，不提前修改正式黄金集。synthetic fixture 与真实 artifact 共用 `core-evaluation-trace/v1` 校验器和 `traces[]` 形状，不再另设不兼容的 replay schema。每个 production batch 是一个 trace，保存 `callId`、完整输入 ID、实际 adapter messages、首轮 raw/validator errors、最多两轮局部编号 repair 及最终 outcome；错误逐条带 `grammar` / `non-grammar` 分类。真实模型 artifact 只存 gitignored `.superpowers/acceptance/`，保存完整 corpus/tokenizer 快照、commit、模型参数、批大小/顺序，以及实际 messages/prompt/corpus/tokenizer 的 SHA-256，不含密钥。正确首轮分母为 0 时拒绝率展示 `N/A`。
 
-手动 runner 默认仍是首轮模式；`--mode pipeline` 才走生产链路，且要求显式给独立 `--candidate` 文件。`--baseline` 永远只读，禁止和 candidate 同路径。上线判断以同配置、同句集三次配对运行的最终整句 exact 与 labeled-span F1 均值为主，同时检查范围、类别与逐句 repair 修坏；只有离线合成轨迹通过不能宣称真实准确性验收完成。
+手动 runner 默认仍是首轮模式；`--mode pipeline` 才走生产链路，且明确消费上述固定 40 句 corpus，要求显式给独立 `--candidate` 文件。`--baseline` 永远只读，禁止和 candidate 同路径；载入保存 artifact 时先过同一个 v1 validator。首轮、pipeline 首轮/最终与 baseline/candidate 比较全部强制按各自 tokenizer snapshot 映射到字符坐标；token 缺失、ID 重复、range 反转或无法映射立即失败，绝不退回 Token ID 比较。固定分母必须与 corpus ID 一一对应且唯一，未知、重复、漏句均拒绝；报告总指标、两个 split 和五个 category 的首轮/最终全指标与转移，空组为 N/A。上线判断以同配置、同句集三次配对运行的最终整句 exact 与 labeled-span F1 均值为主，同时检查范围、类别与逐句 repair 修坏；只有离线合成轨迹通过不能宣称真实准确性验收完成。
 
 ### 商店截图
 
