@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
+import { validateCoreBatch } from "../language/analysis-validator";
 import { tokenize } from "../language/segmenter";
 import { GrammarRole } from "../shared/grammar";
 import { CORE_SCHEMA_VERSION } from "../shared/versions";
@@ -493,16 +494,42 @@ describe("shared core evaluation trace replay", () => {
       ),
     ) as {
       schemaVersion: string;
-      corpus: { denominatorSentenceIds: string[] };
-      tokenizerSnapshot: { sentences: Array<{ id: string; text: string }> };
+      corpus: {
+        denominatorSentenceIds: string[];
+        sentences: Array<{
+          id: string;
+          boundaries: Array<{ startChar: number; endChar: number; role: string }>;
+        }>;
+      };
+      tokenizerSnapshot: {
+        sentences: Array<{
+          id: string;
+          text: string;
+          tokens: Array<{ id: number; start: number; end: number }>;
+        }>;
+      };
       traces: Array<{
         inputSentenceIds: string[];
-        firstPass: { subsetSentenceIds: string[]; raw: unknown; validatorErrors: unknown[] };
-        repairs: Array<{
-          round: number;
+        firstPass: {
+          messages: AnalysisModelWork["messages"];
+          serializedSubset?: string;
           subsetSentenceIds: string[];
           raw: unknown;
-          validatorErrors: unknown[];
+          validatorErrors: Array<{
+            sentenceId: string;
+            errors: Array<{ path: string; message: string; kind: "grammar" | "non-grammar" }>;
+          }>;
+        };
+        repairs: Array<{
+          round: number;
+          messages: AnalysisModelWork["messages"];
+          serializedSubset?: string;
+          subsetSentenceIds: string[];
+          raw: unknown;
+          validatorErrors: Array<{
+            sentenceId: string;
+            errors: Array<{ path: string; message: string; kind: "grammar" | "non-grammar" }>;
+          }>;
         }>;
         final: {
           successSentenceIds: string[];
@@ -525,6 +552,7 @@ describe("shared core evaluation trace replay", () => {
       return { sentenceId, text: item.text, tokens: tokenize(item.text) };
     });
     const cache = new MemoryCache();
+    const observedMessages: AnalysisModelWork["messages"][] = [];
     const observedSubsets: string[][] = [];
     const rounds = [trace.firstPass, ...trace.repairs];
     const rawByRound = rounds.map(({ raw }) => raw);
@@ -532,6 +560,7 @@ describe("shared core evaluation trace replay", () => {
       const ids = sentences
         .filter(({ sentenceId }) => messages[0]!.content.includes(`"sentenceId":"${sentenceId}"`))
         .map(({ sentenceId }) => sentenceId);
+      observedMessages.push(messages);
       observedSubsets.push(ids);
       return Promise.resolve(rawByRound[observedSubsets.length - 1]);
     });
@@ -552,7 +581,22 @@ describe("shared core evaluation trace replay", () => {
 
     expect(outcome.cacheHit).toBe(false);
     expect(completeJson).toHaveBeenCalledTimes(3);
+    expect(observedMessages).toEqual(rounds.map(({ messages }) => messages));
     expect(observedSubsets).toEqual(rounds.map(({ subsetSentenceIds }) => subsetSentenceIds));
+    const observedDiagnostics = rounds.map((round) => {
+      const subset = round.subsetSentenceIds.map((sentenceId) =>
+        sentences.find((item) => item.sentenceId === sentenceId)!,
+      );
+      const validation = validateCoreBatch(round.raw, subset, profile.id);
+      return validation.ok ? [] : validation.errors;
+    });
+    expect(observedDiagnostics).toEqual(
+      rounds.map((round) =>
+        round.validatorErrors.flatMap(({ errors }) =>
+          errors.map(({ path, message }) => ({ path, message })),
+        ),
+      ),
+    );
     expect(outcome.result.map(({ sentenceId }) => sentenceId)).toEqual(
       trace.final.successSentenceIds,
     );
@@ -582,7 +626,49 @@ describe("shared core evaluation trace replay", () => {
         expect.objectContaining({ sentenceId: trace.inputSentenceIds[2] }),
       ]),
     );
-    expect(trace.final.failureSentenceIds).toEqual([trace.inputSentenceIds[3]]);
+    const componentShape = (analysis: {
+      components: Array<{ startToken: number; endToken: number; role: string }>;
+    }) =>
+      analysis.components.map(({ startToken, endToken, role }) => ({ startToken, endToken, role }));
+    const goldTokenShape = (sentenceId: string) => {
+      const snapshot = byId.get(sentenceId)!;
+      const gold = fixture.corpus.sentences.find(({ id }) => id === sentenceId)!;
+      return gold.boundaries.map(({ startChar, endChar, role }) => ({
+        startToken: snapshot.tokens.find(({ start }) => start === startChar)!.id,
+        endToken: snapshot.tokens.find(({ end }) => end === endChar)!.id,
+        role,
+      }));
+    };
+    const damagedId = trace.inputSentenceIds[2]!;
+    const damagedFirst = (
+      rounds[0]!.raw as {
+        sentences: Array<{
+          sentenceId: string;
+          components: Array<{ startToken: number; endToken: number; role: string }>;
+        }>;
+      }
+    ).sentences.find(({ sentenceId }) => sentenceId === damagedId)!;
+    expect(componentShape(damagedFirst)).toEqual(goldTokenShape(damagedId));
+    expect(
+      rounds[0]!.validatorErrors
+        .find(({ sentenceId }) => sentenceId === damagedId)!
+        .errors.map(({ kind }) => kind),
+    ).toEqual(["non-grammar"]);
+    expect(
+      componentShape(trace.final.analyses.find(({ sentenceId }) => sentenceId === damagedId)!),
+    ).not.toEqual(goldTokenShape(damagedId));
+    const failedId = trace.inputSentenceIds[3]!;
+    expect(
+      rounds.every((round) =>
+        round.validatorErrors.some(({ sentenceId }) => sentenceId === failedId),
+      ),
+    ).toBe(true);
+    const narrowA = trace.inputSentenceIds[4]!;
+    const narrowB = trace.inputSentenceIds[5]!;
+    expect(trace.repairs[0]!.subsetSentenceIds).toEqual(expect.arrayContaining([narrowA, narrowB]));
+    expect(trace.repairs[1]!.subsetSentenceIds).toContain(narrowB);
+    expect(trace.repairs[1]!.subsetSentenceIds).not.toContain(narrowA);
+    expect(trace.final.failureSentenceIds).toEqual([failedId]);
   });
 });
 

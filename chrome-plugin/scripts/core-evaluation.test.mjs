@@ -8,6 +8,7 @@ import {
   formatPipelineTransition,
   scoreCorePredictions,
   scorePipelineTrace,
+  createCoreEvaluationReportV1,
   scoreCoreEvaluationArtifacts,
   validateCoreEvaluationArtifactV1,
 } from "./core-evaluation.mjs";
@@ -15,6 +16,24 @@ import {
 const component = (startToken, endToken, role) => ({ startToken, endToken, role });
 const sentence = (sentenceId, components) => ({ sentenceId, components });
 const cloneJson = (value) => JSON.parse(JSON.stringify(value));
+const fixtureUrl = new URL("../../shared-fixtures/core-evaluation-traces.json", import.meta.url);
+const loadArtifact = () => JSON.parse(readFileSync(fixtureUrl, "utf8"));
+const sha256 = (value) => createHash("sha256").update(value).digest("hex");
+const sha256Json = (value) => sha256(JSON.stringify(value));
+const refreshArtifactHashes = (artifact) => {
+  const allMessages = artifact.traces.flatMap(({ firstPass, repairs }) => [
+    firstPass.messages,
+    ...repairs.map(({ messages }) => messages),
+  ]);
+  artifact.tokenizerSnapshot.hash = sha256Json(artifact.tokenizerSnapshot.sentences);
+  artifact.run.hashes.corpus = sha256Json(artifact.corpus);
+  artifact.run.hashes.tokenizer = artifact.tokenizerSnapshot.hash;
+  artifact.run.hashes.messages = sha256Json(allMessages);
+  artifact.run.hashes.prompt = sha256Json(allMessages.flat().map(({ content }) => content));
+};
+const refreshArtifactReport = (artifact) => {
+  artifact.report = createCoreEvaluationReportV1(artifact);
+};
 
 describe("core-evaluation-trace/v1 contract", () => {
   it("validates the shared synthetic artifact and its complete 40-sentence corpus", () => {
@@ -170,6 +189,148 @@ describe("core-evaluation-trace/v1 contract", () => {
     ).toBe(true);
   });
 
+  it.each([
+    [
+      "tokenizer text differs from corpus",
+      (artifact) => {
+        artifact.tokenizerSnapshot.sentences[0].text += " altered";
+      },
+    ],
+    [
+      "textHash is not SHA-256 text",
+      (artifact) => {
+        artifact.tokenizerSnapshot.sentences[0].textHash = "0".repeat(64);
+      },
+    ],
+    [
+      "token IDs are duplicated",
+      (artifact) => {
+        artifact.tokenizerSnapshot.sentences[0].tokens[1].id =
+          artifact.tokenizerSnapshot.sentences[0].tokens[0].id;
+      },
+    ],
+    [
+      "token ranges overlap",
+      (artifact) => {
+        artifact.tokenizerSnapshot.sentences[0].tokens[1].start = 7;
+      },
+    ],
+    [
+      "token range exceeds sentence",
+      (artifact) => {
+        artifact.tokenizerSnapshot.sentences[0].tokens.at(-1).end = 999;
+      },
+    ],
+    [
+      "token text differs from source slice",
+      (artifact) => {
+        artifact.tokenizerSnapshot.sentences[0].tokens[0].text = "Wrong";
+      },
+    ],
+    [
+      "gold boundary is not a token endpoint",
+      (artifact) => {
+        artifact.corpus.sentences[0].boundaries[0].endChar = 19;
+      },
+    ],
+  ])("rejects %s even after aggregate hashes are refreshed", (_label, mutate) => {
+    const artifact = loadArtifact();
+    mutate(artifact);
+    refreshArtifactHashes(artifact);
+
+    expect(() => validateCoreEvaluationArtifactV1(artifact)).toThrow();
+  });
+
+  it.each([
+    [
+      "validator error outside subset",
+      (artifact) => {
+        artifact.traces[0].repairs[1].validatorErrors[0].sentenceId =
+          artifact.traces[0].inputSentenceIds[1];
+      },
+    ],
+    [
+      "raw IDs differ from subset",
+      (artifact) => {
+        artifact.traces[1].firstPass.raw.sentences.pop();
+      },
+    ],
+    [
+      "repair round number is non-local",
+      (artifact) => {
+        artifact.traces[0].repairs[0].round = 2;
+      },
+    ],
+    [
+      "repair reintroduces a successful sentence",
+      (artifact) => {
+        artifact.traces[0].repairs[1].subsetSentenceIds.push(
+          artifact.traces[0].inputSentenceIds[1],
+        );
+        artifact.traces[0].repairs[1].raw.sentences.push(
+          cloneJson(artifact.traces[0].repairs[0].raw.sentences[0]),
+        );
+      },
+    ],
+    [
+      "message role is invalid",
+      (artifact) => {
+        artifact.traces[0].firstPass.messages[0].role = "tool";
+      },
+    ],
+    [
+      "message does not encode its subset",
+      (artifact) => {
+        artifact.traces[0].firstPass.messages[0].content = "unbound payload";
+      },
+    ],
+    [
+      "serialized subset contains an extra trace sentence",
+      (artifact) => {
+        artifact.traces[0].repairs[1].serializedSubset += ` ${artifact.traces[0].inputSentenceIds[0]}`;
+        artifact.traces[0].repairs[1].messages[0].content += ` ${artifact.traces[0].inputSentenceIds[0]}`;
+      },
+    ],
+    [
+      "raw sentence IDs are reordered",
+      (artifact) => {
+        artifact.traces[0].firstPass.raw.sentences.reverse();
+      },
+    ],
+    [
+      "final failures disagree with failure partition",
+      (artifact) => {
+        artifact.traces[0].final.failures[0].sentenceId = artifact.traces[0].inputSentenceIds[0];
+      },
+    ],
+    [
+      "final status disagrees with partition",
+      (artifact) => {
+        artifact.traces[0].final.status = "success";
+      },
+    ],
+    [
+      "final analysis IDs disagree with success partition",
+      (artifact) => {
+        artifact.traces[0].final.analyses[0].sentenceId =
+          artifact.traces[0].final.successSentenceIds[1];
+      },
+    ],
+  ])("rejects round semantic bypass: %s", (_label, mutate) => {
+    const artifact = loadArtifact();
+    mutate(artifact);
+    refreshArtifactHashes(artifact);
+
+    expect(() => validateCoreEvaluationArtifactV1(artifact)).toThrow();
+  });
+
+  it("rejects a corrupted deterministic report metric", () => {
+    const artifact = loadArtifact();
+    artifact.report.final.exactSentence[0] += 1;
+
+    expect(() => validateCoreEvaluationArtifactV1(artifact)).toThrow(/report/iu);
+  });
+
   it("compares saved artifacts in character coordinates across tokenizer snapshots", () => {
     const baseline = JSON.parse(
       readFileSync(
@@ -203,6 +364,7 @@ describe("core-evaluation-trace/v1 contract", () => {
     const sha256Json = (value) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
     candidate.tokenizerSnapshot.hash = sha256Json(candidate.tokenizerSnapshot.sentences);
     candidate.run.hashes.tokenizer = candidate.tokenizerSnapshot.hash;
+    refreshArtifactReport(candidate);
 
     const reports = scoreCoreEvaluationArtifacts(baseline, candidate);
 
@@ -405,6 +567,20 @@ describe("scoreCorePredictions", () => {
     expect(report.exactSentence).toEqual({ count: 1, rate: 1 });
     expect(report.labeledSpan.f1).toBe(1);
     expect(report.details[0]).toMatchObject({ exact: true, missing: [], extra: [] });
+  });
+
+  it("rejects a direct character span beyond its sentence text", () => {
+    const input = [
+      {
+        sentenceId: "bad-direct-character-span",
+        text: "short",
+        components: [{ startChar: 0, endChar: 6, role: "SUBJECT" }],
+      },
+    ];
+
+    expect(() => scoreCorePredictions(input, input, { coordinateSystem: "characters" })).toThrow(
+      /character span/iu,
+    );
   });
 
   it.each([

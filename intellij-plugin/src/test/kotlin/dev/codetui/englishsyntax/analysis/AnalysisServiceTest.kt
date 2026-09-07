@@ -8,6 +8,7 @@ import dev.codetui.englishsyntax.domain.GrammarRole
 import dev.codetui.englishsyntax.domain.SentenceInput
 import dev.codetui.englishsyntax.domain.TokenRange
 import dev.codetui.englishsyntax.language.tokenize
+import dev.codetui.englishsyntax.language.validateCoreBatch
 import dev.codetui.englishsyntax.model.ChatMessage
 import dev.codetui.englishsyntax.model.JsonSchemaSpec
 import dev.codetui.englishsyntax.model.OpenAiCompatibleClient
@@ -284,6 +285,24 @@ class AnalysisServiceTest {
     )
 
     assertEquals(3, server.requests.size)
+    val observedMessages = server.requests.map { request -> request.body.getValue("messages").jsonArray }
+    val expectedMessages = rounds.map { round -> round.getValue("messages").jsonArray }
+    assertEquals(expectedMessages, observedMessages)
+    val observedDiagnostics = rounds.map { round ->
+      val subsetIds = round.getValue("subsetSentenceIds").jsonArray.map { it.jsonPrimitive.content }
+      val subset = sentences.filter { it.sentenceId in subsetIds }
+      validateCoreBatch(round.getValue("raw"), subset, "profile-1").errors
+        .map { it.path to it.message }
+    }
+    val expectedDiagnostics = rounds.map { round ->
+      round.getValue("validatorErrors").jsonArray.flatMap { rejection ->
+        rejection.jsonObject.getValue("errors").jsonArray.map { error ->
+          val value = error.jsonObject
+          value.getValue("path").jsonPrimitive.content to value.getValue("message").jsonPrimitive.content
+        }
+      }
+    }
+    assertEquals(expectedDiagnostics, observedDiagnostics)
     val final = trace.getValue("final").jsonObject
     assertEquals(
       final.getValue("successSentenceIds").jsonArray.map { it.jsonPrimitive.content },
@@ -303,8 +322,52 @@ class AnalysisServiceTest {
     assertTrue(observedSubsets.flatten().none { it == ids[0] })
     val firstErrors = firstPass.getValue("validatorErrors").jsonArray
     assertTrue(firstErrors.any { it.jsonObject.getValue("sentenceId").jsonPrimitive.content == ids[1] })
-    assertTrue(firstErrors.any { it.jsonObject.getValue("sentenceId").jsonPrimitive.content == ids[2] })
-    assertEquals(listOf(ids[3]), final.getValue("failureSentenceIds").jsonArray.map { it.jsonPrimitive.content })
+    val damagedId = ids[2]
+    val damagedErrors = firstErrors.single {
+      it.jsonObject.getValue("sentenceId").jsonPrimitive.content == damagedId
+    }.jsonObject.getValue("errors").jsonArray
+    assertEquals(listOf("non-grammar"), damagedErrors.map { it.jsonObject.getValue("kind").jsonPrimitive.content })
+    val corpusById = fixture.getValue("corpus").jsonObject.getValue("sentences").jsonArray.associate {
+      it.jsonObject.getValue("id").jsonPrimitive.content to it.jsonObject
+    }
+    val tokenizerById = fixture.getValue("tokenizerSnapshot").jsonObject.getValue("sentences").jsonArray.associate {
+      it.jsonObject.getValue("id").jsonPrimitive.content to it.jsonObject
+    }
+    val damagedGold = corpusById.getValue(damagedId).getValue("boundaries").jsonArray.map { boundary ->
+      val value = boundary.jsonObject
+      val tokens = tokenizerById.getValue(damagedId).getValue("tokens").jsonArray
+      Triple(
+        tokens.single { it.jsonObject.getValue("start").jsonPrimitive.content.toInt() == value.getValue("startChar").jsonPrimitive.content.toInt() }.jsonObject.getValue("id").jsonPrimitive.content.toInt(),
+        tokens.single { it.jsonObject.getValue("end").jsonPrimitive.content.toInt() == value.getValue("endChar").jsonPrimitive.content.toInt() }.jsonObject.getValue("id").jsonPrimitive.content.toInt(),
+        value.getValue("role").jsonPrimitive.content,
+      )
+    }
+    fun componentShape(analysis: JsonObject): List<Triple<Int, Int, String>> =
+      analysis.getValue("components").jsonArray.map { component ->
+        val value = component.jsonObject
+        Triple(
+          value.getValue("startToken").jsonPrimitive.content.toInt(),
+          value.getValue("endToken").jsonPrimitive.content.toInt(),
+          value.getValue("role").jsonPrimitive.content,
+        )
+      }
+    val damagedFirst = firstPass.getValue("raw").jsonObject.getValue("sentences").jsonArray
+      .single { it.jsonObject.getValue("sentenceId").jsonPrimitive.content == damagedId }.jsonObject
+    val damagedFinal = final.getValue("analyses").jsonArray
+      .single { it.jsonObject.getValue("sentenceId").jsonPrimitive.content == damagedId }.jsonObject
+    assertEquals(damagedGold, componentShape(damagedFirst))
+    assertTrue(damagedGold != componentShape(damagedFinal))
+    val failedId = ids[3]
+    assertTrue(rounds.all { round ->
+      round.getValue("validatorErrors").jsonArray.any {
+        it.jsonObject.getValue("sentenceId").jsonPrimitive.content == failedId
+      }
+    })
+    val narrowA = ids[4]
+    val narrowB = ids[5]
+    assertTrue(narrowA in expectedSubsets[0] && narrowB in expectedSubsets[0])
+    assertTrue(narrowA !in expectedSubsets[1] && narrowB in expectedSubsets[1])
+    assertEquals(listOf(failedId), final.getValue("failureSentenceIds").jsonArray.map { it.jsonPrimitive.content })
     val expectedAnalyses = final.getValue("analyses").jsonArray.map { analysis ->
       val value = analysis.jsonObject
       value.getValue("sentenceId").jsonPrimitive.content to value.getValue("components").jsonArray.map { component ->
