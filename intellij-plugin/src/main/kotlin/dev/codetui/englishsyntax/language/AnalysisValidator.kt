@@ -130,6 +130,10 @@ private val predicateHeadBlockers = subjectPronouns + determiners + "that"
  *
  * `for` / `so` 属 FANBOYS，`then` 是副词（黄金集的祈使句串第三个分句就以它开头），都不收。
  */
+internal val subjectClauseIntroducers = setOf(
+  "that", "whether", "what", "whatever", "which", "whichever", "who", "whoever", "whom",
+  "whomever", "whose", "how", "why", "when", "where",
+)
 internal val clauseOnlyConjunctions = setOf(
   "although", "whereas", "unless", "lest", "whilst",
 )
@@ -224,6 +228,13 @@ private fun collectGrammarErrors(
     val previous = components.getOrNull(index - 1)
     val words = lexicalTexts(tokens, TokenRange(component.startToken, component.endToken))
     val head = words.firstOrNull()
+
+    if (component.role == GrammarRole.SUBJECT_CLAUSE && head !in subjectClauseIntroducers) {
+      errors += error(
+        componentPath,
+        "a SUBJECT_CLAUSE must start with a subject-clause introducer (that/whether/what/who/…); retag or extend the component",
+      )
+    }
 
     val phraseRole = component.role == GrammarRole.ADVERBIAL || component.role == GrammarRole.ATTRIBUTE
     val startsWithClauseOnlyConjunction = head != null && (

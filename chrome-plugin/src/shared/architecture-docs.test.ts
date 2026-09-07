@@ -42,6 +42,14 @@ function literalNumber(source: string, name: string): number {
   return Number(match![1]!.replaceAll("_", ""));
 }
 
+function stringSetSize(source: string, name: string): number {
+  const match = source.match(
+    new RegExp(`${name}[^=\\n]*=\\s*new Set\\(\\[([\\s\\S]*?)\\]\\);`, "u"),
+  );
+  expect(match, `源码里找不到字符串集合 ${name}`).not.toBeNull();
+  return [...match![1]!.matchAll(/"[^"]+"/gu)].length;
+}
+
 /**
  * 每一处「提到 `name` 后紧跟一个数字」的地方都必须等于 `expected`——只查首处的话,
  * 命中哪份文档要看目录遍历顺序,同一个常量写在三处、只对了一处也会蒙混过关。
@@ -185,6 +193,10 @@ describe("架构文档与代码同步", () => {
     expectDocumentedNumber("MESSAGE_VERSION", MESSAGE_VERSION);
     expectDocumentedNumber("CORE_SCHEMA_VERSION", CORE_SCHEMA_VERSION);
     expectDocumentedNumber("MAX_SENTENCES_PER_REQUEST", MAX_SENTENCES_PER_REQUEST);
+    expectDocumentedNumber(
+      "SUBJECT_CLAUSE_INTRODUCERS",
+      stringSetSize(sourceOf("language/analysis-validator.ts"), "SUBJECT_CLAUSE_INTRODUCERS"),
+    );
     expectDocumentedNumber(
       "MAX_WHOLE_SENTENCE_FRAGMENT_LEXICAL_TOKENS",
       literalNumber(

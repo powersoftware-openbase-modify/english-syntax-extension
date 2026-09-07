@@ -566,6 +566,46 @@ class AnalysisValidatorTest {
   }
 
   @Test
+  fun `rejects a SUBJECT_CLAUSE that does not start with an introducer`() {
+    assertGrammarError(
+      "Today, developers now play a frontline role.",
+      """
+      {"startToken":0,"endToken":1,"role":"INDEPENDENT_ELEMENT","translation":"今天"},
+      {"startToken":2,"endToken":7,"role":"SUBJECT_CLAUSE","translation":"开发者现在发挥前线作用"}
+      """.trimIndent(),
+      "sentences[0].components[1]",
+      "a SUBJECT_CLAUSE must start with a subject-clause introducer (that/whether/what/who/…); retag or extend the component",
+    )
+  }
+
+  @Test
+  fun `accepts valid subject-clause layouts without affecting other clause roles`() {
+    listOf(
+      "Whoever wins gets the prize." to """
+        {"startToken":0,"endToken":1,"role":"SUBJECT_CLAUSE","translation":"无论谁获胜"},
+        {"startToken":2,"endToken":2,"role":"PREDICATE","translation":"获得"},
+        {"startToken":3,"endToken":5,"role":"OBJECT","translation":"奖品"}
+      """.trimIndent(),
+      "How he did it remains a mystery." to """
+        {"startToken":0,"endToken":3,"role":"SUBJECT_CLAUSE","translation":"他如何做到"},
+        {"startToken":4,"endToken":4,"role":"PREDICATE","translation":"仍然是"},
+        {"startToken":5,"endToken":7,"role":"PREDICATIVE","translation":"一个谜"}
+      """.trimIndent(),
+      "It is obvious that the cache is stale." to """
+        {"startToken":0,"endToken":0,"role":"SUBJECT","translation":"这"},
+        {"startToken":1,"endToken":1,"role":"PREDICATE","translation":"是"},
+        {"startToken":2,"endToken":2,"role":"PREDICATIVE","translation":"显然的"},
+        {"startToken":3,"endToken":8,"role":"SUBJECT_CLAUSE","translation":"缓存已过期"}
+      """.trimIndent(),
+      "The problem is that the cache is stale." to """
+        {"startToken":0,"endToken":1,"role":"SUBJECT","translation":"问题"},
+        {"startToken":2,"endToken":2,"role":"PREDICATE","translation":"是"},
+        {"startToken":3,"endToken":8,"role":"PREDICATIVE_CLAUSE","translation":"缓存已过期"}
+      """.trimIndent(),
+    ).forEach { (text, components) -> assertAccepted(text, components) }
+  }
+
+  @Test
   fun `rejects non-clause roles that start with clause-only conjunctions`() {
     val message = "a component that starts with a subordinating conjunction (because/although/…) is a clause and must be tagged with a clause role (ADVERBIAL_CLAUSE/…)"
     listOf(
@@ -886,5 +926,6 @@ class AnalysisValidatorTest {
     assertEquals(21, subordinatingConjunctions.size)
     assertEquals(11, objectRequiringPrepositions.size)
     assertEquals(5, clauseOnlyConjunctions.size)
+    assertEquals(15, subjectClauseIntroducers.size)
   }
 }

@@ -151,6 +151,23 @@ const PREDICATE_HEAD_BLOCKERS: ReadonlySet<string> = new Set([
  *
  * `for` / `so` 属 FANBOYS,`then` 是副词(黄金集的祈使句串第三个分句就以它开头),都不收。
  */
+const SUBJECT_CLAUSE_INTRODUCERS: ReadonlySet<string> = new Set([
+  "that",
+  "whether",
+  "what",
+  "whatever",
+  "which",
+  "whichever",
+  "who",
+  "whoever",
+  "whom",
+  "whomever",
+  "whose",
+  "how",
+  "why",
+  "when",
+  "where",
+]);
 const CLAUSE_ONLY_CONJUNCTIONS: ReadonlySet<string> = new Set([
   "although",
   "whereas",
@@ -281,6 +298,17 @@ function collectGrammarErrors(
     const previous = components[index - 1];
     const words = lexicalTexts(tokens, component);
     const head = words[0];
+
+    if (
+      component.role === GrammarRole.SUBJECT_CLAUSE &&
+      (head === undefined || !SUBJECT_CLAUSE_INTRODUCERS.has(head))
+    ) {
+      addError(
+        errors,
+        componentPath,
+        "a SUBJECT_CLAUSE must start with a subject-clause introducer (that/whether/what/who/…); retag or extend the component",
+      );
+    }
 
     const phraseRole =
       component.role === GrammarRole.ADVERBIAL || component.role === GrammarRole.ATTRIBUTE;

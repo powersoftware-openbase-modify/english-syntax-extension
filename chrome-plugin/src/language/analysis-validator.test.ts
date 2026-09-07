@@ -106,6 +106,7 @@ describe("validator word list source guards", () => {
       subordinatingConjunctions: countStringSetMembers(source, "SUBORDINATING_CONJUNCTIONS"),
       objectRequiringPrepositions: countStringSetMembers(source, "OBJECT_REQUIRING_PREPOSITIONS"),
       clauseOnlyConjunctions: countStringSetMembers(source, "CLAUSE_ONLY_CONJUNCTIONS"),
+      subjectClauseIntroducers: countStringSetMembers(source, "SUBJECT_CLAUSE_INTRODUCERS"),
     }).toEqual({
       coordinatingConjunctions: 7,
       prepositions: 15,
@@ -114,6 +115,7 @@ describe("validator word list source guards", () => {
       subordinatingConjunctions: 21,
       objectRequiringPrepositions: 11,
       clauseOnlyConjunctions: 5,
+      subjectClauseIntroducers: 15,
     });
   });
 });
@@ -860,6 +862,8 @@ describe("core analysis grammar constraints", () => {
     ).toBe(true);
   });
 
+  const SUBJECT_CLAUSE_INTRODUCER_MESSAGE =
+    "a SUBJECT_CLAUSE must start with a subject-clause introducer (that/whether/what/who/…); retag or extend the component";
   const SUBORDINATING_CONJUNCTION_ROLE_MESSAGE =
     "a component that starts with a subordinating conjunction (because/although/…) is a clause and must be tagged with a clause role (ADVERBIAL_CLAUSE/…)";
   const CLAUSE_INTRODUCER_ONLY_MESSAGE =
@@ -868,6 +872,72 @@ describe("core analysis grammar constraints", () => {
     "an ATTRIBUTIVE_CLAUSE keeps its whole internal structure in one component; absorb the object or predicative that follows it";
   const DANGLING_PREPOSITION_MESSAGE =
     "a component must not end on a preposition; merge the phrase that preposition governs into the same component";
+
+  it("rejects a SUBJECT_CLAUSE that does not start with an introducer", () => {
+    const sentence = sentenceOf("Today, developers now play a frontline role.");
+    expect(
+      grammarErrors(sentence, [
+        { startToken: 0, endToken: 1, role: "INDEPENDENT_ELEMENT", translation: "今天" },
+        {
+          startToken: 2,
+          endToken: 7,
+          role: "SUBJECT_CLAUSE",
+          translation: "开发者现在发挥前线作用",
+        },
+      ]),
+    ).toContainEqual({
+      path: "sentences[0].components[1]",
+      message: SUBJECT_CLAUSE_INTRODUCER_MESSAGE,
+    });
+  });
+
+  it.each([
+    [
+      "Whoever wins gets the prize.",
+      [
+        { startToken: 0, endToken: 1, role: "SUBJECT_CLAUSE", translation: "无论谁获胜" },
+        { startToken: 2, endToken: 2, role: "PREDICATE", translation: "获得" },
+        { startToken: 3, endToken: 5, role: "OBJECT", translation: "奖品" },
+      ],
+    ],
+    [
+      "How he did it remains a mystery.",
+      [
+        { startToken: 0, endToken: 3, role: "SUBJECT_CLAUSE", translation: "他如何做到" },
+        { startToken: 4, endToken: 4, role: "PREDICATE", translation: "仍然是" },
+        { startToken: 5, endToken: 7, role: "PREDICATIVE", translation: "一个谜" },
+      ],
+    ],
+    [
+      "It is obvious that the cache is stale.",
+      [
+        { startToken: 0, endToken: 0, role: "SUBJECT", translation: "这" },
+        { startToken: 1, endToken: 1, role: "PREDICATE", translation: "是" },
+        { startToken: 2, endToken: 2, role: "PREDICATIVE", translation: "显然的" },
+        { startToken: 3, endToken: 8, role: "SUBJECT_CLAUSE", translation: "缓存已过期" },
+      ],
+    ],
+    [
+      "The problem is that the cache is stale.",
+      [
+        { startToken: 0, endToken: 1, role: "SUBJECT", translation: "问题" },
+        { startToken: 2, endToken: 2, role: "PREDICATE", translation: "是" },
+        { startToken: 3, endToken: 8, role: "PREDICATIVE_CLAUSE", translation: "缓存已过期" },
+      ],
+    ],
+  ])(
+    "accepts a valid subject-clause layout without affecting other clause roles: %s",
+    (text, components) => {
+      const sentence = sentenceOf(text);
+      expect(
+        validateCoreBatch(
+          { sentences: [{ sentenceId: sentence.sentenceId, components }] },
+          [sentence],
+          "profile-1",
+        ).ok,
+      ).toBe(true);
+    },
+  );
 
   it.each([
     ["Because the road was flooded, we stayed home.", 0, 4, "ADVERBIAL"],

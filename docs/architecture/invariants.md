@@ -230,7 +230,7 @@
 
 ### I-17.2 本地可判的语法粒度规则必须进入双端 validator
 
-**规则** 不能只在 prompt 里要求模型遵守；TS/Kotlin `validateCoreBatch` 必须同步执行十三条可判硬门（完整清单与逐条理由见 [protocol.md](./protocol.md) 覆盖率规则第 6–19 条；`CORE_PROMPT_VERSION` 11 起含 `FRAGMENT_HEAD` 的两条边界门）。bare-preposition 仅对 role 不是 `CONJUNCTION`、去标点后恰好一个 lexical word 且命中**保守的高把握“必须带宾语”白名单**时生效；`after/before/down/off/over/since/until/throughout/around/inside/outside` 等常见副词/表语/连词兼类词不收。grammar 是否执行只看结构可信度（全部 component 都有可用 range/role/translation、区间句内、有序不重叠、非纯标点），不得被 unknown field、translation too long、sentenceId 等非结构错误阻断；两类错误必须可同次报告。错误英文文案逐字一致。
+**规则** 不能只在 prompt 里要求模型遵守；TS/Kotlin `validateCoreBatch` 必须同步执行十三条可判硬门（完整清单与逐条理由见 [protocol.md](./protocol.md) 覆盖率规则第 6–19 条；`CORE_PROMPT_VERSION` 11 起含 `FRAGMENT_HEAD` 的两条边界门）。`SUBJECT_CLAUSE_INTRODUCERS = 15` 的闭集钉住主语从句首词；bare-preposition 仅对 role 不是 `CONJUNCTION`、去标点后恰好一个 lexical word 且命中**保守的高把握“必须带宾语”白名单**时生效；`after/before/down/off/over/since/until/throughout/around/inside/outside` 等常见副词/表语/连词兼类词不收。grammar 是否执行只看结构可信度（全部 component 都有可用 range/role/translation、区间句内、有序不重叠、非纯标点），不得被 unknown field、translation too long、sentenceId 等非结构错误阻断；两类错误必须可同次报告。错误英文文案逐字一致。
 
 **为什么** prompt 只是生成建议，未被 validator 拒绝的违规结果会直接进入跨 profile 共用缓存。错误文案又会被 repair prompt 原样引用，因此它同时是可执行修复指令。
 
