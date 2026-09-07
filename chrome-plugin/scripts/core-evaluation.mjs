@@ -339,6 +339,11 @@ export function validateCoreEvaluationArtifactV1(artifact) {
           JSON.stringify(trace.final.failureSentenceIds),
       "final analyses/failures must match final sentence IDs",
     );
+    requireValue(
+      JSON.stringify(trace.final.failureSentenceIds) ===
+        JSON.stringify(trace.inputSentenceIds.filter((id) => priorFailedIds.has(id))),
+      "final failure partition must match the last validator result",
+    );
   }
   const allMessages = artifact.traces.flatMap(({ firstPass, repairs }) => [
     firstPass.messages,

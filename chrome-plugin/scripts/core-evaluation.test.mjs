@@ -316,6 +316,19 @@ describe("core-evaluation-trace/v1 contract", () => {
           artifact.traces[0].final.successSentenceIds[1];
       },
     ],
+    [
+      "final failure partition disagrees with the last validator result",
+      (artifact) => {
+        const trace = artifact.traces[0];
+        const failedId = trace.final.failureSentenceIds[0];
+        trace.final.failureSentenceIds = [];
+        trace.final.failures = [];
+        trace.final.successSentenceIds.push(failedId);
+        trace.final.analyses.push({ sentenceId: failedId, components: [] });
+        trace.final.status = "success";
+        refreshArtifactReport(artifact);
+      },
+    ],
   ])("rejects round semantic bypass: %s", (_label, mutate) => {
     const artifact = loadArtifact();
     mutate(artifact);
