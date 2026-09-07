@@ -184,7 +184,7 @@ DetailAnalysis  = { sentenceId, focus, structures[], grammarPoints[], explanatio
 6. 组件序列相邻且 Token 区间连续的两个 `PREDICATE` 必须合并；
 7. 成分去掉标点后恰好一个 lexical word、role 不是 `CONJUNCTION`，且该词命中**保守的高把握介词白名单**时，不得独立成分，必须并入其管辖短语；`after/before/down/off/over/since/until/throughout/around/inside/outside` 等常见副词、表语或连词兼类词不收；
 8. `COORDINATE_CLAUSE` **出现即非法(≥1 个)**——该角色已废弃，并列句一律按同层成分平铺、FANBOYS 单独标 `CONJUNCTION`（`CORE_PROMPT_VERSION` 8 起提示词同步禁用）；
-9. `CONJUNCTION` 的 lexical words 必须至少含一个 FANBOYS(`for/and/nor/but/or/yet/so`)；可以同时含其他词，并非只能含 FANBOYS。
+9. `CONJUNCTION` 的 lexical words 必须至少含一个 FANBOYS(`for/and/nor/but/or/yet/so`)；可以同时含其他词，并非只能含 FANBOYS。`ADVERBIAL` / `ATTRIBUTE` 以保守的从属连词门开头时必须改标从句角色：无条件词表 `{although, whereas, unless, lest, whilst}`，`because` 仅第二实词不是 `of` 时命中，`though` 仅成分至少含两个实词时命中；`Because of ...` 与句尾单词 `though` 放行。
 10. `PREDICATE` 的**首个 lexical word** 不得是限定词、主格人称代词或 `that`——动词组不可能以它们开头，命中即说明主语被吞进了谓语；
 11. `PREDICATE` 的**非首位 lexical words** 不得含限定词（`the/a/an/this/these/those/my/your/his/her/its/our/their`）——限定词是名词短语的左边界，出现在动词组内部说明宾语/表语/补语被吞了进来。`that` 刻意不在这一条里，它更常作宾语从句引导词；
 12. `COORDINATE_CLAUSE` 的首个 lexical word 是从属连词（`because/although/as/if/when/while/since/until/that/…`）且整句**没有** `CONJUNCTION` 成分时非法——从属连词引导的是从句，不是并列分句。有 `CONJUNCTION` 时放行，因为 `Because A, B, and C` 里第一个并列分句本来就以从属连词开头；

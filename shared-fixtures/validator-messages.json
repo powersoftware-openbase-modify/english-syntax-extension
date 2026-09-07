@@ -8,6 +8,7 @@
     "a preposition must be merged with the phrase it governs",
     "CONJUNCTION must cover a coordinating conjunction",
     "a clause component must cover a whole clause",
+    "a component that starts with a subordinating conjunction",
     "an ATTRIBUTIVE_CLAUSE keeps its whole internal structure",
     "a component must not end on a preposition",
     "one component must not cover the whole sentence",
@@ -294,6 +295,53 @@
         {
           "path": "sentences[0].components[1]",
           "message": "a clause component must cover a whole clause: extend it through the clause's own subject, predicate, and any objects or adverbials instead of a single word"
+        }
+      ]
+    },
+    {
+      "id": "subordinating-conjunction-in-phrase-role",
+      "sentence": {
+        "id": "subordinating-conjunction-in-phrase-role",
+        "text": "Because the road was flooded, we stayed home."
+      },
+      "raw": {
+        "sentences": [
+          {
+            "sentenceId": "subordinating-conjunction-in-phrase-role",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 4,
+                "role": "ADVERBIAL",
+                "translation": "因为道路被淹"
+              },
+              {
+                "startToken": 6,
+                "endToken": 6,
+                "role": "SUBJECT",
+                "translation": "我们"
+              },
+              {
+                "startToken": 7,
+                "endToken": 7,
+                "role": "PREDICATE",
+                "translation": "留"
+              },
+              {
+                "startToken": 8,
+                "endToken": 9,
+                "role": "ADVERBIAL",
+                "translation": "在家里"
+              }
+            ]
+          }
+        ]
+      },
+      "accepted": false,
+      "expected": [
+        {
+          "path": "sentences[0].components[0]",
+          "message": "a component that starts with a subordinating conjunction (because/although/…) is a clause and must be tagged with a clause role (ADVERBIAL_CLAUSE/…)"
         }
       ]
     },

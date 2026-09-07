@@ -130,6 +130,9 @@ private val predicateHeadBlockers = subjectPronouns + determiners + "that"
  *
  * `for` / `so` 属 FANBOYS，`then` 是副词（黄金集的祈使句串第三个分句就以它开头），都不收。
  */
+internal val clauseOnlyConjunctions = setOf(
+  "although", "whereas", "unless", "lest", "whilst",
+)
 internal val subordinatingConjunctions = setOf(
   "after", "although", "as", "because", "before", "if", "lest", "once", "since", "that",
   "though", "till", "unless", "until", "when", "whenever", "whereas", "wherever", "whether",
@@ -221,6 +224,19 @@ private fun collectGrammarErrors(
     val previous = components.getOrNull(index - 1)
     val words = lexicalTexts(tokens, TokenRange(component.startToken, component.endToken))
     val head = words.firstOrNull()
+
+    val phraseRole = component.role == GrammarRole.ADVERBIAL || component.role == GrammarRole.ATTRIBUTE
+    val startsWithClauseOnlyConjunction = head != null && (
+      head in clauseOnlyConjunctions ||
+        (head == "because" && words.getOrNull(1) != "of") ||
+        (head == "though" && words.size >= 2)
+      )
+    if (phraseRole && startsWithClauseOnlyConjunction) {
+      errors += error(
+        componentPath,
+        "a component that starts with a subordinating conjunction (because/although/…) is a clause and must be tagged with a clause role (ADVERBIAL_CLAUSE/…)",
+      )
+    }
 
     // PREDICATE_SCOPE_RULE：并排的动词属于同一个谓语，两个 PREDICATE 不得相邻。
     if (

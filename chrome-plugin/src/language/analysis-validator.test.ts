@@ -105,6 +105,7 @@ describe("validator word list source guards", () => {
       determiners: countStringSetMembers(source, "DETERMINERS"),
       subordinatingConjunctions: countStringSetMembers(source, "SUBORDINATING_CONJUNCTIONS"),
       objectRequiringPrepositions: countStringSetMembers(source, "OBJECT_REQUIRING_PREPOSITIONS"),
+      clauseOnlyConjunctions: countStringSetMembers(source, "CLAUSE_ONLY_CONJUNCTIONS"),
     }).toEqual({
       coordinatingConjunctions: 7,
       prepositions: 15,
@@ -112,6 +113,7 @@ describe("validator word list source guards", () => {
       determiners: 13,
       subordinatingConjunctions: 21,
       objectRequiringPrepositions: 11,
+      clauseOnlyConjunctions: 5,
     });
   });
 });
@@ -858,12 +860,67 @@ describe("core analysis grammar constraints", () => {
     ).toBe(true);
   });
 
+  const SUBORDINATING_CONJUNCTION_ROLE_MESSAGE =
+    "a component that starts with a subordinating conjunction (because/although/…) is a clause and must be tagged with a clause role (ADVERBIAL_CLAUSE/…)";
   const CLAUSE_INTRODUCER_ONLY_MESSAGE =
     "a clause component must cover a whole clause: extend it through the clause's own subject, predicate, and any objects or adverbials instead of a single word";
   const CLAUSE_SPLIT_MESSAGE =
     "an ATTRIBUTIVE_CLAUSE keeps its whole internal structure in one component; absorb the object or predicative that follows it";
   const DANGLING_PREPOSITION_MESSAGE =
     "a component must not end on a preposition; merge the phrase that preposition governs into the same component";
+
+  it.each([
+    ["Because the road was flooded, we stayed home.", 0, 4, "ADVERBIAL"],
+    ["Although the road was flooded, we stayed home.", 0, 4, "ATTRIBUTE"],
+    ["Because, we stayed.", 0, 0, "ADVERBIAL"],
+  ])(
+    "rejects a non-clause role that starts with a clause-only conjunction: %s",
+    (text, start, end, role) => {
+      const sentence = sentenceOf(text);
+      expect(
+        grammarErrors(sentence, [
+          { startToken: start, endToken: end, role, translation: "从句" },
+          {
+            startToken: end + 1,
+            endToken: sentence.tokens.at(-1)!.id,
+            role: "INDEPENDENT_ELEMENT",
+            translation: "主句",
+          },
+        ]),
+      ).toContainEqual({
+        path: "sentences[0].components[0]",
+        message: SUBORDINATING_CONJUNCTION_ROLE_MESSAGE,
+      });
+    },
+  );
+
+  it.each([
+    [
+      "Because of this limitation, we stayed home.",
+      [
+        { startToken: 0, endToken: 4, role: "ADVERBIAL", translation: "由于此限制" },
+        { startToken: 5, endToken: 5, role: "SUBJECT", translation: "我们" },
+        { startToken: 6, endToken: 7, role: "PREDICATE", translation: "留在家里" },
+      ],
+    ],
+    [
+      "The docs don't cover it, though.",
+      [
+        { startToken: 0, endToken: 1, role: "SUBJECT", translation: "文档" },
+        { startToken: 2, endToken: 3, role: "PREDICATE", translation: "没有涵盖" },
+        { startToken: 4, endToken: 5, role: "OBJECT", translation: "它" },
+        { startToken: 6, endToken: 7, role: "ADVERBIAL", translation: "不过" },
+      ],
+    ],
+  ])("accepts the conservative non-clause conjunction exception: %s", (text, components) => {
+    const sentence = sentenceOf(text);
+    const result = validateCoreBatch(
+      { sentences: [{ sentenceId: sentence.sentenceId, components }] },
+      [sentence],
+      "profile-1",
+    );
+    expect(result.ok).toBe(true);
+  });
 
   it("rejects a clause component that only covers its introducing word", () => {
     // 线上实测:"that" 被单独标成 ATTRIBUTIVE_CLAUSE,从句的谓语与宾语平铺到主句层,

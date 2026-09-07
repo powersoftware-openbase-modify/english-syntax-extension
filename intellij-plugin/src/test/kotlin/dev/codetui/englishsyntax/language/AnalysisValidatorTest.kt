@@ -566,6 +566,48 @@ class AnalysisValidatorTest {
   }
 
   @Test
+  fun `rejects non-clause roles that start with clause-only conjunctions`() {
+    val message = "a component that starts with a subordinating conjunction (because/although/…) is a clause and must be tagged with a clause role (ADVERBIAL_CLAUSE/…)"
+    listOf(
+      Triple("Because the road was flooded, we stayed home.", 4, "ADVERBIAL"),
+      Triple("Although the road was flooded, we stayed home.", 4, "ATTRIBUTE"),
+      Triple("Because, we stayed.", 0, "ADVERBIAL"),
+    ).forEach { (text, endToken, role) ->
+      val request = sentence(text)
+      assertGrammarError(
+        text,
+        """
+        {"startToken":0,"endToken":$endToken,"role":"$role","translation":"从句"},
+        {"startToken":${endToken + 1},"endToken":${request.tokens.last().id},"role":"INDEPENDENT_ELEMENT","translation":"主句"}
+        """.trimIndent(),
+        "sentences[0].components[0]",
+        message,
+      )
+    }
+  }
+
+  @Test
+  fun `accepts conservative non-clause conjunction exceptions`() {
+    assertAccepted(
+      "Because of this limitation, we stayed home.",
+      """
+      {"startToken":0,"endToken":4,"role":"ADVERBIAL","translation":"由于此限制"},
+      {"startToken":5,"endToken":5,"role":"SUBJECT","translation":"我们"},
+      {"startToken":6,"endToken":7,"role":"PREDICATE","translation":"留在家里"}
+      """.trimIndent(),
+    )
+    assertAccepted(
+      "The docs don't cover it, though.",
+      """
+      {"startToken":0,"endToken":1,"role":"SUBJECT","translation":"文档"},
+      {"startToken":2,"endToken":3,"role":"PREDICATE","translation":"没有涵盖"},
+      {"startToken":4,"endToken":5,"role":"OBJECT","translation":"它"},
+      {"startToken":6,"endToken":7,"role":"ADVERBIAL","translation":"不过"}
+      """.trimIndent(),
+    )
+  }
+
+  @Test
   fun `accepts a relative clause that keeps its own object and adverbial inside one component`() {
     assertAccepted(
       "Apple tests Siri feature that handles multiple commands at once.",
@@ -843,5 +885,6 @@ class AnalysisValidatorTest {
     assertEquals(13, determiners.size)
     assertEquals(21, subordinatingConjunctions.size)
     assertEquals(11, objectRequiringPrepositions.size)
+    assertEquals(5, clauseOnlyConjunctions.size)
   }
 }

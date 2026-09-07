@@ -151,6 +151,13 @@ const PREDICATE_HEAD_BLOCKERS: ReadonlySet<string> = new Set([
  *
  * `for` / `so` 属 FANBOYS,`then` 是副词(黄金集的祈使句串第三个分句就以它开头),都不收。
  */
+const CLAUSE_ONLY_CONJUNCTIONS: ReadonlySet<string> = new Set([
+  "although",
+  "whereas",
+  "unless",
+  "lest",
+  "whilst",
+]);
 const SUBORDINATING_CONJUNCTIONS: ReadonlySet<string> = new Set([
   "after",
   "although",
@@ -274,6 +281,21 @@ function collectGrammarErrors(
     const previous = components[index - 1];
     const words = lexicalTexts(tokens, component);
     const head = words[0];
+
+    const phraseRole =
+      component.role === GrammarRole.ADVERBIAL || component.role === GrammarRole.ATTRIBUTE;
+    const startsWithClauseOnlyConjunction =
+      head !== undefined &&
+      (CLAUSE_ONLY_CONJUNCTIONS.has(head) ||
+        (head === "because" && words[1] !== "of") ||
+        (head === "though" && words.length >= 2));
+    if (phraseRole && startsWithClauseOnlyConjunction) {
+      addError(
+        errors,
+        componentPath,
+        "a component that starts with a subordinating conjunction (because/although/…) is a clause and must be tagged with a clause role (ADVERBIAL_CLAUSE/…)",
+      );
+    }
 
     // PREDICATE_SCOPE_RULE:并排的动词属于同一个谓语,两个 PREDICATE 不得相邻。
     if (
