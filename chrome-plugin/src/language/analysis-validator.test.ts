@@ -158,15 +158,6 @@ describe("core analysis validation", () => {
       ],
     ],
     [
-      "a punctuation-only component",
-      [
-        { startToken: 0, endToken: 0, role: "SUBJECT", translation: "学习者" },
-        { startToken: 1, endToken: 1, role: "PREDICATE", translation: "阅读" },
-        { startToken: 2, endToken: 2, role: "OBJECT", translation: "书籍" },
-        { startToken: 3, endToken: 3, role: "INDEPENDENT_ELEMENT", translation: "句号" },
-      ],
-    ],
-    [
       "an unknown role",
       [
         { startToken: 0, endToken: 0, role: "COMMAND", translation: "学习者" },
@@ -184,6 +175,59 @@ describe("core analysis validation", () => {
     ],
   ])("rejects %s", (_description, components) => {
     invalidCore({ sentences: [{ sentenceId: "sentence-1", components }] });
+  });
+
+  it("drops punctuation-only components before core validation", () => {
+    const result = validateCoreBatch(
+      {
+        sentences: [
+          {
+            sentenceId: request.sentenceId,
+            components: [
+              { startToken: 0, endToken: 0, role: "SUBJECT", translation: "学习者" },
+              { startToken: 1, endToken: 1, role: "PREDICATE", translation: "阅读" },
+              { startToken: 2, endToken: 2, role: "OBJECT", translation: "书籍" },
+              { startToken: 3, endToken: 3, role: "INDEPENDENT_ELEMENT", translation: "句号" },
+            ],
+          },
+        ],
+      },
+      [request],
+      "profile-1",
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value[0]!.components).toHaveLength(3);
+  });
+
+  it("rejects an all-punctuation component list after pre-filtering", () => {
+    const punctuationRequest: SentenceInput = {
+      sentenceId: "punctuation-only",
+      text: "...",
+      tokens: tokenize("..."),
+    };
+    const result = validateCoreBatch(
+      {
+        sentences: [
+          {
+            sentenceId: punctuationRequest.sentenceId,
+            components: [
+              { startToken: 0, endToken: 0, role: "INDEPENDENT_ELEMENT", translation: "省略号" },
+            ],
+          },
+        ],
+      },
+      [punctuationRequest],
+      "profile-1",
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContainEqual({
+        path: "sentences[0].components",
+        message: "must contain a non-punctuation component",
+      });
+    }
   });
 
   it("rejects a translation over the sentence-relative limit", () => {

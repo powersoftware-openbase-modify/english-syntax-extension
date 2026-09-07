@@ -17,6 +17,7 @@ interface ValidatorMessageCase {
     text: string;
   };
   raw: unknown;
+  accepted: boolean;
   expected: ValidationError[];
 }
 
@@ -34,7 +35,7 @@ function actualErrors(testCase: ValidatorMessageCase): ValidationError[] {
     tokens: tokenize(testCase.sentence.text),
   };
   const result = validateCoreBatch(testCase.raw, [sentence], "validator-messages-fixture");
-  expect(result.ok, `fixture case ${testCase.id} must be invalid`).toBe(false);
+  expect(result.ok, `fixture case ${testCase.id} acceptance`).toBe(testCase.accepted);
   return result.ok ? [] : result.errors;
 }
 
@@ -43,7 +44,12 @@ describe("shared validator message fixture", () => {
     expect(fixture.schemaVersion).toBe(1);
     expect(fixture.cases.length).toBeGreaterThan(0);
     expect(new Set(fixture.cases.map(({ id }) => id)).size).toBe(fixture.cases.length);
-    expect(fixture.cases.every(({ expected }) => expected.length > 0)).toBe(true);
+    expect(
+      fixture.cases.every(
+        ({ accepted, expected }) =>
+          typeof accepted === "boolean" && (accepted ? expected.length === 0 : expected.length > 0),
+      ),
+    ).toBe(true);
   });
 
   it.each(fixture.cases)("matches the complete ordered errors for $id", (testCase) => {

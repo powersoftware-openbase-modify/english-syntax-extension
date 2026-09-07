@@ -588,11 +588,31 @@ function parseCoreSentence(
     return undefined;
   }
 
-  const components = value.components.map((component, componentIndex) =>
+  // 模型常给逗号/句号虚构 PUNCTUATION、CONJUNCTION 等角色。标点本来就允许不覆盖，
+  // 所以必须在角色枚举校验前丢掉纯标点区间；过滤后再编号，保证 TS/Kotlin error path 一致。
+  const semanticComponents = value.components.filter((component) => {
+    if (!isRecord(component)) return true;
+    const { startToken, endToken } = component;
+    if (!Number.isSafeInteger(startToken) || !Number.isSafeInteger(endToken)) return true;
+    const covered = request.tokens.filter(
+      (token) => token.id >= (startToken as number) && token.id <= (endToken as number),
+    );
+    return !(
+      covered.length > 0 &&
+      covered[0]!.id === startToken &&
+      covered.at(-1)!.id === endToken &&
+      covered.every((token) => token.punctuation)
+    );
+  });
+  if (semanticComponents.length === 0) {
+    addError(errors, `${path}.components`, "must contain a non-punctuation component");
+    return undefined;
+  }
+  const components = semanticComponents.map((component, componentIndex) =>
     parseCoreComponent(component, request.tokens, `${path}.components[${componentIndex}]`, errors),
   );
   // grammar 只依赖结构可信度，不能被 unknown field、过长译文或 sentenceId 等
-  // 非结构错误短路；每个成分都成功解析、区间在句内、有序不重叠且非纯标点才可信。
+  // 非结构错误短路；每个语义成分都成功解析、区间在句内且有序不重叠才可信。
   let structureTrusted = components.every((component) => component !== undefined);
   let previousEnd = -1;
   for (const [index, component] of components.entries()) {
@@ -614,10 +634,6 @@ function parseCoreSentence(
     }
     if (component.startToken <= previousEnd) {
       addError(errors, `${path}.components`, "components must be ordered and non-overlapping");
-      structureTrusted = false;
-    }
-    if (coveredTokens.length > 0 && coveredTokens.every((token) => token.punctuation)) {
-      addError(errors, componentPath, "component must not contain only punctuation");
       structureTrusted = false;
     }
     previousEnd = component.endToken;

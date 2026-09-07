@@ -624,6 +624,25 @@ class AnalysisValidatorTest {
   }
 
   @Test
+  fun `rejects an all-punctuation component list after pre-filtering`() {
+    val request = sentence("...", sentenceId = "punctuation-only")
+    val raw = core(
+      """{"startToken":0,"endToken":0,"role":"INDEPENDENT_ELEMENT","translation":"省略号"}""",
+      sentenceId = request.sentenceId,
+    )
+
+    val result = validateCoreBatch(raw, listOf(request), "profile-1")
+
+    assertFalse(result.ok)
+    assertTrue(
+      result.errors.any {
+        it.path == "sentences[0].components" &&
+          it.message == "must contain a non-punctuation component"
+      },
+    )
+  }
+
+  @Test
   fun `drops punctuation components before validating their invented role`() {
     val request = sentence("The service works.")
     val raw = core("""

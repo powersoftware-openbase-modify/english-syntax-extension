@@ -10,7 +10,6 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ValidatorMessagesTest {
@@ -24,7 +23,12 @@ class ValidatorMessagesTest {
     assertEquals(1, fixture.getValue("schemaVersion").jsonPrimitive.content.toInt())
     assertTrue(cases.isNotEmpty())
     assertEquals(ids.size, ids.toSet().size)
-    assertTrue(cases.all { it.jsonObject.getValue("expected").jsonArray.isNotEmpty() })
+    assertTrue(cases.all {
+      val testCase = it.jsonObject
+      val accepted = testCase.getValue("accepted").jsonPrimitive.content.toBooleanStrict()
+      val expected = testCase.getValue("expected").jsonArray
+      if (accepted) expected.isEmpty() else expected.isNotEmpty()
+    })
   }
 
   @Test
@@ -63,8 +67,9 @@ class ValidatorMessagesTest {
       tokens = tokenize(text),
     )
     val result = validateCoreBatch(testCase.getValue("raw"), listOf(sentence), "validator-messages-fixture")
+    val accepted = testCase.getValue("accepted").jsonPrimitive.content.toBooleanStrict()
 
-    assertFalse(result.ok, "fixture case ${testCase.id()} must be invalid")
+    assertEquals(accepted, result.ok, "fixture case ${testCase.id()} acceptance")
     result.errors
   }
 

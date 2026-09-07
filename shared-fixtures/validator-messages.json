@@ -12,6 +12,7 @@
     "a component must not end on a preposition",
     "one component must not cover the whole sentence",
     "a whole-sentence fragment component must not exceed 10 lexical tokens",
+    "must contain a non-punctuation component",
     "COORDINATE_CLAUSE is deprecated",
     "a non-clausal fragment must contain at most one FRAGMENT_HEAD",
     "FRAGMENT_HEAD marks a non-clausal fragment"
@@ -47,6 +48,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components[1]",
@@ -81,6 +83,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components[0]",
@@ -115,6 +118,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components[1]",
@@ -155,6 +159,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components[0]",
@@ -205,6 +210,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components[2]",
@@ -245,6 +251,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components[2]",
@@ -282,6 +289,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components[1]",
@@ -322,6 +330,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components[1]",
@@ -368,6 +377,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components[2]",
@@ -396,10 +406,76 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components",
           "message": "one component must not cover the whole sentence; split it into peer components (subject, predicate, object, adverbial, …)"
+        }
+      ]
+    },
+    {
+      "id": "drops-punctuation-only-component",
+      "sentence": {
+        "id": "drops-punctuation-only-component",
+        "text": "The service works."
+      },
+      "raw": {
+        "sentences": [
+          {
+            "sentenceId": "drops-punctuation-only-component",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 1,
+                "role": "SUBJECT",
+                "translation": "该服务"
+              },
+              {
+                "startToken": 2,
+                "endToken": 2,
+                "role": "PREDICATE",
+                "translation": "工作"
+              },
+              {
+                "startToken": 3,
+                "endToken": 3,
+                "role": "PUNCTUATION",
+                "translation": "。"
+              }
+            ]
+          }
+        ]
+      },
+      "accepted": true,
+      "expected": []
+    },
+    {
+      "id": "all-punctuation-components",
+      "sentence": {
+        "id": "all-punctuation-components",
+        "text": "..."
+      },
+      "raw": {
+        "sentences": [
+          {
+            "sentenceId": "all-punctuation-components",
+            "components": [
+              {
+                "startToken": 0,
+                "endToken": 0,
+                "role": "INDEPENDENT_ELEMENT",
+                "translation": "省略号"
+              }
+            ]
+          }
+        ]
+      },
+      "accepted": false,
+      "expected": [
+        {
+          "path": "sentences[0].components",
+          "message": "must contain a non-punctuation component"
         }
       ]
     },
@@ -424,6 +500,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components",
@@ -458,6 +535,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components",
@@ -492,6 +570,7 @@
           }
         ]
       },
+      "accepted": false,
       "expected": [
         {
           "path": "sentences[0].components",
