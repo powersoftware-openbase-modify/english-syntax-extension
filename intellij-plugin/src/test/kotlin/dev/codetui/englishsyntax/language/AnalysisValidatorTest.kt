@@ -479,6 +479,25 @@ class AnalysisValidatorTest {
   }
 
   @Test
+  fun `accepts clauses that legally end on dangling object requiring prepositions`() {
+    listOf(
+      Triple("That's what dreams are made of.", 6, "of"),
+      Triple("This is the range the value stays within.", 7, "within"),
+      Triple("That is what the choice lies between.", 7, "between"),
+      Triple("These are the peers the service runs among.", 8, "among"),
+    ).forEach { (text, endToken, preposition) ->
+      assertAccepted(
+        text,
+        """
+        {"startToken":0,"endToken":0,"role":"SUBJECT","translation":"主语"},
+        {"startToken":1,"endToken":1,"role":"PREDICATE","translation":"系词"},
+        {"startToken":2,"endToken":$endToken,"role":"PREDICATIVE_CLAUSE","translation":"以 $preposition 收尾的从句"}
+        """.trimIndent(),
+      )
+    }
+  }
+
+  @Test
   fun `rejects a component that ends on a preposition whose object was split off`() {
     // 实测 "near the frontier of what AI can do" 被切成介词悬空的状语 + 宾语从句。
     assertGrammarError(

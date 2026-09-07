@@ -192,7 +192,7 @@ DetailAnalysis  = { sentenceId, focus, structures[], grammarPoints[], explanatio
 14. （历史判据,已被第 8 条覆盖)曾要求「出现 2 个以上 `COORDINATE_CLAUSE` 时,整句必须另有一个 `CONJUNCTION` 成分或一个 `;` token」;`COORDINATE_CLAUSE` 废弃后任何数量都直接非法,这条不再单独执行。
 15. 五类从句角色（`SUBJECT_CLAUSE` / `OBJECT_CLAUSE` / `PREDICATIVE_CLAUSE` / `ATTRIBUTIVE_CLAUSE` / `ADVERBIAL_CLAUSE`）的成分不得只有 1 个 lexical word——从句至少是引导词 + 谓语，或主语 + 谓语。实测线上把 `that` 单独标成 `ATTRIBUTIVE_CLAUSE`、把 `developers` 标成 `SUBJECT_CLAUSE`，从句剩下的部分平铺到主句层，页面上出现两个同级"谓语"，引导词底下还挂着整个从句的译文。
 16. `ATTRIBUTIVE_CLAUSE` 的**下一个成分**不得是 `OBJECT` / `PREDICATIVE` / `COMPLEMENT`——定语从句修饰的名词在从句之前，主句宾语只能出现在主句谓语之后，所以紧跟在从句后面的宾语一定是从句自己的（实测 `that will reach` + `about $650 billion`）。主句谓语与主句状语跟在从句后面都合法（`I met the man who called yesterday in the park.`），刻意不判。
-17. 成分的**最后一个 lexical word** 不得命中「几乎不可能悬垂」的介词表（`of/into/onto/upon/within/among/between/despite/during/toward/towards`）——命中说明介词的宾语被切了出去（实测 `near the frontier of` + 宾语从句）。`for`/`with`/`at`/`from`/`to` 刻意不收：关系从句里 `the tool I work with`、`the place I came from` 让它们合法地出现在成分末尾。这一条与第 7 条互补，第 7 条只管「整个成分就是一个介词」。
+17. **非从句角色**成分的最后一个 lexical word 不得命中「几乎不可能在短语内悬垂」的介词表（`of/into/onto/upon/within/among/between/despite/during/toward/towards`）——命中通常说明介词的宾语被切了出去（实测 `near the frontier of` + 宾语从句）。五类从句角色豁免：从句内部 `what dreams are made of`、`the range the value stays within` 可合法以悬垂介词收尾；短语角色仍拒绝。`for`/`with`/`at`/`from`/`to` 刻意不收白名单。这一条与第 7 条互补，第 7 条只管「整个成分就是一个介词」。
 18. `FRAGMENT_HEAD` **至多一个**——非分句片段的主体只有一个,两个说明模型把一个片段当多句切;
 19. `FRAGMENT_HEAD` 存在时,整句不得再出现任何分句级角色（`SUBJECT` / `PREDICATE` / `OBJECT` / `PREDICATIVE` / `COMPLEMENT`、五类从句角色、`COORDINATE_CLAUSE`）——成句与否是二值判定,混标说明模型在给不成句的输入虚构主谓宾。
 

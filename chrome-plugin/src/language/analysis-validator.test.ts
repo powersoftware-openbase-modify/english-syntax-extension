@@ -787,6 +787,36 @@ describe("core analysis grammar constraints", () => {
     });
   });
 
+  it.each([
+    ["That's what dreams are made of.", 2, 6, "PREDICATIVE_CLAUSE"],
+    ["This is the range the value stays within.", 2, 7, "PREDICATIVE_CLAUSE"],
+    ["That is what the choice lies between.", 2, 7, "PREDICATIVE_CLAUSE"],
+    ["These are the peers the service runs among.", 2, 8, "PREDICATIVE_CLAUSE"],
+  ])(
+    "accepts a clause that legally ends on a dangling preposition: %s",
+    (text, start, end, role) => {
+      const sentence = sentenceOf(text);
+      expect(
+        validateCoreBatch(
+          {
+            sentences: [
+              {
+                sentenceId: sentence.sentenceId,
+                components: [
+                  { startToken: 0, endToken: 0, role: "SUBJECT", translation: "主语" },
+                  { startToken: 1, endToken: 1, role: "PREDICATE", translation: "系词" },
+                  { startToken: start, endToken: end, role, translation: "从句" },
+                ],
+              },
+            ],
+          },
+          [sentence],
+          "profile-1",
+        ).ok,
+      ).toBe(true);
+    },
+  );
+
   it("rejects a component that ends on a preposition whose object was split off", () => {
     // 实测 "near the frontier of what AI can do" 被切成介词悬空的状语 + 宾语从句,
     // 于是 "of" 底下没有任何可译的内容。

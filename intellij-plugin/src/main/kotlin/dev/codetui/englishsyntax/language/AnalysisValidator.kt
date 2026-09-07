@@ -299,9 +299,12 @@ private fun collectGrammarErrors(
       )
     }
 
-    // 成分以「必带宾语的介词」收尾 = 介词的宾语被切了出去。单词介词另有专门的硬门。
+    // 短语成分以「必带宾语的介词」收尾 = 介词的宾语被切了出去。单词介词另有专门的硬门。
+    // 从句角色豁免：of/within/between/among 可在关系从句或名词性从句内部合法悬垂
+    // (`That's what dreams are made of.`)；短语角色照旧拦截 `near the frontier of`。
     if (
       component.role != GrammarRole.CONJUNCTION &&
+      component.role !in clauseRoles &&
       words.size > 1 &&
       words.last() in objectRequiringPrepositions
     ) {
