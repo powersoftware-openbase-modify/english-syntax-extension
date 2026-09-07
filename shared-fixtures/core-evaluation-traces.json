@@ -1126,7 +1126,7 @@
   },
   "tokenizerSnapshot": {
     "id": "production-tokenizer",
-    "version": "core-11",
+    "version": "core-12",
     "hash": "26753d28f96a6b05a62a6a4ce320c28c13fdf509a6f513d6f8896f85fa2d7a45",
     "sentences": [
       {

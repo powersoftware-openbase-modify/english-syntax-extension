@@ -1160,5 +1160,171 @@
         ]
       }
     ]
+  },
+  {
+    "name": "etc-mid-sentence",
+    "block": "Use counters, timers, etc. in practice.",
+    "sentences": [
+      {
+        "text": "Use counters, timers, etc. in practice.",
+        "start": 0,
+        "end": 39,
+        "tokens": [
+          {
+            "text": "Use",
+            "start": 0,
+            "end": 3,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "counters",
+            "start": 4,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ",",
+            "start": 12,
+            "end": 13,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "text": "timers",
+            "start": 14,
+            "end": 20,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ",",
+            "start": 20,
+            "end": 21,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "text": "etc.",
+            "start": 22,
+            "end": 26,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "in",
+            "start": 27,
+            "end": 29,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "practice",
+            "start": 30,
+            "end": 38,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 38,
+            "end": 39,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "etc-sentence-end-capital",
+    "block": "We tried tools, etc. Then we gave up.",
+    "sentences": [
+      {
+        "text": "We tried tools, etc.",
+        "start": 0,
+        "end": 20,
+        "tokens": [
+          {
+            "text": "We",
+            "start": 0,
+            "end": 2,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "tried",
+            "start": 3,
+            "end": 8,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "tools",
+            "start": 9,
+            "end": 14,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ",",
+            "start": 14,
+            "end": 15,
+            "leadingWhitespace": "",
+            "punctuation": true
+          },
+          {
+            "text": "etc.",
+            "start": 16,
+            "end": 20,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          }
+        ]
+      },
+      {
+        "text": "Then we gave up.",
+        "start": 21,
+        "end": 37,
+        "tokens": [
+          {
+            "text": "Then",
+            "start": 0,
+            "end": 4,
+            "leadingWhitespace": "",
+            "punctuation": false
+          },
+          {
+            "text": "we",
+            "start": 5,
+            "end": 7,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "gave",
+            "start": 8,
+            "end": 12,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": "up",
+            "start": 13,
+            "end": 15,
+            "leadingWhitespace": " ",
+            "punctuation": false
+          },
+          {
+            "text": ".",
+            "start": 15,
+            "end": 16,
+            "leadingWhitespace": "",
+            "punctuation": true
+          }
+        ]
+      }
+    ]
   }
 ]

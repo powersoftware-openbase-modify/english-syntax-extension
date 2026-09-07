@@ -128,7 +128,7 @@
 
 ### I-10.1 双端分句必须从同一批自定义候选边界出发
 
-**规则** TS 与 Kotlin 都按「句末标点串 + 可选收尾引号/括号 + 后随空白」产生候选边界。强非终结缩写（称谓等）始终向后合并；可收句缩写 `U.S.` / `Ph.D.` / `Inc.` / `Ltd.` / `Co.` / `Corp.` 只在下一片段以小写词或数字开头时合并，遇大写新句保留边界。token regex 内部空白统一使用显式 JS Unicode whitespace class（含 NBSP、U+2000–U+200A），不得用平台 `\s+`。initial、编号和无实词片段仍按双端同构规则处理；`rebuildTokens` 只对 segmentBlock 已 trim 的生产句文本无损。不得分别从平台边界后处理。
+**规则** TS 与 Kotlin 都按「句末标点串 + 可选收尾引号/括号 + 后随空白」产生候选边界。强非终结缩写（称谓等）始终向后合并；可收句缩写 `U.S.` / `Ph.D.` / `Inc.` / `Ltd.` / `Co.` / `Corp.` / `etc.` 只在下一片段以小写词或数字开头时合并，遇大写新句保留边界。token regex 内部空白统一使用显式 JS Unicode whitespace class（含 NBSP、U+2000–U+200A），不得用平台 `\s+`。initial、编号和无实词片段仍按双端同构规则处理；`rebuildTokens` 只对 segmentBlock 已 trim 的生产句文本无损。不得分别从平台边界后处理。
 
 **为什么** 两个平台的原始边界本来就不一致；例如编号列表文本会分别切成不同段数。后处理只能修当前已知样例，无法把两套上游边界变成同一个算法。规范化句文本、Token ID 与跨端缓存键会随之漂移。
 
@@ -260,7 +260,7 @@
 
 ### I-18.1 Tokenization 改动必须同时提升 core 与 detail 提示词版本
 
-**规则** 任何会改变 Token 数量或 ID 的分词改动，都必须同时提升 `CORE_PROMPT_VERSION` 与 `DETAIL_PROMPT_VERSION`；当前值分别为 `11` 与 `5`（最近一次只动 core：版本 11 引入 completeness-first 片段判定，Token 坐标未变），而输出契约未变，`CORE_SCHEMA_VERSION` 保持 `3`。
+**规则** 任何会改变 Token 数量或 ID 的分词改动，都必须同时提升 `CORE_PROMPT_VERSION` 与 `DETAIL_PROMPT_VERSION`；当前值分别为 `12` 与 `6`（版本 12/6 因 `etc.` 从两个 Token 合并为单个非标点 Token 而同步提升），而输出契约未变，`CORE_SCHEMA_VERSION` 保持 `3`。
 
 **为什么** core span 与 detail focus 都使用 Token ID。两条缓存键虽各自带提示词版本，但 Token 坐标是共同依赖；只升一条会让另一类旧缓存仍以过期坐标命中新文本。
 

@@ -78,6 +78,7 @@ const ABBREVIATIONS = [
   "approx.",
   "et al.",
   "e.g.",
+  "etc.",
   "i.e.",
   "a.m.",
   "p.m.",
@@ -88,7 +89,7 @@ const ABBREVIATIONS = [
  * 有些缩写强烈要求后接名字/内容（称谓等），另一些也常合法收句。后者只有在下一片段
  * 以小写词或数字开头时才撤销边界：`U.S. delegation` 合并，`U.S. She` 保留边界。
  */
-const CONTEXT_SENSITIVE_ABBREVIATIONS = ["U.S.", "Ph.D.", "Inc.", "Ltd.", "Co.", "Corp."];
+const CONTEXT_SENSITIVE_ABBREVIATIONS = ["U.S.", "Ph.D.", "Inc.", "Ltd.", "Co.", "Corp.", "etc."];
 const ALWAYS_NON_TERMINAL_ABBREVIATIONS = ABBREVIATIONS.filter(
   (abbreviation) => !CONTEXT_SENSITIVE_ABBREVIATIONS.includes(abbreviation),
 );

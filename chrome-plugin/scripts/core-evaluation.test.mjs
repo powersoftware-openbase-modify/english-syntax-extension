@@ -556,6 +556,50 @@ describe("scoreCorePredictions", () => {
     expect(report.roleAccuracyOnExactSpans).toEqual({ correct: 0, matched: 0, accuracy: 0 });
   });
 
+  it("compares etc. spans across tokenizer versions that assign different token IDs", () => {
+    const text = "Use counters, timers, etc. in practice.";
+    const gold = [
+      {
+        sentenceId: "etc",
+        text,
+        tokens: [
+          { id: 0, start: 0, end: 3 },
+          { id: 1, start: 4, end: 12 },
+          { id: 2, start: 12, end: 13 },
+          { id: 3, start: 14, end: 20 },
+          { id: 4, start: 20, end: 21 },
+          { id: 5, start: 22, end: 26 },
+          { id: 6, start: 27, end: 29 },
+          { id: 7, start: 30, end: 38 },
+          { id: 8, start: 38, end: 39 },
+        ],
+        components: [component(0, 8, "FRAGMENT_HEAD")],
+      },
+    ];
+    const prediction = [
+      {
+        sentenceId: "etc",
+        text,
+        tokens: [
+          { id: 100, start: 0, end: 3 },
+          { id: 101, start: 4, end: 12 },
+          { id: 102, start: 12, end: 13 },
+          { id: 103, start: 14, end: 20 },
+          { id: 104, start: 20, end: 21 },
+          { id: 105, start: 22, end: 26 },
+          { id: 106, start: 27, end: 29 },
+          { id: 107, start: 30, end: 38 },
+          { id: 108, start: 38, end: 39 },
+        ],
+        components: [component(100, 108, "FRAGMENT_HEAD")],
+      },
+    ];
+
+    expect(
+      scoreCorePredictions(gold, prediction, { coordinateSystem: "characters" }).exactSentence.rate,
+    ).toBe(1);
+  });
+
   it("compares normalized character spans across different token IDs", () => {
     const gold = [
       {

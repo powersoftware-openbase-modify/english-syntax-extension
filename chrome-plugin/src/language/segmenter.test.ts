@@ -64,6 +64,18 @@ describe("segmentBlock", () => {
     expect(segmentBlock(block).map((sentence) => sentence.text)).toEqual([block]);
   });
 
+  it("keeps etc. attached mid-sentence and splits before a capital continuation", () => {
+    expect(segmentBlock("Use counters, timers, etc. in practice.").map(({ text }) => text)).toEqual(
+      ["Use counters, timers, etc. in practice."],
+    );
+    expect(segmentBlock("We tried tools, etc. Then we gave up.").map(({ text }) => text)).toEqual([
+      "We tried tools, etc.",
+      "Then we gave up.",
+    ]);
+    const token = tokenize("etc. in practice")[0]!;
+    expect(token).toMatchObject({ text: "etc.", punctuation: false });
+  });
+
   it.each([
     ["She works in the U.S. She travels often.", ["She works in the U.S.", "She travels often."]],
     ["He earned a Ph.D. He now teaches.", ["He earned a Ph.D.", "He now teaches."]],

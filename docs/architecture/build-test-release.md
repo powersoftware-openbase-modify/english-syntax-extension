@@ -70,6 +70,7 @@ harness 提供三个口子:`seedProfiles()`(直接写 `chrome.storage.local`)、
 
 - **用探针,不用墙钟。** 判"是否真调了模型"用 fetch 计数 / 请求记录;判"预载成功"断言 `detailReady === detailTotal && detailFailed === 0`,不能只断言"结束了"。
 - 教学语料(`chrome-plugin/tests/fixtures/teaching-sentences.json`)的测试**只校验结构不变量**(分句、无损分词、声明的词元数),**永不断言某个唯一的模型答案**——不同模型对成分的切分本就可以不同。
+- 双端分句/分词契约由 `shared-fixtures/segmenter-vectors.json` 固定；可收句缩写 `etc.` 同时覆盖句中小写续接、句末大写新句与单 Token 非标点语义。任何 Tokenization 改动都要同步刷新 core/detail 版本、共享 contracts/parity，以及 `core-evaluation-traces.json` 的 tokenizer snapshot 版本/哈希。
 - 准确性回归另用 `shared-fixtures/core-gold-annotations.json` 的显式黄金标注约定。CI 中 TS/Kotlin 双端的黄金集测试都用各自生产 tokenizer 重建 Token，逐句跑一遍各自的 `validateCoreBatch`（fixture 中无论是否已有 translation，Kotlin replay 都只取 span/role 并注入非空占位译文）；新增的本地语法硬门若把正确答案判非法，这些测试会红——那比漏判更糟，会把合法分析送进无意义的修复轮。`scripts/core-evaluation.test.mjs` / `core-evaluation-runner.test.mjs` 只验证纯评分器和 runner 公共件；**都不联网、不调用真实模型**。
 - 双端 validator 的英文修复文案由 `shared-fixtures/validator-messages.json` 互验。fixture schema v1 保存 `{schemaVersion, coveredMessageSubstrings, cases[]}`；每个 case 只存句子 id/text、原始 JSON 值、显式 `accepted` 与完整有序 errors，两端测试用各自生产 `tokenize()` 重建 Token 后只读消费。覆盖子串与实际 errors 并集做双向闭合断言，避免新增/删除用例时漏声明。纯标点成分已用 accepted/rejected 两类 case 双端对齐；当前刻意排除前谓语为单词助动词的相邻 `PREDICATE`、负数/`0.0` Token 区间输入。
 

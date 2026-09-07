@@ -112,6 +112,21 @@ class SegmenterTest {
   }
 
   @Test
+  fun `keeps etc attached mid-sentence and splits before a capital continuation`() {
+    assertEquals(
+      listOf("Use counters, timers, etc. in practice."),
+      segmentBlock("Use counters, timers, etc. in practice.").map { it.text },
+    )
+    assertEquals(
+      listOf("We tried tools, etc.", "Then we gave up."),
+      segmentBlock("We tried tools, etc. Then we gave up.").map { it.text },
+    )
+    val token = tokenize("etc. in practice").first()
+    assertEquals("etc.", token.text)
+    assertEquals(false, token.punctuation)
+  }
+
+  @Test
   fun `uses abbreviation class and following fragment to distinguish sentence-final uses`() {
     val terminalCases = mapOf(
       "She works in the U.S. She travels often." to listOf("She works in the U.S.", "She travels often."),

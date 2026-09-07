@@ -13,7 +13,7 @@ private val abbreviations = listOf(
   "St.", "Ave.", "Blvd.", "Rd.",
   "Inc.", "Ltd.", "Co.", "Corp.", "Dept.", "Univ.",
   "No.", "Fig.", "Ch.", "Vol.", "p.", "pp.", "vs.", "cf.", "approx.", "et al.",
-  "e.g.", "i.e.", "a.m.", "p.m.", "U.S.", "Ph.D.",
+  "e.g.", "etc.", "i.e.", "a.m.", "p.m.", "U.S.", "Ph.D.",
 )
 /** JS whitespace 的显式字符类；不使用两端语义不同的 `\\s`。 */
 private val jsWhitespaceClass =
@@ -35,7 +35,7 @@ private val sentenceBoundary = Regex("[.!?…。！？]+[\"'”’)\\]}»]*(?=[$
  * 有些缩写强烈要求后接名字/内容（称谓等），另一些也常合法收句。后者只有在下一片段
  * 以小写词或数字开头时才撤销边界：`U.S. delegation` 合并，`U.S. She` 保留边界。
  */
-private val contextSensitiveAbbreviations = setOf("U.S.", "Ph.D.", "Inc.", "Ltd.", "Co.", "Corp.")
+private val contextSensitiveAbbreviations = setOf("U.S.", "Ph.D.", "Inc.", "Ltd.", "Co.", "Corp.", "etc.")
 private val alwaysNonTerminalAbbreviations = abbreviations.filterNot { it in contextSensitiveAbbreviations }
 private fun abbreviationSource(value: String): String =
   value.replace(".", "\\.").replace(" ", "[$jsWhitespaceClass]+")
