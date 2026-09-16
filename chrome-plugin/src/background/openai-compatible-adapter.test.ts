@@ -111,6 +111,29 @@ describe("OpenAI-compatible chat completions adapter", () => {
     expect(persistJsonSchemaSupport).toHaveBeenCalledWith("profile-1", "unsupported");
   });
 
+  it("probe 自动降级 reasoning_effort 被拒的端点而不是整场失败", async () => {
+    // deepseek-flash 思考默认开启,reasoning_effort:"none" 会被 400 拒绝;
+    // 探测必须与 completeJson 走同一条降级链,否则「测试连接」直接挂。
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(
+        response('{"error":{"message":"reasoning_effort: unknown variant `none`"}}', {
+          status: 400,
+        }),
+      )
+      .mockResolvedValueOnce(completion('{"ok":true}'));
+    const persistReasoningControl = vi.fn().mockResolvedValue(undefined);
+    const adapter = new OpenAiCompatibleAdapter({ fetch, persistReasoningControl });
+
+    await expect(adapter.probeJsonCapability(profile, new AbortController().signal)).resolves.toBe(
+      "supported",
+    );
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(requestBody(fetch, 1)).toMatchObject({ thinking: { type: "disabled" } });
+    expect(persistReasoningControl).toHaveBeenCalledWith("profile-1", "thinking-disabled");
+  });
+
   it("maps a DeepSeek-style 400 Model Not Exist to MODEL_NOT_FOUND", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
       response('{"error":{"message":"Model Not Exist","type":"invalid_request_error"}}', {
@@ -767,21 +790,65 @@ describe("默认关闭模型思考", () => {
     expect(requestBody(fetch, 0)).not.toHaveProperty("reasoning_effort");
   });
 
-  it("被 4xx 拒绝后去掉该字段重发一次", async () => {
-    const rejection = new Response(
-      JSON.stringify({ error: { message: "Invalid value for 'reasoning_effort': none" } }),
-      { status: 400, headers: { "content-type": "application/json" } },
+  it('reasoning_effort 被拒后降级为 thinking:{type:"disabled"} 重发并持久化', async () => {
+    const rejection = response(
+      '{"error":{"message":"Invalid value: reasoning_effort, expected `low`, `high` or `max`"}}',
+      { status: 400 },
     );
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(rejection)
       .mockResolvedValueOnce(completion('{"ok":1}'));
-    const adapter = new OpenAiCompatibleAdapter({ fetch });
+    const persistReasoningControl = vi.fn().mockResolvedValue(undefined);
+    const adapter = new OpenAiCompatibleAdapter({ fetch, persistReasoningControl });
 
     await adapter.completeJson(profile, messages, schema, new AbortController().signal);
 
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(requestBody(fetch, 0)).toHaveProperty("reasoning_effort");
     expect(requestBody(fetch, 1)).not.toHaveProperty("reasoning_effort");
+    // DeepSeek(DeepSeek-V4.1-Flash 起)只收 low/high/max,关思考要用 thinking 开关。
+    expect(requestBody(fetch, 1)).toMatchObject({ thinking: { type: "disabled" } });
+    expect(persistReasoningControl).toHaveBeenCalledWith("profile-1", "thinking-disabled");
+  });
+
+  it("thinking 开关也被拒后两者都不发并记 unsupported", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(
+        response('{"error":{"message":"reasoning_effort: unknown variant `none`"}}', {
+          status: 400,
+        }),
+      )
+      .mockResolvedValueOnce(
+        response('{"error":{"message":"thinking: unknown variant `disabled`"}}', { status: 400 }),
+      )
+      .mockResolvedValueOnce(completion('{"ok":1}'));
+    const persistReasoningControl = vi.fn().mockResolvedValue(undefined);
+    const adapter = new OpenAiCompatibleAdapter({ fetch, persistReasoningControl });
+
+    await adapter.completeJson(profile, messages, schema, new AbortController().signal);
+
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(requestBody(fetch, 1)).toMatchObject({ thinking: { type: "disabled" } });
+    expect(requestBody(fetch, 2)).not.toHaveProperty("thinking");
+    expect(requestBody(fetch, 2)).not.toHaveProperty("reasoning_effort");
+    expect(persistReasoningControl).toHaveBeenNthCalledWith(1, "profile-1", "thinking-disabled");
+    expect(persistReasoningControl).toHaveBeenNthCalledWith(2, "profile-1", "unsupported");
+  });
+
+  it("已知 thinking-disabled 的 profile 只发 thinking 开关", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(completion('{"ok":1}'));
+    const adapter = new OpenAiCompatibleAdapter({ fetch });
+
+    await adapter.completeJson(
+      { ...profile, reasoningControl: "thinking-disabled" },
+      messages,
+      schema,
+      new AbortController().signal,
+    );
+
+    expect(requestBody(fetch, 0)).toMatchObject({ thinking: { type: "disabled" } });
+    expect(requestBody(fetch, 0)).not.toHaveProperty("reasoning_effort");
   });
 });

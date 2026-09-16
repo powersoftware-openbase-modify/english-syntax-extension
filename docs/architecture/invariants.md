@@ -108,13 +108,13 @@
 
 ### I-9 默认关模型思考,被拒再降级
 
-**规则** 请求**默认**带 `reasoning_effort: "none"`;端点拒绝(OpenAI 官方只收 low/medium/high)就记 `reasoningControl = "unsupported"` 并去掉该字段重发一次。**缓冲与流式两条路径都要接线。**
+**规则** 请求**默认**带 `reasoning_effort: "none"`;端点拒绝(DeepSeek V4.1 起只收 low/high/max,OpenAI 官方只收 low/medium/high)就先降级为 `thinking: {"type": "disabled"}` 并记 `reasoningControl = "thinking-disabled"`;连 thinking 开关也被拒就记 `reasoningControl = "unsupported"`,两者都不发。**缓冲、流式与连接探测三条路径都要接线——探测漏接会让「测试连接」在支持自动降级的端点上整场失败(deepseek-flash 实测)。**
 
 **为什么** 思考模型会为一句话生成上万 token 推理:Qwen3 实测 246 秒、DeepSeek `v4-flash` 实测 153 秒 / 14789 token,远超 `timeoutMs` 的 120 秒上限。
 
 **症状** **整页无译文,而不是变慢**——每句都超时。
 
-**注意** 曾经的约定是"绝不能默认下发,靠用户在选项页勾选",**已废弃**:DeepSeek 现存的两个模型全是思考模型,靠用户自己发现并勾选并不可靠,而降级路径已让默认下发变得安全。`disableReasoning` 字段仅为兼容旧 profile 保留,不再影响请求。Ollama 只认这个参数,`think: false` 与 `chat_template_kwargs.enable_thinking` 都被兼容层忽略。
+**注意** 曾经的约定是"绝不能默认下发,靠用户在选项页勾选",**已废弃**:DeepSeek 的模型(`deepseek-flash` 等)思考默认开启,靠用户自己发现并勾选并不可靠,而降级路径已让默认下发变得安全。`disableReasoning` 字段仅为兼容旧 profile 保留,不再影响请求。Ollama 只认 `reasoning_effort`,`think: false` 与 `chat_template_kwargs.enable_thinking` 都被兼容层忽略。
 
 **测试** `chrome-plugin/src/background/openai-compatible-adapter.test.ts` 的 `默认关闭模型思考` 组。
 

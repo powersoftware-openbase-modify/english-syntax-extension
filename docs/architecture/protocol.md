@@ -267,7 +267,7 @@ correction 键  = SHA-256(["correction", …同上(用 CORE_PROMPT_VERSION)…, 
   timeoutMs,                            // 5_000 ~ 120_000
   jsonSchemaSupport: "unknown" | "supported" | "unsupported",
   streamSupport?: "unsupported",        // 只持久化否定态
-  reasoningControl?: "unsupported",     // 只持久化否定态
+  reasoningControl?: "unsupported" | "thinking-disabled",  // 只持久化否定态降级链
   disableReasoning?: true,              // 已废弃,仅为兼容旧 profile 保留,不再影响请求
 }
 ```

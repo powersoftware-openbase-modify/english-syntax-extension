@@ -36,7 +36,10 @@ export interface OpenAiCompatibleAdapterOptions {
     support: ModelProfile["jsonSchemaSupport"],
   ) => Promise<void>;
   persistStreamSupport?: (profileId: string, support: "unsupported") => Promise<void>;
-  persistReasoningControl?: (profileId: string, support: "unsupported") => Promise<void>;
+  persistReasoningControl?: (
+    profileId: string,
+    support: "unsupported" | "thinking-disabled",
+  ) => Promise<void>;
 }
 
 /** Reports each component the stream completed, before the sentence is verified. */
@@ -67,13 +70,19 @@ function deltaContent(payload: string): string | undefined {
 /**
  * 默认下发。思考模型会为一句话生成上万 token 推理(实测 deepseek-v4-flash 单句
  * 153 秒 / 14789 tok,超过 120 秒超时上限;带 "none" 后 1.41 秒 / 135 tok),而
- * DeepSeek 现存的两个模型都是思考模型——靠用户自己去勾选并不可靠。
+ * DeepSeek 的模型(deepseek-flash 等)思考默认开启——靠用户自己去勾选并不可靠。
  *
- * 部分端点(OpenAI 官方只收 low/medium/high)会因此 400,所以走与 response_format
- * 相同的降级:被拒一次就记 reasoningControl="unsupported",之后不再下发。
+ * 两级降级:reasoning_effort 被拒(DeepSeek V4.1 起只收 low/high/max,OpenAI
+ * 官方只收 low/medium/high)就改发 thinking:{type:"disabled"}——DeepSeek 文档
+ * 规定的 OpenAI 格式关闭思考方式;连 thinking 开关也不收(Ollama 只认
+ * reasoning_effort)就记 reasoningControl="unsupported",之后不再下发任何字段。
  */
 function reasoningOverride(profile: ModelProfile): Record<string, unknown> {
-  return profile.reasoningControl === "unsupported" ? {} : { reasoning_effort: "none" };
+  if (profile.reasoningControl === "unsupported") return {};
+  if (profile.reasoningControl === "thinking-disabled") {
+    return { thinking: { type: "disabled" } };
+  }
+  return { reasoning_effort: "none" };
 }
 
 function responseFormat(schema: JsonSchemaSpec): Record<string, unknown> {
@@ -249,6 +258,11 @@ export class OpenAiCompatibleAdapter {
           return this.request(profile, messages, schema, signal, useSchema);
         }
         if (error instanceof UnsupportedReasoningControlError) {
+          await this.persistReasoningControl(profile.id, "thinking-disabled");
+          profile = { ...profile, reasoningControl: "thinking-disabled" as const };
+          continue;
+        }
+        if (error instanceof UnsupportedThinkingControlError) {
           await this.persistReasoningControl(profile.id, "unsupported");
           profile = { ...profile, reasoningControl: "unsupported" as const };
           continue;
@@ -313,6 +327,20 @@ export class OpenAiCompatibleAdapter {
           throw new UnsupportedResponseFormatError();
         }
         if (validationRejection && /stream/i.test(text)) throw new UnsupportedStreamError();
+        if (
+          profile.reasoningControl === undefined &&
+          validationRejection &&
+          /reasoning[_ ]?effort|thinking/i.test(text)
+        ) {
+          throw new UnsupportedReasoningControlError();
+        }
+        if (
+          profile.reasoningControl === "thinking-disabled" &&
+          validationRejection &&
+          /thinking/i.test(text)
+        ) {
+          throw new UnsupportedThinkingControlError();
+        }
         throw mapHttpError(response.status, response.headers.get("Retry-After"), text);
       }
       if (response.body === null) throw new UnsupportedStreamError();
@@ -353,7 +381,9 @@ export class OpenAiCompatibleAdapter {
       if (
         error instanceof ModelRequestError ||
         error instanceof UnsupportedResponseFormatError ||
-        error instanceof UnsupportedStreamError
+        error instanceof UnsupportedStreamError ||
+        error instanceof UnsupportedReasoningControlError ||
+        error instanceof UnsupportedThinkingControlError
       ) {
         throw error;
       }
@@ -380,20 +410,36 @@ export class OpenAiCompatibleAdapter {
     schema: JsonSchemaSpec,
     signal: AbortSignal,
   ): Promise<unknown> {
-    const useSchema = profile.jsonSchemaSupport !== "unsupported";
-    try {
-      return await this.request(profile, messages, schema, signal, useSchema);
-    } catch (error) {
-      if (useSchema && error instanceof UnsupportedResponseFormatError && !signal.aborted) {
-        await this.persistJsonSchemaSupport(profile.id, "unsupported");
-        return this.request(profile, messages, schema, signal, false);
+    let useSchema = profile.jsonSchemaSupport !== "unsupported";
+    for (;;) {
+      try {
+        return await this.request(profile, messages, schema, signal, useSchema);
+      } catch (error) {
+        if (useSchema && error instanceof UnsupportedResponseFormatError && !signal.aborted) {
+          await this.persistJsonSchemaSupport(profile.id, "unsupported");
+          useSchema = false;
+          continue;
+        }
+        if (
+          profile.reasoningControl === undefined &&
+          error instanceof UnsupportedReasoningControlError &&
+          !signal.aborted
+        ) {
+          await this.persistReasoningControl(profile.id, "thinking-disabled");
+          profile = { ...profile, reasoningControl: "thinking-disabled" as const };
+          continue;
+        }
+        if (
+          profile.reasoningControl === "thinking-disabled" &&
+          error instanceof UnsupportedThinkingControlError &&
+          !signal.aborted
+        ) {
+          await this.persistReasoningControl(profile.id, "unsupported");
+          profile = { ...profile, reasoningControl: "unsupported" as const };
+          continue;
+        }
+        throw error;
       }
-      if (error instanceof UnsupportedReasoningControlError && !signal.aborted) {
-        await this.persistReasoningControl(profile.id, "unsupported");
-        const downgraded = { ...profile, reasoningControl: "unsupported" as const };
-        return this.request(downgraded, messages, schema, signal, useSchema);
-      }
-      throw error;
     }
   }
 
@@ -416,14 +462,41 @@ export class OpenAiCompatibleAdapter {
       },
     };
     let support: "supported" | "unsupported" = "supported";
+    let useSchema = profile.jsonSchemaSupport !== "unsupported";
+    // 探测必须走与 completeJson 相同的完整降级链:deepseek-flash 这类默认思考
+    // 模型会连 reasoning_effort:"none" 一起拒,漏接任何一级都会让「测试连接」
+    // 整场失败,即使真实请求路径本可以自动恢复。
     let value: unknown;
-    try {
-      value = await this.request(profile, messages, schema, signal, true);
-    } catch (error) {
-      if (!(error instanceof UnsupportedResponseFormatError) || signal.aborted) throw error;
-      support = "unsupported";
-      await this.persistJsonSchemaSupport(profile.id, "unsupported");
-      value = await this.request(profile, messages, schema, signal, false);
+    for (;;) {
+      try {
+        value = await this.request(profile, messages, schema, signal, useSchema);
+        break;
+      } catch (error) {
+        if (signal.aborted) throw error;
+        if (useSchema && error instanceof UnsupportedResponseFormatError) {
+          support = "unsupported";
+          await this.persistJsonSchemaSupport(profile.id, "unsupported");
+          useSchema = false;
+          continue;
+        }
+        if (
+          profile.reasoningControl === undefined &&
+          error instanceof UnsupportedReasoningControlError
+        ) {
+          await this.persistReasoningControl(profile.id, "thinking-disabled");
+          profile = { ...profile, reasoningControl: "thinking-disabled" as const };
+          continue;
+        }
+        if (
+          profile.reasoningControl === "thinking-disabled" &&
+          error instanceof UnsupportedThinkingControlError
+        ) {
+          await this.persistReasoningControl(profile.id, "unsupported");
+          profile = { ...profile, reasoningControl: "unsupported" as const };
+          continue;
+        }
+        throw error;
+      }
     }
     if (
       typeof value !== "object" ||
@@ -493,11 +566,18 @@ export class OpenAiCompatibleAdapter {
           throw new UnsupportedResponseFormatError();
         }
         if (
-          profile.reasoningControl !== "unsupported" &&
+          profile.reasoningControl === undefined &&
           (response.status === 400 || response.status === 422) &&
-          /reasoning[_ ]?effort/i.test(text)
+          /reasoning[_ ]?effort|thinking/i.test(text)
         ) {
           throw new UnsupportedReasoningControlError();
+        }
+        if (
+          profile.reasoningControl === "thinking-disabled" &&
+          (response.status === 400 || response.status === 422) &&
+          /thinking/i.test(text)
+        ) {
+          throw new UnsupportedThinkingControlError();
         }
         throw mapHttpError(response.status, response.headers.get("Retry-After"), text);
       }
@@ -517,7 +597,8 @@ export class OpenAiCompatibleAdapter {
       if (
         error instanceof ModelRequestError ||
         error instanceof UnsupportedResponseFormatError ||
-        error instanceof UnsupportedReasoningControlError
+        error instanceof UnsupportedReasoningControlError ||
+        error instanceof UnsupportedThinkingControlError
       ) {
         throw error;
       }
@@ -541,7 +622,10 @@ export class OpenAiCompatibleAdapter {
 
 class UnsupportedResponseFormatError extends Error {}
 
-/** 端点拒绝 reasoning_effort(OpenAI 官方只收 low/medium/high)——去掉该字段重发一次。 */
+/** 端点拒绝 reasoning_effort(OpenAI 官方只收 low/medium/high)——改发 thinking 开关重发。 */
 class UnsupportedReasoningControlError extends Error {}
+
+/** 端点连 thinking 开关也拒绝(不支持该字段的兼容服务)——彻底去掉重发一次。 */
+class UnsupportedThinkingControlError extends Error {}
 
 class UnsupportedStreamError extends Error {}

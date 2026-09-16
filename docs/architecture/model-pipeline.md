@@ -117,7 +117,7 @@ sentencesPerRequest(baseUrl) = isLoopbackBaseUrl(baseUrl) ? 6 : 2;
   "messages": [...],
   "temperature": 0,
   "stream": true | false,
-  "reasoning_effort": "none",          // 默认下发,除非已探到不支持
+  "reasoning_effort": "none",          // 默认下发;被拒后改发 thinking:{type:"disabled"},再被拒则都不发
   "response_format": { "type": "json_schema", ... }   // 除非已探到不支持
 }
 ```
@@ -126,11 +126,12 @@ sentencesPerRequest(baseUrl) = isLoopbackBaseUrl(baseUrl) ? 6 : 2;
 
 ### 降级矩阵
 
-| 能力位                             | 触发条件                                                                           | 记录         | 之后的行为                                |
-| ---------------------------------- | ---------------------------------------------------------------------------------- | ------------ | ----------------------------------------- |
-| `jsonSchemaSupport: "unsupported"` | 400/422 且响应体提到 `response_format` / `json_schema`                             | 写回 profile | 不再发 `response_format`,靠提示词约束形状 |
-| `streamSupport: "unsupported"`     | 400/422 且响应体提到 `stream`;或 `response.body === null`;或整流一个内容分片都没有 | 写回 profile | 直接走缓冲路径                            |
-| `reasoningControl: "unsupported"`  | 400/422 且响应体提到 `reasoning_effort`                                            | 写回 profile | 去掉该字段重发                            |
+| 能力位                                      | 触发条件                                                                           | 记录         | 之后的行为                                                     |
+| ------------------------------------------- | ---------------------------------------------------------------------------------- | ------------ | -------------------------------------------------------------- |
+| `jsonSchemaSupport: "unsupported"`          | 400/422 且响应体提到 `response_format` / `json_schema`                             | 写回 profile | 不再发 `response_format`,靠提示词约束形状                      |
+| `streamSupport: "unsupported"`              | 400/422 且响应体提到 `stream`;或 `response.body === null`;或整流一个内容分片都没有 | 写回 profile | 直接走缓冲路径                                                 |
+| `reasoningControl: "thinking-disabled"`     | 400/422 且响应体提到 `reasoning_effort` / `thinking`                               | 写回 profile | 去掉 `reasoning_effort`,改发 `thinking:{type:"disabled"}`      |
+| `reasoningControl: "unsupported"`           | 400/422 且响应体提到 `thinking`(`thinking-disabled` 态下)                          | 写回 profile | 两者都不发,思考交给端点默认                                    |
 
 三者都**只持久化否定态**,`undefined` 表示值得一试。写回由 `createProfileCapabilityWriters()` 装配——**三个写入器都必须接线**,漏掉任一个就会在每次请求上重复交同一笔学费(一趟白费的 4xx)。
 
@@ -138,7 +139,7 @@ sentencesPerRequest(baseUrl) = isLoopbackBaseUrl(baseUrl) ? 6 : 2;
 
 思考模型会为一句话生成上万 token 推理:**Qwen3 实测单句 246 秒**;**DeepSeek `v4-flash` 实测 153 秒 / 14789 token**——远超 `timeoutMs` 的 120 秒上限,表现为**整页无译文而非变慢**。带 `reasoning_effort: "none"` 后同一句降到 **1.41 秒 / 135 token**。
 
-DeepSeek 现存的两个模型全是思考模型,靠用户自己发现并勾选并不可靠,而降级路径已经让默认下发变得安全。**这条曾经的约定("绝不能默认下发,靠用户在选项页勾选")已废弃**;`disableReasoning` 字段仅为兼容旧 profile 保留,不再影响请求。
+DeepSeek 的模型(`deepseek-flash` / `deepseek-v4-pro`,DeepSeek-V4.1 起)思考**默认开启**,且 `reasoning_effort` 只收 `low/high/max`——关闭思考必须用 `thinking: {"type": "disabled"}`。靠用户自己发现并勾选并不可靠,而降级路径已经让默认下发变得安全。**这条曾经的约定("绝不能默认下发,靠用户在选项页勾选")已废弃**;`disableReasoning` 字段仅为兼容旧 profile 保留,不再影响请求。降级链的每一级(缓冲、流式、连接探测)都必须接线——探测漏接会让「测试连接」在支持自动降级的端点上整场失败。
 
 > Ollama 只认 `reasoning_effort`;`think: false` 与 `chat_template_kwargs.enable_thinking` 都被其 OpenAI 兼容层忽略。
 
