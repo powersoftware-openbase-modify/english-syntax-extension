@@ -56,7 +56,7 @@ export interface ServiceWorkerDependencies {
   profileProbe: (
     profile: ModelProfile,
     signal: AbortSignal,
-  ) => Promise<"supported" | "unsupported">;
+  ) => Promise<"supported" | "json-object" | "unsupported">;
 }
 
 interface ActiveDocument {

@@ -96,6 +96,38 @@ function responseFormat(schema: JsonSchemaSpec): Record<string, unknown> {
   };
 }
 
+/**
+ * response_format 三级降级:schema 被拒先降 json_object 而不是直接裸奔——
+ * DeepSeek V4.1 起下线了 json_schema(400 "This response_format type is
+ * unavailable now"),但它的非思考模式在没有约束解码时会在 JSON 正文里吐
+ * `<|endoftext|>` 一类特殊 token(实测 100% 复现),只有 json_object 的
+ * 服务端约束能压住。persisted 值:"json-object" 记中间档,"unsupported"
+ * 记彻底无约束。
+ */
+type ResponseFormatLevel = "schema" | "json-object" | "none";
+
+function initialResponseFormatLevel(profile: ModelProfile): ResponseFormatLevel {
+  if (profile.jsonSchemaSupport === "unsupported") return "none";
+  if (profile.jsonSchemaSupport === "json-object") return "json-object";
+  return "schema";
+}
+
+function downgradeResponseFormat(level: ResponseFormatLevel): ResponseFormatLevel | undefined {
+  if (level === "schema") return "json-object";
+  if (level === "json-object") return "none";
+  return undefined;
+}
+
+function persistedSchemaSupport(level: ResponseFormatLevel): ModelProfile["jsonSchemaSupport"] {
+  return level === "schema" ? "supported" : level === "json-object" ? "json-object" : "unsupported";
+}
+
+function responseFormatFor(level: ResponseFormatLevel, schema: JsonSchemaSpec) {
+  if (level === "schema") return responseFormat(schema);
+  if (level === "json-object") return { type: "json_object" } as const;
+  return undefined;
+}
+
 function abortReason(signal: AbortSignal): Error {
   const reason: unknown = signal.reason;
   return reason instanceof Error ? reason : new DOMException("Stream aborted", "AbortError");
@@ -121,6 +153,13 @@ function invalidOutput(message: string): ModelRequestError {
 }
 
 /**
+ * DeepSeek V4.1-Flash 的非思考模式会在 JSON 正文里吐 `<|endoftext|>` 一类
+ * 特殊 token(实测 100% 复现,json_object 约束解码可避免)。解析兜底时先清洗
+ * 再试,只影响解析,不动模型原文。
+ */
+const SPECIAL_TOKEN = /<\|[^|<>]*\|>/g;
+
+/**
  * 解析模型吐出来的 JSON 正文。少吐收尾括号、或撞上 max_tokens 断在半句上是常态,
  * 此时先按截断救一遍:救回来的对象若缺字段，由上层逐句校验判无效并进修复轮——
  * 那远好过整块判死(此前这里直接抛 INVALID_MODEL_OUTPUT，同一批句子全军覆没,
@@ -131,8 +170,18 @@ function parseModelContent(content: string, message: string): unknown {
   try {
     return JSON.parse(text) as unknown;
   } catch {
+    const cleaned = text.replace(SPECIAL_TOKEN, "");
+    if (cleaned !== text) {
+      try {
+        return JSON.parse(cleaned) as unknown;
+      } catch {
+        // 落到下面的截断救援。
+      }
+    }
     const salvaged = salvageTruncatedJson(text);
     if (salvaged !== undefined) return salvaged;
+    const salvagedClean = salvageTruncatedJson(cleaned);
+    if (salvagedClean !== undefined) return salvagedClean;
     throw invalidOutput(message);
   }
 }
@@ -234,7 +283,7 @@ export class OpenAiCompatibleAdapter {
     if (profile.streamSupport === "unsupported") {
       return this.completeJson(profile, messages, schema, signal);
     }
-    let useSchema = profile.jsonSchemaSupport !== "unsupported";
+    let level = initialResponseFormatLevel(profile);
     for (;;) {
       try {
         return await this.streamRequest(
@@ -242,20 +291,23 @@ export class OpenAiCompatibleAdapter {
           messages,
           schema,
           signal,
-          useSchema,
+          level,
           createExtractor(),
         );
       } catch (error) {
         if (signal.aborted) throw error;
-        if (error instanceof UnsupportedResponseFormatError && useSchema) {
-          await this.persistJsonSchemaSupport(profile.id, "unsupported");
-          useSchema = false;
-          continue;
+        if (error instanceof UnsupportedResponseFormatError) {
+          const next = downgradeResponseFormat(level);
+          if (next !== undefined) {
+            await this.persistJsonSchemaSupport(profile.id, persistedSchemaSupport(next));
+            level = next;
+            continue;
+          }
         }
         if (error instanceof UnsupportedStreamError) {
           await this.persistStreamSupport(profile.id, "unsupported");
-          // schema 能力沿用上面刚探到的结果，别再白探一次。
-          return this.request(profile, messages, schema, signal, useSchema);
+          // response_format 能力沿用上面刚探到的结果，别再白探一次。
+          return this.request(profile, messages, schema, signal, level);
         }
         if (error instanceof UnsupportedReasoningControlError) {
           await this.persistReasoningControl(profile.id, "thinking-disabled");
@@ -277,7 +329,7 @@ export class OpenAiCompatibleAdapter {
     messages: readonly ChatMessage[],
     schema: JsonSchemaSpec,
     callerSignal: AbortSignal,
-    useSchema: boolean,
+    formatLevel: ResponseFormatLevel,
     consume: (delta: string) => void,
   ): Promise<unknown> {
     const controller = new AbortController();
@@ -309,7 +361,8 @@ export class OpenAiCompatibleAdapter {
         stream: true,
         ...reasoningOverride(profile),
       };
-      if (useSchema) body.response_format = responseFormat(schema);
+      const responseFormatField = responseFormatFor(formatLevel, schema);
+      if (responseFormatField !== undefined) body.response_format = responseFormatField;
       const headers = new Headers(profile.headers);
       headers.set("Content-Type", "application/json");
       headers.set("Authorization", `Bearer ${profile.apiKey}`);
@@ -323,7 +376,11 @@ export class OpenAiCompatibleAdapter {
       if (!response.ok) {
         const text = await response.text();
         const validationRejection = response.status === 400 || response.status === 422;
-        if (useSchema && validationRejection && /response[_ ]?format|json[_ ]?schema/i.test(text)) {
+        if (
+          formatLevel !== "none" &&
+          validationRejection &&
+          /response[_ ]?format|json[_ ]?schema|json[_ ]?object/i.test(text)
+        ) {
           throw new UnsupportedResponseFormatError();
         }
         if (validationRejection && /stream/i.test(text)) throw new UnsupportedStreamError();
@@ -410,15 +467,18 @@ export class OpenAiCompatibleAdapter {
     schema: JsonSchemaSpec,
     signal: AbortSignal,
   ): Promise<unknown> {
-    let useSchema = profile.jsonSchemaSupport !== "unsupported";
+    let level = initialResponseFormatLevel(profile);
     for (;;) {
       try {
-        return await this.request(profile, messages, schema, signal, useSchema);
+        return await this.request(profile, messages, schema, signal, level);
       } catch (error) {
-        if (useSchema && error instanceof UnsupportedResponseFormatError && !signal.aborted) {
-          await this.persistJsonSchemaSupport(profile.id, "unsupported");
-          useSchema = false;
-          continue;
+        if (error instanceof UnsupportedResponseFormatError && !signal.aborted) {
+          const next = downgradeResponseFormat(level);
+          if (next !== undefined) {
+            await this.persistJsonSchemaSupport(profile.id, persistedSchemaSupport(next));
+            level = next;
+            continue;
+          }
         }
         if (
           profile.reasoningControl === undefined &&
@@ -446,7 +506,7 @@ export class OpenAiCompatibleAdapter {
   async probeJsonCapability(
     profile: ModelProfile,
     signal: AbortSignal,
-  ): Promise<"supported" | "unsupported"> {
+  ): Promise<"supported" | "json-object" | "unsupported"> {
     const messages: readonly ChatMessage[] = [
       { role: "system", content: "Return only the requested JSON object." },
       { role: "user", content: 'Return exactly {"ok":true}.' },
@@ -461,38 +521,50 @@ export class OpenAiCompatibleAdapter {
         additionalProperties: false,
       },
     };
-    let support: "supported" | "unsupported" = "supported";
-    let useSchema = profile.jsonSchemaSupport !== "unsupported";
+    // 测试连接 = 能力全量重探:忽略已持久化的否定态,从 schema + reasoning_effort
+    // 重新试一遍。旧版本降级逻辑写进 profile 的错误否定态(如 deepseek-flash 的
+    // json_object 修正前被记成 "unsupported")只有这里能翻案;每次探测多交的
+    // 一趟 4xx 学费是显式用户动作,可接受。
+    const trial: ModelProfile = {
+      ...profile,
+      reasoningControl: undefined,
+      jsonSchemaSupport: "unknown",
+    };
+    let level = initialResponseFormatLevel(trial);
+    let support: "supported" | "json-object" | "unsupported" = "supported";
     // 探测必须走与 completeJson 相同的完整降级链:deepseek-flash 这类默认思考
     // 模型会连 reasoning_effort:"none" 一起拒,漏接任何一级都会让「测试连接」
     // 整场失败,即使真实请求路径本可以自动恢复。
     let value: unknown;
     for (;;) {
       try {
-        value = await this.request(profile, messages, schema, signal, useSchema);
+        value = await this.request(trial, messages, schema, signal, level);
         break;
       } catch (error) {
         if (signal.aborted) throw error;
-        if (useSchema && error instanceof UnsupportedResponseFormatError) {
-          support = "unsupported";
-          await this.persistJsonSchemaSupport(profile.id, "unsupported");
-          useSchema = false;
-          continue;
+        if (error instanceof UnsupportedResponseFormatError) {
+          const next = downgradeResponseFormat(level);
+          if (next !== undefined) {
+            support = persistedSchemaSupport(next) === "json-object" ? "json-object" : "unsupported";
+            await this.persistJsonSchemaSupport(profile.id, support);
+            level = next;
+            continue;
+          }
         }
         if (
-          profile.reasoningControl === undefined &&
+          trial.reasoningControl === undefined &&
           error instanceof UnsupportedReasoningControlError
         ) {
           await this.persistReasoningControl(profile.id, "thinking-disabled");
-          profile = { ...profile, reasoningControl: "thinking-disabled" as const };
+          trial.reasoningControl = "thinking-disabled";
           continue;
         }
         if (
-          profile.reasoningControl === "thinking-disabled" &&
+          trial.reasoningControl === "thinking-disabled" &&
           error instanceof UnsupportedThinkingControlError
         ) {
           await this.persistReasoningControl(profile.id, "unsupported");
-          profile = { ...profile, reasoningControl: "unsupported" as const };
+          trial.reasoningControl = "unsupported";
           continue;
         }
         throw error;
@@ -518,7 +590,7 @@ export class OpenAiCompatibleAdapter {
     messages: readonly ChatMessage[],
     schema: JsonSchemaSpec,
     callerSignal: AbortSignal,
-    useSchema: boolean,
+    formatLevel: ResponseFormatLevel,
   ): Promise<unknown> {
     const controller = new AbortController();
     let abortCause: "caller" | "timeout" | undefined;
@@ -541,7 +613,8 @@ export class OpenAiCompatibleAdapter {
         stream: false,
         ...reasoningOverride(profile),
       };
-      if (useSchema) body.response_format = responseFormat(schema);
+      const responseFormatField = responseFormatFor(formatLevel, schema);
+      if (responseFormatField !== undefined) body.response_format = responseFormatField;
       const headers = new Headers(profile.headers);
       headers.set("Content-Type", "application/json");
       headers.set("Authorization", `Bearer ${profile.apiKey}`);
@@ -554,14 +627,15 @@ export class OpenAiCompatibleAdapter {
       const text = await response.text();
       if (!response.ok) {
         // Providers phrase the rejection differently: "response_format is not
-        // supported", DeepSeek's serde error "response_format: unknown variant
-        // `json_schema`", etc. Any 4xx validation error that names the field
-        // is treated as a capability downgrade — the schema-free retry either
-        // succeeds or surfaces the real error.
+        // supported", DeepSeek V4.1's "This response_format type is unavailable
+        // now" for json_schema, its serde error for unknown variants, etc. Any
+        // 4xx validation error that names the field is treated as a capability
+        // downgrade — the caller retries at the next level (schema →
+        // json_object → none) or surfaces the real error.
         if (
-          useSchema &&
+          formatLevel !== "none" &&
           (response.status === 400 || response.status === 422) &&
-          /response[_ ]?format|json[_ ]?schema/i.test(text)
+          /response[_ ]?format|json[_ ]?schema|json[_ ]?object/i.test(text)
         ) {
           throw new UnsupportedResponseFormatError();
         }

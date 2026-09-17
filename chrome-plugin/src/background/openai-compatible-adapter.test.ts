@@ -65,7 +65,10 @@ describe("OpenAI-compatible chat completions adapter", () => {
     expect(persistJsonSchemaSupport).toHaveBeenCalledWith("profile-1", "supported");
   });
 
-  it("uses one explainable fallback request only after an explicit schema-format rejection", async () => {
+  it("downgrades a schema-format rejection to json_object first, not straight to bare", async () => {
+    // DeepSeek V4.1 起下线 json_schema，但其非思考模式无约束解码时会在 JSON
+    // 正文里吐特殊 token，只有 json_object 的服务端约束能压住——所以被拒后
+    // 先降 json_object 这一档。
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(response("response_format is not supported", { status: 400 }))
@@ -74,12 +77,31 @@ describe("OpenAI-compatible chat completions adapter", () => {
     const adapter = new OpenAiCompatibleAdapter({ fetch, persistJsonSchemaSupport });
 
     await expect(adapter.probeJsonCapability(profile, new AbortController().signal)).resolves.toBe(
-      "unsupported",
+      "json-object",
     );
 
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(requestBody(fetch, 1)).not.toHaveProperty("response_format");
+    expect(requestBody(fetch, 1)).toMatchObject({ response_format: { type: "json_object" } });
     expect(requestBody(fetch, 1)).not.toHaveProperty("max_tokens");
+    expect(persistJsonSchemaSupport).toHaveBeenCalledWith("profile-1", "json-object");
+  });
+
+  it("probe walks the full three-level format chain before giving up on constraints", async () => {
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(response("response_format is not supported", { status: 400 }))
+      .mockResolvedValueOnce(response("json_object is not supported either", { status: 400 }))
+      .mockResolvedValueOnce(completion('{"ok":true}'));
+    const persistJsonSchemaSupport = vi.fn().mockResolvedValue(undefined);
+    const adapter = new OpenAiCompatibleAdapter({ fetch, persistJsonSchemaSupport });
+
+    await expect(adapter.probeJsonCapability(profile, new AbortController().signal)).resolves.toBe(
+      "unsupported",
+    );
+
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(requestBody(fetch, 1)).toMatchObject({ response_format: { type: "json_object" } });
+    expect(requestBody(fetch, 2)).not.toHaveProperty("response_format");
     expect(persistJsonSchemaSupport).toHaveBeenCalledWith("profile-1", "unsupported");
   });
 
@@ -103,12 +125,12 @@ describe("OpenAI-compatible chat completions adapter", () => {
     const adapter = new OpenAiCompatibleAdapter({ fetch, persistJsonSchemaSupport });
 
     await expect(adapter.probeJsonCapability(profile, new AbortController().signal)).resolves.toBe(
-      "unsupported",
+      "json-object",
     );
 
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(requestBody(fetch, 1)).not.toHaveProperty("response_format");
-    expect(persistJsonSchemaSupport).toHaveBeenCalledWith("profile-1", "unsupported");
+    expect(requestBody(fetch, 1)).toMatchObject({ response_format: { type: "json_object" } });
+    expect(persistJsonSchemaSupport).toHaveBeenCalledWith("profile-1", "json-object");
   });
 
   it("probe 自动降级 reasoning_effort 被拒的端点而不是整场失败", async () => {
@@ -242,7 +264,7 @@ describe("OpenAI-compatible chat completions adapter", () => {
     },
   );
 
-  it("immediately retries a rejected response_format and persists the capability downgrade", async () => {
+  it("retries a rejected response_format at the json_object level and persists the downgrade", async () => {
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(response("response_format is not supported", { status: 400 }))
@@ -253,8 +275,41 @@ describe("OpenAI-compatible chat completions adapter", () => {
     await adapter.completeJson(profile, messages, schema, new AbortController().signal);
 
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(requestBody(fetch, 1)).not.toHaveProperty("response_format");
-    expect(persistJsonSchemaSupport).toHaveBeenCalledWith("profile-1", "unsupported");
+    expect(requestBody(fetch, 1)).toMatchObject({ response_format: { type: "json_object" } });
+    expect(persistJsonSchemaSupport).toHaveBeenCalledWith("profile-1", "json-object");
+  });
+
+  it("sends json_object response_format for a profile already known to reject json_schema", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(completion('{"ok":true}'));
+    const adapter = new OpenAiCompatibleAdapter({ fetch });
+
+    await adapter.completeJson(
+      { ...profile, jsonSchemaSupport: "json-object" },
+      messages,
+      schema,
+      new AbortController().signal,
+    );
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(requestBody(fetch, 0)).toMatchObject({ response_format: { type: "json_object" } });
+  });
+
+  it("strips provider special tokens polluting the JSON body before parsing", async () => {
+    // DeepSeek V4.1-Flash 非思考模式无约束解码时 100% 复现：
+    // {"ok":<|endoftext|>true} —— json_object 约束可避免，但兜底仍要清洗。
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(completion('{"ok":<|endoftext|>true}'));
+    const adapter = new OpenAiCompatibleAdapter({ fetch });
+
+    await expect(
+      adapter.completeJson(
+        { ...profile, jsonSchemaSupport: "unsupported" },
+        messages,
+        schema,
+        new AbortController().signal,
+      ),
+    ).resolves.toEqual({ ok: true });
   });
 
   it("keeps the required JSON content type when a custom header uses different casing", async () => {
@@ -670,10 +725,10 @@ describe("streaming core completions", () => {
     );
 
     expect(result).toEqual(JSON.parse(streamEnvelope));
-    expect(persistJsonSchemaSupport).toHaveBeenCalledWith(profile.id, "unsupported");
+    expect(persistJsonSchemaSupport).toHaveBeenCalledWith(profile.id, "json-object");
     // 降级后仍然是流式请求，不该连流式一起放弃。
     expect(requestBody(fetch, 1)).toMatchObject({ stream: true });
-    expect(requestBody(fetch, 1)).not.toHaveProperty("response_format");
+    expect(requestBody(fetch, 1)).toMatchObject({ response_format: { type: "json_object" } });
   });
 
   it("measures the timeout against stream inactivity, not total duration", async () => {

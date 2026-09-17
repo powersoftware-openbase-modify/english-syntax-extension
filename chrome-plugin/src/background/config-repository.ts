@@ -8,7 +8,16 @@ export interface ModelProfile {
   model: string;
   headers: Record<string, string>;
   timeoutMs: number;
-  jsonSchemaSupport: "unknown" | "supported" | "unsupported";
+  /**
+   * response_format 能力档位(探到后持久化,undefined/"unknown" = 从 schema 试起):
+   * - "supported":端点收 json_schema 严格模式;
+   * - "json-object":schema 被拒但收 {type:"json_object"}——DeepSeek V4.1 起
+   *   下线了 json_schema,且其非思考模式无约束解码时会在 JSON 正文里吐
+   *   `<|endoftext|>` 一类特殊 token,只有 json_object 的服务端约束能压住,
+   *   所以被拒后先降到这一档而不是直接裸奔;
+   * - "unsupported":连 json_object 也被拒,彻底不发 response_format。
+   */
+  jsonSchemaSupport: "unknown" | "supported" | "json-object" | "unsupported";
   /**
    * 只持久化否定态:某些 OpenAI 兼容端点不接受 stream(尤其与 response_format 同用),
    * 探到一次就记下来别再试。undefined = 值得尝试流式。
@@ -24,10 +33,8 @@ export interface ModelProfile {
    */
   reasoningControl?: "unsupported" | "thinking-disabled";
   /**
-   * 思考模型(Qwen3 等)会为一句话生成上万字符推理:实测单句 246 秒,远超本扩展
-   * 120 秒的超时上限,于是每句都超时、整页无译文。置位后请求体带
-   * `reasoning_effort: "none"`,同一句降到 7 秒。
-   * 只持久化肯定态,且**必须由用户显式勾选**——OpenAI 官方 API 不接受 "none"。
+   * 仅为兼容旧 profile 保留的历史字段,不再影响任何请求——关思考现在由
+   * reasoningControl 降级链自动接管(见上),无需用户显式勾选。
    */
   disableReasoning?: true;
 }
@@ -56,6 +63,7 @@ const FORBIDDEN_HEADERS = new Set([
 const JSON_SCHEMA_SUPPORT = new Set<ModelProfile["jsonSchemaSupport"]>([
   "unknown",
   "supported",
+  "json-object",
   "unsupported",
 ]);
 

@@ -197,7 +197,7 @@ export type ResponseMessage =
       profileId: string;
       success: boolean;
       latencyMs?: number;
-      jsonSchemaSupport?: "supported" | "unsupported";
+      jsonSchemaSupport?: "supported" | "json-object" | "unsupported";
       error?: ExtensionError;
     })
   | (MessageBase & { type: "ERROR"; error: ExtensionError });
