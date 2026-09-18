@@ -1,4 +1,5 @@
 import type { ExtensionError } from "./errors";
+import { ERROR_CODES } from "./errors";
 import { GrammarRole } from "./grammar";
 import type {
   CoreAnalysis,
@@ -179,15 +180,47 @@ export function isDetailStreamPush(value: unknown): value is DetailStreamPush {
   );
 }
 
+/**
+ * CORE_RESULT 的逐句失败详情。批级 error 只覆盖整批失败(如鉴权)，
+ * 单句修复轮耗尽这类局部失败原来在 SW 边界被丢掉，content 只能显示
+ * 笼统的「模型未返回此句的解析结果」——加上它失败卡才能亮出真实原因。
+ */
+export interface CoreSentenceFailure {
+  sentenceId: string;
+  error: ExtensionError;
+}
+
+export function isExtensionError(value: unknown): value is ExtensionError {
+  return (
+    isRecord(value) &&
+    typeof value.code === "string" &&
+    (ERROR_CODES as readonly string[]).includes(value.code) &&
+    typeof value.message === "string" &&
+    typeof value.retryable === "boolean" &&
+    (value.details === undefined || isRecord(value.details))
+  );
+}
+
+export function isCoreSentenceFailure(value: unknown): value is CoreSentenceFailure {
+  return (
+    isRecord(value) &&
+    hasOnlyKeys(value, ["sentenceId", "error"]) &&
+    isNonBlankString(value.sentenceId) &&
+    isExtensionError(value.error)
+  );
+}
+
 export type ResponseMessage =
   | (MessageBase & { type: "ACK"; acknowledgedType: RequestMessage["type"] })
   | (MessageBase & { type: "SESSION_STATUS"; status: SessionStatus })
   // error：批级失败（如鉴权失败）时仍携带已取得的缓存命中；未命中句由 content 按该错误标失败。
+  // failures：批成功但个别句修复轮耗尽时，把逐句真实错误带给 content，别再让它猜。
   | (MessageBase & {
       type: "CORE_RESULT";
       analyses: CoreAnalysis[];
       cacheOnly?: true;
       error?: ExtensionError;
+      failures?: CoreSentenceFailure[];
     })
   | (MessageBase & { type: "DETAIL_RESULT"; analysis: DetailAnalysis })
   | (MessageBase & { type: "SENTENCE_DETAILS_RESULT"; succeeded: number; failed: number })

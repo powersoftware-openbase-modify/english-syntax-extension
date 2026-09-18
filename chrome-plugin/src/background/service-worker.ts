@@ -493,11 +493,20 @@ export function registerServiceWorker(
                 error: errorResponse(request.requestId, "AUTH_FAILED").error,
               };
             }
+            // 逐句失败详情必须带到 content:批级 error 只覆盖整批失败(如鉴权)，
+            // 单句修复轮耗尽的真错误原来是这里被丢掉的，content 只能显示
+            // 笼统的「模型未返回此句的解析结果」。Error 子类经结构化克隆会丢
+            // 自定义属性，必须显式摊平成普通对象。
+            const sentenceFailures = outcome.failures.map(({ sentenceId, error }) => ({
+              sentenceId,
+              error: { code: error.code, message: error.message, retryable: error.retryable },
+            }));
             return {
               version: MESSAGE_VERSION,
               requestId: request.requestId,
               type: "CORE_RESULT",
               analyses: outcome.result.map((analysis) => sanitizeCore(analysis, profile)),
+              ...(sentenceFailures.length === 0 ? {} : { failures: sentenceFailures }),
             };
           } catch (error) {
             const code = errorCode(error);

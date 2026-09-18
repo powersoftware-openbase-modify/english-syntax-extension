@@ -82,7 +82,7 @@ trustedPageControl = trustedExtensionUi && type ∈ {START_SESSION, PAUSE_SESSIO
 | ------------------------- | -------------------------------------------------------------------- | ----------------------------------------------- |
 | `ACK`                     | `acknowledgedType`                                                   | 无返回值的命令                                  |
 | `SESSION_STATUS`          | `status: SessionStatus`                                              | 启停 / 查询状态;**也被 content 复用为状态上报** |
-| `CORE_RESULT`             | `analyses[]`、`cacheOnly?`、`error?`                                 | core 解析与带反馈重解析                         |
+| `CORE_RESULT`             | `analyses[]`、`cacheOnly?`、`error?`、`failures?`                    | core 解析与带反馈重解析                         |
 | `DETAIL_RESULT`           | `analysis: DetailAnalysis`                                           | 详解                                            |
 | `SENTENCE_DETAILS_RESULT` | `succeeded`、`failed`                                                | 整句预载                                        |
 | `CACHE_STATS`             | `stats`                                                              | 缓存统计                                        |
@@ -90,6 +90,8 @@ trustedPageControl = trustedExtensionUi && type ∈ {START_SESSION, PAUSE_SESSIO
 | `ERROR`                   | `error: ExtensionError`                                              | 任何失败                                        |
 
 `CORE_RESULT` 上的 **`error` 是批级的**:鉴权失败或 profile 被暂停时,缓存命中照常返回(键与模型无关),只有未命中句由 content 按该错误标失败——换 / 修模型前译文不消失。
+
+**`failures` 是逐句的**(`{sentenceId, error}[]`):批成功但个别句修复轮耗尽时,SW 把真实错误带给 content;没有它,content 只能显示笼统的「模型未返回此句的解析结果」。注意 Error 子类经消息通道的结构化克隆会丢自定义属性,SW 必须先摊平成普通对象再发。
 
 ## 4. 端口推送(不是响应)
 

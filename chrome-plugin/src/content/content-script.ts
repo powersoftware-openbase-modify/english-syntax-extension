@@ -1,7 +1,12 @@
 import type { ExtensionError } from "../shared/errors";
-import { ERROR_CODES } from "../shared/errors";
 import { GrammarRole } from "../shared/grammar";
-import { isCoreStreamPush, isDetailStreamPush, isRequestMessage } from "../shared/protocol";
+import {
+  isCoreStreamPush,
+  isDetailStreamPush,
+  isRequestMessage,
+  isCoreSentenceFailure,
+  isExtensionError,
+} from "../shared/protocol";
 import type {
   CoreStreamPush,
   DetailStreamPush,
@@ -150,17 +155,6 @@ function isSessionStatus(value: unknown): value is SessionStatus {
   );
 }
 
-function isExtensionError(value: unknown): value is ExtensionError {
-  return (
-    isRecord(value) &&
-    typeof value.code === "string" &&
-    ERROR_CODES.includes(value.code as ExtensionError["code"]) &&
-    typeof value.message === "string" &&
-    typeof value.retryable === "boolean" &&
-    (value.details === undefined || isRecord(value.details))
-  );
-}
-
 export function isRuntimeResponse(value: unknown, requestId: string): value is ResponseMessage {
   if (
     !isRecord(value) ||
@@ -179,7 +173,9 @@ export function isRuntimeResponse(value: unknown, requestId: string): value is R
       return (
         Array.isArray(value.analyses) &&
         value.analyses.every(isCoreAnalysis) &&
-        (value.error === undefined || isExtensionError(value.error))
+        (value.error === undefined || isExtensionError(value.error)) &&
+        (value.failures === undefined ||
+          (Array.isArray(value.failures) && value.failures.every(isCoreSentenceFailure)))
       );
     case "DETAIL_RESULT":
       return isDetailAnalysis(value.analysis);
@@ -199,6 +195,7 @@ export function isRuntimeResponse(value: unknown, requestId: string): value is R
         (value.latencyMs === undefined || isSafeInteger(value.latencyMs)) &&
         (value.jsonSchemaSupport === undefined ||
           value.jsonSchemaSupport === "supported" ||
+          value.jsonSchemaSupport === "json-object" ||
           value.jsonSchemaSupport === "unsupported") &&
         (value.error === undefined || isExtensionError(value.error))
       );

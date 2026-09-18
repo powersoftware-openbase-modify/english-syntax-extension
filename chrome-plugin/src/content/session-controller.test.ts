@@ -545,6 +545,38 @@ describe("SessionController", () => {
     expect(subject.replacements[0]!.partialShows).toBe(1);
   });
 
+  it("单句失败详情优先于笼统的「模型未返回此句的解析结果」", async () => {
+    // SW 随 CORE_RESULT.failures 带回逐句真错误(如修复轮耗尽的具体校验错误)，
+    // 失败卡必须亮真实原因，而不是让用户自己去猜。
+    const transport = new FakeTransport((message) =>
+      Promise.resolve({
+        version: 1,
+        requestId: message.requestId,
+        type: "CORE_RESULT",
+        analyses: [],
+        failures: [
+          {
+            sentenceId: "sentence-1",
+            error: {
+              code: "INVALID_MODEL_OUTPUT",
+              message: "模型输出经两轮修复后仍不合格：output: dangling preposition",
+              retryable: false,
+            },
+          },
+        ],
+      }),
+    );
+    const subject = harness(undefined, transport);
+
+    await subject.controller.start();
+    subject.viewport.emit();
+    await vi.waitFor(() => expect(subject.controller.status.failed).toBe(1));
+
+    expect(subject.learningBlocks[0]!.failures[0]!.message).toBe(
+      "INVALID_MODEL_OUTPUT：模型输出经两轮修复后仍不合格：output: dangling preposition",
+    );
+  });
+
   it("renders the NO_CACHE detail message without the code prefix", async () => {
     const subject = harness(
       undefined,
@@ -1790,6 +1822,52 @@ describe("ContentScriptRouter", () => {
           requestId: "request-1",
           type: "CORE_RESULT",
           analyses: [core("sentence-1")],
+        },
+        "request-1",
+      ),
+    ).toBe(true);
+    // 逐句失败详情：合法时接受，缺 error 或带多余键时拒绝。
+    expect(
+      isRuntimeResponse(
+        {
+          version: 1,
+          requestId: "request-1",
+          type: "CORE_RESULT",
+          analyses: [core("sentence-1")],
+          failures: [
+            {
+              sentenceId: "sentence-2",
+              error: { code: "INVALID_MODEL_OUTPUT", message: "boom", retryable: false },
+            },
+          ],
+        },
+        "request-1",
+      ),
+    ).toBe(true);
+    expect(
+      isRuntimeResponse(
+        {
+          version: 1,
+          requestId: "request-1",
+          type: "CORE_RESULT",
+          analyses: [],
+          failures: [{ sentenceId: "sentence-2" }],
+        },
+        "request-1",
+      ),
+    ).toBe(false);
+  });
+
+  it("accepts the json-object capability level on PROFILE_TEST_RESULT", () => {
+    expect(
+      isRuntimeResponse(
+        {
+          version: 1,
+          requestId: "request-1",
+          type: "PROFILE_TEST_RESULT",
+          profileId: "profile-1",
+          success: true,
+          jsonSchemaSupport: "json-object",
         },
         "request-1",
       ),

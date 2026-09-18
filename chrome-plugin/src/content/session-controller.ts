@@ -914,10 +914,21 @@ export class SessionController {
             this.transition(sentence, "skipped");
             continue;
           }
+          // 逐句失败详情(SW 随 CORE_RESULT.failures 带回)优先于批级 error：
+          // 单句修复轮耗尽的真错误只在这里，笼统的 MISSING_RESULT_MESSAGE 只作兜底。
+          const sentenceFailure =
+            response.type === "CORE_RESULT"
+              ? response.failures?.find(
+                  ({ sentenceId }) => sentenceId === sentence.input.sentenceId,
+                )
+              : undefined;
           failures.push({
             sentenceId: sentence.input.sentenceId,
             sentence: sentence.input.text,
-            message: responseErrorMessage(response),
+            message:
+              sentenceFailure === undefined
+                ? responseErrorMessage(response)
+                : `${sentenceFailure.error.code}：${sentenceFailure.error.message}`,
           });
           this.transition(sentence, "failed");
           continue;

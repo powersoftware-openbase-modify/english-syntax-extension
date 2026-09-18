@@ -889,6 +889,51 @@ describe("service worker orchestration", () => {
     });
   });
 
+  it("单句修复轮耗尽的失败详情随 CORE_RESULT.failures 带给 content，不再被吞", async () => {
+    // 批级 error 只覆盖整批失败(如鉴权)；单句失败原来在 SW 边界被丢掉，
+    // content 只能显示笼统的「模型未返回此句的解析结果」。
+    const analyzeCore = vi.fn(() =>
+      Promise.resolve({
+        result: [],
+        failures: [
+          {
+            sentenceId: sentence.sentenceId,
+            error: new ModelRequestError(
+              "INVALID_MODEL_OUTPUT",
+              "模型输出经两轮修复后仍不合格：output: dangling preposition",
+              false,
+            ),
+          },
+        ],
+        cacheHit: false,
+      }),
+    );
+    const subject = chromeMock();
+    registerServiceWorker(dependencies({ analyzeCore }), subject.api);
+
+    const response = await dispatch(
+      subject.events.runtime.onMessage.listeners[0]!,
+      pageRequest({ type: "ANALYZE_CORE", sentences: [sentence] }),
+    );
+
+    expect(response).toMatchObject({
+      type: "CORE_RESULT",
+      analyses: [],
+      failures: [
+        {
+          sentenceId: sentence.sentenceId,
+          error: {
+            code: "INVALID_MODEL_OUTPUT",
+            message: "模型输出经两轮修复后仍不合格：output: dangling preposition",
+            retryable: false,
+          },
+        },
+      ],
+    });
+    // Error 子类不能原样过消息通道(结构化克隆丢自定义属性)，所以这里必须是已摊平的普通对象。
+    expect(JSON.stringify(response)).toContain("模型输出经两轮修复后仍不合格");
+  });
+
   it("暂停期间 ANALYZE_CORE 仍查缓存返回命中，不再无脑整批鉴权失败", async () => {
     const cachedAnalysis = {
       schemaVersion: CORE_SCHEMA_VERSION,

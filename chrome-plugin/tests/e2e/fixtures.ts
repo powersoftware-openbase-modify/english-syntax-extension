@@ -22,7 +22,13 @@ const fixturePagesDir = join(projectRoot, "tests", "fixtures", "pages");
  * canonical dist manifest keeps hosts optional; extension.spec.ts asserts that.
  */
 function buildPatchedExtension(): string {
-  execFileSync("npm", ["run", "build"], { cwd: projectRoot, stdio: "ignore" });
+  // Windows 上 npm 是 npm.cmd，spawnSync 不带 shell 找不到会直接 ENOENT；
+  // 参数全是字面量，开 shell 没有注入面。
+  execFileSync("npm", ["run", "build"], {
+    cwd: projectRoot,
+    stdio: "ignore",
+    shell: process.platform === "win32",
+  });
   const patchedDir = mkdtempSync(join(tmpdir(), "syntax-ext-e2e-"));
   cpSync(distDir, patchedDir, { recursive: true });
   const manifestPath = join(patchedDir, "manifest.json");
