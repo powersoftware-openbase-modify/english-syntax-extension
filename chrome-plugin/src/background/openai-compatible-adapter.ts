@@ -545,7 +545,8 @@ export class OpenAiCompatibleAdapter {
         if (error instanceof UnsupportedResponseFormatError) {
           const next = downgradeResponseFormat(level);
           if (next !== undefined) {
-            support = persistedSchemaSupport(next) === "json-object" ? "json-object" : "unsupported";
+            support =
+              persistedSchemaSupport(next) === "json-object" ? "json-object" : "unsupported";
             await this.persistJsonSchemaSupport(profile.id, support);
             level = next;
             continue;

@@ -63,7 +63,7 @@ CachedAnalysisService.analyzeCore(input, signal)
 
 三份 `JsonSchemaSpec`:`CORE_SCHEMA`、`DETAIL_SCHEMA`、`SENTENCE_DETAILS_SCHEMA`(= `{details: [DETAIL_SCHEMA]}`)。
 
-支持 `response_format: json_schema` 的端点走 schema 约束;不支持的走**兼容模式**——此时输出形状只能靠提示词里的 `*_OUTPUT_SHAPE` 说清楚,所以那几段文字不是冗余。Kotlin 端也必须生成标准 JSON Schema:`required` 是字符串数组,字段定义放在 `properties`;连续 `put("required", "...")` 会相互覆盖,顶层直放字段也不是 Schema 属性。
+支持 `response_format: json_schema` 的端点走 schema 约束;schema 被拒先降 `{type: "json_object"}`(中间档,记 `"json-object"`),连它也被拒才走**兼容模式**(记 `"unsupported"`)——此时输出形状只能靠提示词里的 `*_OUTPUT_SHAPE` 说清楚,所以那几段文字不是冗余。为什么中间档不能省:DeepSeek V4.1 起下线了 `json_schema`,但其非思考模式无约束解码时会在 JSON 正文里吐特殊 token,只有 `json_object` 的约束能压住(见下方「为什么 response_format 要三级降级」)。Kotlin 端也必须生成标准 JSON Schema:`required` 是字符串数组,字段定义放在 `properties`;连续 `put("required", "...")` 会相互覆盖,顶层直放字段也不是 Schema 属性。
 
 `DETAIL_SCHEMA` 里 `translation` **刻意不列入 `required`**:兼容模式下模型偶发缺失时降级为两行标注,而不是整次 `INVALID_MODEL_OUTPUT`。
 
@@ -118,7 +118,7 @@ sentencesPerRequest(baseUrl) = isLoopbackBaseUrl(baseUrl) ? 6 : 2;
   "temperature": 0,
   "stream": true | false,
   "reasoning_effort": "none",          // 默认下发;被拒后改发 thinking:{type:"disabled"},再被拒则都不发
-  "response_format": { "type": "json_schema", ... }   // 除非已探到不支持
+  "response_format": { "type": "json_schema", ... }  // 被拒先降 {type:"json_object"},再被拒则都不发
 }
 ```
 
@@ -126,14 +126,19 @@ sentencesPerRequest(baseUrl) = isLoopbackBaseUrl(baseUrl) ? 6 : 2;
 
 ### 降级矩阵
 
-| 能力位                                      | 触发条件                                                                           | 记录         | 之后的行为                                                     |
-| ------------------------------------------- | ---------------------------------------------------------------------------------- | ------------ | -------------------------------------------------------------- |
-| `jsonSchemaSupport: "unsupported"`          | 400/422 且响应体提到 `response_format` / `json_schema`                             | 写回 profile | 不再发 `response_format`,靠提示词约束形状                      |
-| `streamSupport: "unsupported"`              | 400/422 且响应体提到 `stream`;或 `response.body === null`;或整流一个内容分片都没有 | 写回 profile | 直接走缓冲路径                                                 |
-| `reasoningControl: "thinking-disabled"`     | 400/422 且响应体提到 `reasoning_effort` / `thinking`                               | 写回 profile | 去掉 `reasoning_effort`,改发 `thinking:{type:"disabled"}`      |
-| `reasoningControl: "unsupported"`           | 400/422 且响应体提到 `thinking`(`thinking-disabled` 态下)                          | 写回 profile | 两者都不发,思考交给端点默认                                    |
+| 能力位                                  | 触发条件                                                                            | 记录         | 之后的行为                                                |
+| --------------------------------------- | ----------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------- |
+| `jsonSchemaSupport: "json-object"`      | 400/422 且响应体提到 `response_format` / `json_schema` / `json_object`(schema 态下) | 写回 profile | 改发 `{type:"json_object"}`,靠它约束输出                  |
+| `jsonSchemaSupport: "unsupported"`      | 400/422 且响应体提到 `response_format` / `json_object`(`json-object` 态下)          | 写回 profile | 彻底不发 `response_format`,靠提示词约束形状               |
+| `streamSupport: "unsupported"`          | 400/422 且响应体提到 `stream`;或 `response.body === null`;或整流一个内容分片都没有  | 写回 profile | 直接走缓冲路径                                            |
+| `reasoningControl: "thinking-disabled"` | 400/422 且响应体提到 `reasoning_effort` / `thinking`                                | 写回 profile | 去掉 `reasoning_effort`,改发 `thinking:{type:"disabled"}` |
+| `reasoningControl: "unsupported"`       | 400/422 且响应体提到 `thinking`(`thinking-disabled` 态下)                           | 写回 profile | 两者都不发,思考交给端点默认                               |
 
-三者都**只持久化否定态**,`undefined` 表示值得一试。写回由 `createProfileCapabilityWriters()` 装配——**三个写入器都必须接线**,漏掉任一个就会在每次请求上重复交同一笔学费(一趟白费的 4xx)。
+`jsonSchemaSupport` 是降级链(每一档都写回),`streamSupport` / `reasoningControl` 只持久化否定态,`undefined` 表示值得一试。写回由 `createProfileCapabilityWriters()` 装配——**三个写入器都必须接线**,漏掉任一个就会在每次请求上重复交同一笔学费(一趟白费的 4xx)。连接探测(`probeJsonCapability`)是**能力全量重探**:忽略已持久化的否定态,从 schema + reasoning 重新试一遍——旧版本降级逻辑写进 profile 的错误否定态只有这里能翻案。
+
+### 为什么 response_format 要三级降级
+
+DeepSeek V4.1 起 `json_schema` 已下线(400 "This response_format type is unavailable now");而它的非思考模式在**无约束解码**时会在 JSON 正文里吐 `<|endoftext|>` 一类特殊 token(实测 100% 复现:`{"ok":<|endoftext|>true}`,温度与 `json_object` 均无关),只有 `json_object` 的服务端约束能压住。所以两级降级(schema → 无)正好掉进污染区——表现就是「测试连接」报『模型未能返回有效 JSON』。解析层(`parseModelContent`)另有清洗兜底:先剥掉 `<|...|>` 特殊 token 再解析,不动模型原文。
 
 ### 为什么默认关模型思考
 

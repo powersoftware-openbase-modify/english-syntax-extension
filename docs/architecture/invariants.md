@@ -118,9 +118,9 @@
 
 **测试** `chrome-plugin/src/background/openai-compatible-adapter.test.ts` 的 `默认关闭模型思考` 组。
 
-### I-10 能力位只持久化否定态,且三个写入器都要接线
+### I-10 能力位只在探到结果时写回,且三个写入器都要接线
 
-**规则** `jsonSchemaSupport` / `streamSupport` / `reasoningControl` 探到"不支持"才写回;`undefined` 表示值得一试。`createProfileCapabilityWriters()` 返回的三个写入器**必须全部装配到适配器上**。
+**规则** `streamSupport` / `reasoningControl` 探到"不支持"才写回,`undefined` 表示值得一试;`jsonSchemaSupport` 是唯一的例外——它是**降级链**,每一档(`"json-object"` / `"unsupported"` / 探到 schema 可用时的 `"supported"`)都要写回,否则中间档每次都白探。`createProfileCapabilityWriters()` 返回的三个写入器**必须全部装配到适配器上**。
 
 **症状** 漏掉任一个 → 每次请求都重复交同一笔学费(被拒的 `response_format` 或 `stream` 各要白费一趟 4xx)。
 
@@ -135,6 +135,16 @@
 **症状** 同一段文本在 Chrome 与 IntelliJ 产生不同句数/句文本，交换缓存不命中，甚至相同模型结果落到不同 Token 区间。
 
 **守护测试** 双端 Segmenter 测试共同消费 `shared-fixtures/segmenter-vectors.json`。
+
+### I-10.2 response_format 必须三级降级,非思考模式的 JSON 正文可能被特殊 token 污染
+
+**规则** `response_format` 的降级链是 `json_schema → json_object → 无`,schema 被拒**先降 `json_object` 这一档**而不是直接裸奂;解析层(`parseModelContent`)要先把 `<|endoftext|>` 一类特殊 token 清洗掉再解析。连接探测从 schema + reasoning 全量重探(忽略已持久化的否定态),旧版本写死的错误否定态只有这里能翻案。
+
+**为什么** DeepSeek V4.1 起下线了 `json_schema`(400 "This response_format type is unavailable now");而它的非思考模式在**无约束解码**时会在 JSON 正文里吐 `<|endoftext|>` 一类特殊 token(实测 100% 复现,`{"ok":<|endoftext|>true}`),只有 `json_object` 的服务端约束能压住。两级直接裸奂正好掉进污染区——表现就是「测试连接」报『模型未能返回有效 JSON』。
+
+**症状** json_schema 被拒后降级到裸奂的端点上,探测/解析整场失败;真实分析请求同样坏。
+
+**测试** `chrome-plugin/src/background/openai-compatible-adapter.test.ts` 的 `probe walks the full three-level format chain before giving up on constraints` 与 `strips provider special tokens polluting the JSON body before parsing`。
 
 ## 提示词与 token 预算
 
