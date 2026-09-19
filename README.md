@@ -6,7 +6,7 @@
 
 **[⬇️ 下载最新版](https://github.com/javaside/english-syntax-extension/releases/latest)** · [更新日志](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md)
 
-同一套「拆解英文」的两个平台实现，仓库根下两个平级子模块：
+同一套「英语拆解宝」的两个平台实现，仓库根下两个平级子模块：
 
 - **`chrome-plugin/`** —— Manifest V3 Chrome 扩展：把网页中的英文段落替换为**逐句句法拆解卡片**（成分角色 / 英文原文 / 成分中文释义三行对照），点击任意成分再懒加载该成分的详细语法解析。分析由你自己配置的 OpenAI 兼容模型完成（DeepSeek、本地 Ollama、任何兼容 `/chat/completions` 的服务）。**[↓ 直接往下读]**
 - **`intellij-plugin/`** —— IntelliJ IDEA Markdown 预览插件：在 IDEA 自带的 Markdown 预览里做同样的句法拆解，SQLite 缓存与 Chrome 扩展互通（可导入导出），API Key 存 PasswordSafe。使用说明见下方[「IntelliJ 插件」](#intellij-插件)一节。

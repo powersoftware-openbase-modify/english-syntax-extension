@@ -19,6 +19,7 @@
 | 渲染 | 粘贴页自建只读卡片列表，三行结构与现有卡片对齐（新组件，不搬 learning-block——它深耦合 DOM 扫描/替换/视口观察） |
 | 缓存 | 零改动：SW 的 ANALYZE_CORE 本就按「句文本+版本+prompt 版本」写缓存，粘贴结果网页命中、网页结果粘贴命中 |
 | 进度 | 一期只等各批 `CORE_RESULT` 响应，页面显示「x/y 句」；不连 `CORE_STREAM` 端口（流式二期） |
+| PDF 输入 | 粘贴页支持拖入/选择本地 PDF，用 pdfjs-dist 提取文本层重建段落，自动填入 textarea；不做 PDF 渲染视图与坐标高亮（决策见「PDF 拖入提取」节） |
 | 详解点击 | 一期不做（见非目标） |
 
 ## 1. 页面与入口
@@ -34,6 +35,19 @@
 3. SW 照常：缓存查询 → 未命中句进 request-scheduler（`visible-core` 优先级）→ 模型 → 校验/修复 → 写缓存 → 回 `CORE_RESULT`（含逐句 `failures`）。
 4. 粘贴页按 `sentenceId` 归位渲染：成功句出三行卡片，失败句出错误卡片（沿用 `INVALID_MODEL_OUTPUT：…` 文案与「重新解析」逻辑；一期重试 = 重发该句所在批，`bypassCache: true` 仅对该批）。
 5. 再次点「开始解析」即全量重跑（命中缓存的句秒回）。
+
+## 2.5 PDF 拖入提取（pdfjs-dist）
+
+- **定位**：PDF 只作为「文本来源」接入粘贴管线，不做页内渲染/坐标对齐——渲染形态问题整个不存在，这也是与「不做 PDF 页内解析」原决策的兼容点。
+- **依赖**：`pdfjs-dist`（Mozilla 官方，MIT）npm 引入随包分发——**MV3 禁远程代码，不可用 CDN**；worker 文件复制进构建产物，`GlobalWorkerOptions.workerSrc = chrome.runtime.getURL("pdf.worker.min.mjs")`（扩展页加载自家资源无需额外权限）。
+- **输入方式**：file input + 拖拽到粘贴区；**一期不做** URL 打开远程 PDF（跨域 + 智慧平台签名 URL 401，无收益）。
+- **文本重建算法**（`src/paste/pdf-text.ts`）：
+  1. `getTextContent()` 取带 transform 坐标的 text item；
+  2. 按 y 坐标聚类成行（容差取字高的一半），行内按 x 排序拼接，相邻 item 间距判空格；
+  3. 行距/缩进突变判段落边界；行尾连字符（`-`）与下一行首小写合并；
+  4. 页与页拼接：页尾非句末标点则与下页首行合并（跨页段落）。
+- **边界**：加密 PDF、无文本层（`getTextContent` 为空）→ 行内提示「此 PDF 没有文字层，请改用网页版课文」；一期只承诺单栏文档（课文/教辅），双栏渲染错序属已知限制记录在 CHANGELOG。
+- 提取完成后文本进**同一个 textarea**，用户可检查修改后再解析——提取与解析解耦，算法瑕疵不直接变错卡片。
 
 ## 3. 协议与其它模块
 
@@ -52,6 +66,7 @@
 - 单测（vitest，happy-dom）：
   - 粘贴页：分段/分句/切批的正确性与空输入容错；`CORE_RESULT` 成功/逐句失败两种归位渲染；重试批的 `bypassCache` 载荷。
   - SW：`ANALYZE_CORE` 来自扩展页 sender（`paste-` documentId）的端到端一次（fake chromeApi + fake 调度器），钉住「扩展页可作为发起方」。
+  - `pdf-text`：小样本 PDF fixture（构建期生成或提交二进制）钉住聚行/拼段/连字符/跨页四条规则；无文本层 PDF 的提示路径。
 - E2E（Playwright）：打开 `paste.html` → 填入 fixtures 课文文本 → 假 OpenAI 服务器响应 → 断言卡片三行结构逐句出现（探针断言，不用墙钟）；失败句显示错误文案。
 - 门禁：`npm test && npx playwright test && npm run lint && npm run format:check && npm run build`；lint 保持恰好 1 个基线错误。
 

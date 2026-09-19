@@ -57,7 +57,7 @@ export async function createPopupPage(
   root.dataset.focusStyle = "visible";
 
   const header = element("div", "popup-page__header");
-  const heading = element("h1", "popup-page__title", "拆解英文");
+  const heading = element("h1", "popup-page__title", "英语拆解宝");
   const gear = element("button", "popup-page__gear", "⚙︎");
   gear.type = "button";
   gear.dataset.action = "open-options";
