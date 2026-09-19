@@ -6,7 +6,7 @@
 
 ## 30 秒概览
 
-仓库根下两个平级子模块,同一套「英语句法伴读」的两个平台实现:
+仓库根下两个平级子模块,同一套「拆解英文」的两个平台实现:
 
 - **`chrome-plugin/`** —— Chrome MV3 扩展:把网页里的英文段落**就地替换**成逐句句法拆解卡片(每个成分三行——角色标签 / 英文原文 / 中文译文),点任一成分展开详细解析面板。句法分析由用户自配的**任意 OpenAI 兼容端点**完成(云端 API 或本地 Ollama),结果按句缓存在 IndexedDB。完整 npm 工程,TypeScript + Vite + `vite-plugin-web-extension`;Vitest(happy-dom / fake-indexeddb)单测,Playwright E2E(加载真实构建产物 + 本地假 OpenAI 服务器)。
 - **`intellij-plugin/`** —— IntelliJ IDEA Markdown 预览插件:Kotlin + Gradle IntelliJ Platform,SQLite 缓存(与 Chrome 扩展互通),JCEF 桥接预览页;web 侧 TS 测试在该子目录里独立跑。
