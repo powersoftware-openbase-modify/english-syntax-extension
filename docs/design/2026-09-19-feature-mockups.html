@@ -83,6 +83,14 @@
   .quiz .opts .btn{width:auto; padding:8px 18px;}
   .drop{border:2px dashed #a5b4fc; border-radius:10px; padding:14px; text-align:center; color:var(--brand); font-size:12.5px; background:var(--brand-soft); margin:10px 0;}
   textarea.ta{width:100%; height:110px; border:1px solid var(--line); border-radius:8px; padding:10px; font:13px/1.6 Georgia,serif; color:var(--ink);}
+  /* ---------- 7 粘贴原文/PDF导入：单栏分阶段 ---------- */
+  .stagecap{font-size:11.5px; letter-spacing:1px; color:var(--sub); margin:22px 0 8px;}
+  .stagebar{position:sticky; top:0; z-index:5; background:rgba(255,255,255,.97); border:1px solid var(--line); border-radius:10px; padding:10px 14px; display:flex; align-items:center; gap:10px; box-shadow:0 2px 10px rgba(0,0,0,.06); margin-bottom:14px;}
+  .stagebar .src{font-weight:600; font-size:13.5px; white-space:nowrap;}
+  .stagebar .prog{color:var(--sub); font-size:12.5px; white-space:nowrap;}
+  .stagebar .sp{flex:1;}
+  #s7 .sentcard{max-width:none;}
+  #s7 .panel{max-width:none;}
   .kbd{border:1px solid #cbd5e1; border-bottom-width:2px; border-radius:5px; padding:0 6px; font-size:12px; background:#f8fafc;}
   .two{display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;}
   .two>div{flex:1; min-width:300px;}
@@ -275,19 +283,27 @@
 <section id="s7">
   <h2>7 · 粘贴原文/PDF导入 <span class="pill sub">订阅</span></h2>
   <p class="lead">popup「粘贴原文/PDF导入」按钮打开的本页（独立 tab，不是 popup 本体）：粘贴文本或拖入本地 PDF，走现有解析链路，缓存与网页解析互通。</p>
-  <div class="two">
-    <div>
-      <div class="panel">
-        <h3>粘贴原文/PDF导入</h3>
-        <div class="drop">📄 拖入 PDF 文件到此处，或点击选择<br><span style="color:var(--sub);">自动提取文字层填入下方（单栏文档效果最佳）</span></div>
-        <textarea class="ta">When the fire alarm rang, everyone left the building quickly.
+  <div class="stagecap">阶段 1 · 输入态（全宽）</div>
+  <div class="panel">
+    <h3>输入原文</h3>
+    <div class="drop" style="padding:36px; font-size:13.5px;">📄 拖入 PDF 文件到此处，或点击选择<br><span style="color:var(--sub); font-size:12.5px;">自动提取文字层填入下方（单栏文档效果最佳）</span></div>
+    <div style="text-align:center; color:var(--sub); font-size:12px; margin:12px 0;">—— 或在下方直接粘贴文本 ——</div>
+    <textarea class="ta" style="height:140px;">When the fire alarm rang, everyone left the building quickly.
 Doctors said it was not urgent, but families still worried all night.</textarea>
-        <button class="btn main" style="margin-top:10px;">开始解析</button>
-      </div>
-    </div>
-    <div>
-      <div style="text-align:center; color:var(--sub); font-size:12.5px; margin-bottom:8px;">2/2 句完成</div>
-      <div class="sentcard">
+    <button class="btn main" style="margin-top:12px; display:block; max-width:260px; margin-left:auto; margin-right:auto;">开始解析</button>
+  </div>
+
+  <div class="stagecap">阶段 2 · 结果态（输入面板收起为吸顶工具条，卡片全宽流式排布）</div>
+  <div class="stagebar">
+    <span class="src">▤ 粘贴文本 · 42 句</span>
+    <span class="prog">31/42 句完成 · 2 句失败</span>
+    <span class="sp"></span>
+    <button class="btn mini ghost">✎ 重新编辑</button>
+    <button class="btn mini ghost">⬟ 展开原文</button>
+    <button class="btn mini">⏸ 暂停</button>
+  </div>
+  <div style="border:1px dashed var(--line); border-radius:10px; padding:10px 14px; font-size:12.5px; color:var(--sub); margin-bottom:12px; font-family:Georgia,serif;">When the fire alarm rang, everyone left the building quickly. Doctors said it was not urgent, but families still worried all night. …<br><span style="font-family:inherit;">（「展开原文」抽屉：按需对照全文，不常驻占屏）</span></div>
+  <div class="sentcard">
         <div class="roles"><span class="chip" style="background:var(--adv);">状语</span><span class="chip" style="background:var(--subj);">主语</span><span class="chip" style="background:var(--pred);">谓语</span><span class="chip" style="background:var(--adv);">状语</span></div>
         <div class="en"><span class="seg" style="border-color:var(--adv);">When the fire alarm rang</span>, <span class="seg" style="border-color:var(--subj);">everyone</span> <span class="seg" style="border-color:var(--pred);">left</span> <span class="seg" style="border-color:var(--adv);">quickly</span>.</div>
         <div class="zh">火警响起时，大家迅速离开了大楼。</div>
@@ -300,9 +316,7 @@ Doctors said it was not urgent, but families still worried all night.</textarea>
       <div class="sentcard">
         <div class="fail">INVALID_MODEL_OUTPUT：模型输出经两轮修复后仍不合格：dangling preposition 「of」<button class="btn mini ghost" style="margin-left:10px;">重新解析</button></div>
       </div>
-    </div>
-  </div>
-  <div class="note"><b>交互说明：</b>① 拖入 PDF → pdf.js 提取文字层重建段落 → 自动填入 textarea，用户可修改后再解析（提取与解析解耦）；无文字层的 PDF 提示改用网页版课文；② 按 6 句/批走 ANALYZE_CORE，进度 x/y 实时刷新；③ 失败句显示真实校验错误 + 重新解析；④ 二期加成分点击详解与流式渲染。</div>
+  <div class="note"><b>交互说明：</b>① <b>单栏分阶段</b>：输入态（全宽 drop 区 + textarea + 开始解析）与结果态互斥显示，不做左右分栏——成分卡片与页内解析同款全宽渲染，输入是一次性动作、解析后不再占半屏；② 拖入 PDF → pdf.js 提取文字层重建段落 → 自动填入 textarea，用户可修改后再解析（提取与解析解耦）；无文字层的 PDF 提示改用网页版课文；③ 开始解析后输入面板收起为<b>吸顶工具条</b>：来源（粘贴文本 / PDF 文件名）、进度 x/y、失败数、「✎ 重新编辑」回输入态（缓存中已解析结果不丢）、「⬟ 展开原文」按需抽屉对照全文、⏸ 暂停；④ 按 6 句/批走 ANALYZE_CORE，进度实时刷新；⑤ 失败句显示真实校验错误 + 重新解析；⑥ 二期加成分点击详解与流式渲染（全宽卡片下更好排）。</div>
 </section>
 
 <!-- ============ 8 句子收藏本 ============ -->
