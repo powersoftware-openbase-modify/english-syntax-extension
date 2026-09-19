@@ -43,7 +43,7 @@
 
 ```
 chrome-plugin/
-├── manifest.json              # MV3 清单：权限、入口、快捷键(Alt+T)
+├── manifest.json              # MV3 清单：权限、入口、快捷键(Alt+C)
 ├── vite.config.ts             # 后台/popup/选项页的构建
 ├── vite.content.config.ts     # content script 单独构建(要打进页面的代码)
 ├── src/
@@ -132,7 +132,7 @@ npm run build
 
 ### 第四步：用起来
 
-- 打开任意英文网页（如 MDN、英文新闻），点扩展图标 → 开始会话；或把鼠标停在段落上按 **Alt+T** 解析当前段落；也可以选中文字右键解析；
+- 打开任意英文网页（如 MDN、英文新闻），点扩展图标 → 开始会话；或把鼠标停在段落上按 **Alt+C** 解析当前段落；也可以选中文字右键解析；
 - 段落被替换为拆解卡片，点任意成分看详解；
 - popup 里可看进度、切模型 profile。
 

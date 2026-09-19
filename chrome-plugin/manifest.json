@@ -29,7 +29,7 @@
   "commands": {
     "parse-hovered-block": {
       "suggested_key": {
-        "default": "Alt+T"
+        "default": "Alt+C"
       },
       "description": "解析鼠标悬停的段落"
     }
