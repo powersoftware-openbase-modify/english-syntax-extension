@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>英语拆解宝 · 本期功能交互设计稿</title>
+<style>
+  :root{
+    --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb; --bg:#f3f4f6; --card:#ffffff;
+    --brand:#4f46e5; --brand-soft:#eef2ff; --ok:#059669; --warn:#d97706; --bad:#dc2626;
+    --subj:#2563eb; --pred:#dc2626; --obj:#059669; --attr:#7c3aed; --adv:#d97706; --predi:#0891b2;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font:14px/1.6 "Segoe UI","Microsoft YaHei",sans-serif; color:var(--ink); background:var(--bg); display:flex; min-height:100vh;}
+  /* ---------- 侧栏 ---------- */
+  nav{width:230px; flex:none; background:#111827; color:#d1d5db; padding:18px 0; position:sticky; top:0; height:100vh; overflow:auto;}
+  nav h1{font-size:16px; color:#fff; padding:0 18px 4px;}
+  nav .tagline{font-size:11px; color:#9ca3af; padding:0 18px 14px; border-bottom:1px solid #1f2937;}
+  nav a{display:block; padding:9px 18px; color:#d1d5db; text-decoration:none; font-size:13px; border-left:3px solid transparent;}
+  nav a:hover{background:#1f2937;}
+  nav a.on{background:#1f2937; border-left-color:var(--brand); color:#fff;}
+  nav .free::after{content:"免费"; font-size:10px; background:#064e3b; color:#6ee7b7; border-radius:4px; padding:1px 5px; margin-left:6px;}
+  nav .sub::after{content:"订阅"; font-size:10px; background:#4c1d95; color:#c4b5fd; border-radius:4px; padding:1px 5px; margin-left:6px;}
+  /* ---------- 画布 ---------- */
+  main{flex:1; padding:28px 36px 80px; max-width:1080px;}
+  section{display:none;} section.show{display:block;}
+  section>h2{font-size:20px; margin-bottom:4px;}
+  section>p.lead{color:var(--sub); margin-bottom:18px;}
+  .note{background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:10px 14px; font-size:12.5px; color:#92400e; margin-top:16px;}
+  .note b{color:#78350f;}
+  .browser{background:#dbeafe; border-radius:10px 10px 0 0; padding:8px 14px; display:flex; gap:6px; align-items:center;}
+  .browser i{width:10px;height:10px;border-radius:50%;background:#93c5fd;display:inline-block;}
+  .browser .addr{flex:1; background:#fff; border-radius:6px; font-size:11px; color:var(--sub); padding:3px 10px;}
+  .page{background:#fdfdfd; border:1px solid var(--line); border-top:0; border-radius:0 0 10px 10px; padding:26px; }
+  .page .article{font-family:Georgia,serif; font-size:15.5px; color:#111827; max-width:620px;}
+  .page .article p{margin-bottom:14px;}
+  /* ---------- popup ---------- */
+  .popup{width:330px; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.12); overflow:hidden;}
+  .popup .head{background:linear-gradient(135deg,#312e81,#6d28d9); color:#fff; padding:14px 16px; display:flex; justify-content:space-between; align-items:center;}
+  .popup .head b{font-size:15px;} .popup .head span{cursor:pointer; opacity:.8;}
+  .popup .body{padding:12px 14px;}
+  .btn{display:inline-block; border:0; border-radius:8px; padding:9px 0; width:100%; text-align:center; font-size:14px; cursor:pointer;}
+  .btn.main{background:var(--brand); color:#fff;} .btn.ghost{background:var(--brand-soft); color:var(--brand); margin-top:8px;}
+  .btn.mini{width:auto; padding:5px 12px; font-size:12px;}
+  .row{display:flex; justify-content:space-between; align-items:center; padding:7px 2px; border-bottom:1px dashed var(--line); font-size:13px;}
+  .row:last-child{border-bottom:0;} .row .k{color:var(--sub);}
+  .pill{font-size:11px; background:var(--brand-soft); color:var(--brand); border-radius:10px; padding:1px 8px;}
+  .pill.free{background:#ecfdf5; color:var(--ok);} .pill.sub{background:#f5f3ff; color:#6d28d9;}
+  /* ---------- 取词悬浮条 ---------- */
+  .wpop{display:inline-flex; align-items:center; gap:9px; background:#111827; color:#f9fafb; border-radius:10px; padding:9px 13px; box-shadow:0 6px 18px rgba(0,0,0,.25); font-size:13px;}
+  .wpop .w{font-weight:700; font-size:15px;} .wpop .ipa{color:#9ca3af;}
+  .wpop .sense{color:#e5e7eb; max-width:200px;}
+  .wpop .ic{cursor:pointer; opacity:.9;} .wpop .ic.star{color:#fbbf24;}
+  .tagb{font-size:10px; background:#065f46; color:#6ee7b7; border-radius:4px; padding:1px 5px;}
+  .mark{border-bottom:2px dotted #94a3b8; text-decoration:none;}
+  .kw{background:#fef3c7; border-radius:3px; padding:0 2px;}
+  /* ---------- 三行卡片 ---------- */
+  .sentcard{background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; max-width:620px;}
+  .sentcard .en{font-family:Georgia,serif; font-size:15px; margin-bottom:8px;}
+  .seg{display:inline-block; border-bottom:2.5px solid; padding:0 1px; cursor:pointer;}
+  .seg.hl{background:#fde68a; border-radius:3px;}
+  .roles{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:6px;}
+  .chip{font-size:10.5px; color:#fff; border-radius:4px; padding:1px 7px;}
+  .zh{font-size:13.5px; color:#374151;}
+  .fail{border-left:3px solid var(--bad); padding-left:10px; color:var(--bad); font-size:12.5px; margin-top:8px;}
+  /* ---------- 通用面板 ---------- */
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 22px; max-width:760px;}
+  .panel h3{font-size:15px; margin-bottom:12px;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{color:var(--sub); font-weight:600; text-align:left; padding:7px 8px; border-bottom:2px solid var(--line);}
+  td{padding:8px; border-bottom:1px solid var(--line);}
+  .toggle{width:40px; height:22px; background:var(--brand); border-radius:11px; position:relative; display:inline-block; vertical-align:middle;}
+  .toggle::after{content:""; position:absolute; right:2px; top:2px; width:18px; height:18px; background:#fff; border-radius:50%;}
+  .toggle.off{background:#d1d5db;} .toggle.off::after{right:auto; left:2px;}
+  .stat{display:flex; gap:12px; margin:10px 0;}
+  .stat .box{flex:1; background:#fafafa; border:1px solid var(--line); border-radius:10px; padding:12px; text-align:center;}
+  .stat .box b{font-size:22px; display:block;} .stat .box span{font-size:11.5px; color:var(--sub);}
+  .bars{display:flex; gap:6px; align-items:flex-end; height:64px; margin-top:8px;}
+  .bars i{flex:1; background:#c7d2fe; border-radius:3px 3px 0 0;}
+  .bars i.max{background:var(--brand);}
+  .quiz .face{background:#fff; border:2px solid var(--brand); border-radius:14px; padding:26px; text-align:center; max-width:420px; margin:0 auto;}
+  .quiz .face .big{font-size:30px; font-weight:800;}
+  .quiz .opts{display:flex; gap:10px; justify-content:center; margin-top:18px;}
+  .quiz .opts .btn{width:auto; padding:8px 18px;}
+  .drop{border:2px dashed #a5b4fc; border-radius:10px; padding:14px; text-align:center; color:var(--brand); font-size:12.5px; background:var(--brand-soft); margin:10px 0;}
+  textarea.ta{width:100%; height:110px; border:1px solid var(--line); border-radius:8px; padding:10px; font:13px/1.6 Georgia,serif; color:var(--ink);}
+  .kbd{border:1px solid #cbd5e1; border-bottom-width:2px; border-radius:5px; padding:0 6px; font-size:12px; background:#f8fafc;}
+  .two{display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;}
+  .two>div{flex:1; min-width:300px;}
+/* ---------- 13 渲染样式优化 ---------- */
+.scene{border-radius:12px; padding:26px; margin-bottom:18px;}
+.scene.dark{background:#111827;}
+.scene.green{background:linear-gradient(135deg,#5cb85c,#4cae4c);}
+.scene.light{background:#f8f8f8; border:1px solid var(--line);}
+.scene h4{color:#9ca3af; font-size:11.5px; letter-spacing:1px; margin-bottom:12px; text-transform:uppercase;}
+.scene h4 em{font-style:normal; color:#fff; background:var(--bad); border-radius:4px; padding:0 6px; margin-right:6px;}
+.scene h4 em.ok{background:var(--ok);}
+.legacy{font-family:Georgia,serif; color:inherit;}
+.legacy .big{font-size:30px; line-height:1.3;}
+.legacy .u{border-bottom:2.5px solid; padding:0 1px;}
+.legacy .tr{font-size:13px; opacity:.75; display:block;}
+.card-dark,.card-frost,.card-lite{border-radius:10px; padding:12px 16px; max-width:620px;}
+.card-dark{background:rgba(17,24,39,.94); border:1px solid #374151; box-shadow:0 4px 14px rgba(0,0,0,.35);}
+.card-frost{background:rgba(255,255,255,.9); backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,.55); box-shadow:0 4px 14px rgba(0,0,0,.18);}
+.card-lite{background:#fff; border:1px solid var(--line); box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.card-dark .en,.card-frost .en,.card-lite .en{font-family:Georgia,serif; font-size:15px; margin-bottom:7px; color:#f3f4f6;}
+.card-frost .en,.card-lite .en{color:#111827;}
+.card-dark .zh{font-size:13px; color:#d1d5db;}
+.card-frost .zh,.card-lite .zh{font-size:13px; color:#374151;}
+.card-dark .seg{border-bottom-width:2.5px;}
+.card-dark .s1{border-color:#60a5fa;} .card-dark .s2{border-color:#f87171;} .card-dark .s3{border-color:#34d399;} .card-dark .s4{border-color:#fbbf24;} .card-dark .s5{border-color:#a78bfa;} .card-dark .s6{border-color:#22d3ee;}
+.card-frost .s1,.card-lite .s1{border-color:var(--subj);} .card-frost .s2,.card-lite .s2{border-color:var(--pred);} .card-frost .s3,.card-lite .s3{border-color:var(--obj);} .card-frost .s4,.card-lite .s4{border-color:var(--adv);} .card-frost .s5,.card-lite .s5{border-color:var(--attr);} .card-frost .s6,.card-lite .s6{border-color:var(--predi);}
+.roles-sm{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;}
+.roles-sm .chip{font-size:10px;}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <h1>英语拆解宝</h1>
+  <div class="tagline">本期功能交互设计稿 v1 · 2026-09-19</div>
+  <a href="#s1" class="on">1 · Popup 改版</a>
+  <a href="#s2">2 · 双击取词悬浮条<span class="free"></span></a>
+  <a href="#s3">3 · AI 单词深度讲解<span class="sub"></span></a>
+  <a href="#s4">4 · 生词本列表<span class="free"></span></a>
+  <a href="#s5">5 · 生词复习卡片 SRS<span class="free"></span></a>
+  <a href="#s6">6 · 生词页面高亮回显<span class="free"></span></a>
+  <a href="#s7">7 · 粘贴课文解析（含 PDF）<span class="sub"></span></a>
+  <a href="#s8">8 · 句子收藏本 + Anki 导出<span class="free"></span></a>
+  <a href="#s9">9 · 整句朗读 + 跟读对照<span class="free"></span></a>
+  <a href="#s10">10 · 点读模式开关<span class="free"></span></a>
+  <a href="#s11">11 · 学习统计<span class="free"></span></a>
+  <a href="#s12">12 · 订阅激活<span class="sub"></span></a>
+  <a href="#s13">13 · 渲染样式优化（对比稿）</a>
+</nav>
+
+<main>
+
+<!-- ============ 1 Popup ============ -->
+<section id="s1" class="show">
+  <h2>1 · Popup 改版</h2>
+  <p class="lead">现有 popup 基础上，新增三个入口：粘贴课文解析、生词本、学习统计。保持一主按钮原则——主按钮仍是开始/暂停学习。</p>
+  <div class="popup">
+    <div class="head"><b>英语拆解宝</b><span>⚙︎</span></div>
+    <div class="body">
+      <button class="btn main">▶ 开始学习本页</button>
+      <div style="margin-top:10px;">
+        <div class="row"><span class="k">本页进度</span><span>已解析 18 / 24 句</span></div>
+        <div class="row"><span class="k">模型</span><span>DeepSeek·官方 <span class="pill">已连接</span></span></div>
+      </div>
+      <div style="margin-top:12px; display:grid; gap:8px;">
+        <button class="btn ghost">📋 粘贴课文解析 <span class="pill sub">订阅</span></button>
+        <button class="btn ghost">📖 生词本 <span class="pill free">12 词</span></button>
+        <button class="btn ghost">📈 学习统计 <span class="pill free">连续 5 天 🔥</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>交互说明：</b>三个入口按钮等宽竖排（拇指/视线动线从上到下）；生词本按钮带实时计数；统计按钮带连续天数钩子。开始学习后主按钮变为「⏸ 暂停学习」，进度行实时刷新。</div>
+</section>
+
+<!-- ============ 2 双击取词 ============ -->
+<section id="s2">
+  <h2>2 · 双击取词悬浮条 <span class="pill free">免费</span></h2>
+  <p class="lead">任意网页双击英文单词，常驻生效。悬浮条 = 单词 + 音标 + 考试徽章 + 首条释义 + 发音 + 收藏。</p>
+  <div class="browser"><i></i><i></i><i></i><span class="addr">example.com/unit-3-reading</span></div>
+  <div class="page">
+    <div class="article">
+      <p>When the fire alarm rang, everyone left the building quickly.
+      Doctors said it was not <span class="kw">urgent</span>, but families still worried all night.</p>
+      <p style="position:relative;">Doctors said it was not <span id="anchor" style="background:#fde68a;">urgent</span>, but families still worried all night.
+        <span class="wpop" style="position:absolute; left:150px; top:26px; white-space:nowrap;">
+          <span class="w">urgent</span><span class="ipa">/ˈɜːdʒənt/</span><span class="tagb">中考·高考</span>
+          <span class="sense">adj. 紧急的</span>
+          <span class="ic">🔊</span><span class="ic star">★</span>
+        </span>
+      </p>
+    </div>
+  </div>
+  <div class="note"><b>交互说明：</b>双击（capture 监听，不阻断页面）→ 悬浮条出现在选区下方 8px，右侧越界左翻、底部越界上翻；外点 / Esc / 滚动 / 双击新词即关闭；查词纯本地词典分片，无网络请求。词形自动归原形（双击 went → 查 go）。☆ 点击变实心 = 已入生词本（经 SW 落库）。考试徽章来自 ECDICT tag，命中中考/高考/CET4/CET6/考研/TOEFL/IELTS/GRE 才显示。查无此词 → 只显示「单词 + 关闭」的未收录态。</div>
+</section>
+
+<!-- ============ 3 深度讲解 ============ -->
+<section id="s3">
+  <h2>3 · AI 单词深度讲解 <span class="pill sub">订阅</span></h2>
+  <p class="lead">悬浮条上的「深度讲解」按钮：词根词缀 + 近义辨析 + 三个难度分级例句。走现有模型链路，结果进缓存。</p>
+  <div class="browser"><i></i><i></i><i></i><span class="addr">同上页面</span></div>
+  <div class="page">
+    <div style="max-width:420px;">
+      <span class="wpop" style="white-space:normal; display:block; align-items:flex-start;">
+        <span style="display:block;">
+          <span class="w">urgent</span> <span class="ipa">/ˈɜːdʒənt/</span> <span class="tagb">中考·高考</span> <span class="sense">adj. 紧急的</span>
+          <div style="margin:10px 0 6px; color:#e5e7eb; font-size:12.5px; line-height:1.7;">
+            <b style="color:#fbbf24;">⚡ 深度讲解</b>（加载中… / 结果如下）<br>
+            词根：<b>urg</b>（推动）+ <b>-ent</b>（形容词）→ 推着你走的 = 紧急的<br>
+            近义：<b>urgent</b> 紧急 ≠ <b>crucial</b> 关键 ≠ <b>casual</b> 随意（形近辨析）<br>
+            例句①（课本级）：This is an <b>urgent</b> letter.<br>
+            例句②（中考级）：She received an <b>urgent</b> call from hospital.<br>
+            例句③（拓展级）：The government took <b>urgent</b> measures to stop the spread.
+          </div>
+        </span>
+      </span>
+    </div>
+  </div>
+  <div class="note"><b>交互说明：</b>未订阅点击 → 返回 LICENSE_REQUIRED，悬浮条就地展开「升级订阅」引导卡（不跳页）；订阅用户点击 → 按钮转圈加载 → 就地展开讲解（不新建弹窗）；请求走 request-scheduler 的 detail-click(1) 优先级，结果按词缓存——同一单词全平台秒开。</div>
+</section>
+
+<!-- ============ 4 生词本 ============ -->
+<section id="s4">
+  <h2>4 · 生词本列表 <span class="pill free">免费</span></h2>
+  <p class="lead">选项页内新增「生词本」标签页。v1 = 列表 + 移除 + 导出；复习入口在复习卡片页（屏 5）。</p>
+  <div class="panel">
+    <h3>生词本 <span style="color:var(--sub); font-weight:400; font-size:12.5px;">共 12 词 · 以原形小写为键</span>
+      <button class="btn mini ghost" style="float:right;">⬇ 导出 CSV</button></h3>
+    <table>
+      <tr><th>单词</th><th>音标</th><th>标签</th><th>释义</th><th>来源</th><th>复习</th><th></th></tr>
+      <tr><td><b>urgent</b></td><td>/ˈɜːdʒənt/</td><td><span class="tagb">中考</span> <span class="tagb">高考</span></td><td>adj. 紧急的</td><td>Unit 3 · 粘贴解析</td><td>第 2 轮 · 4 天后</td><td><a href="#" style="color:var(--bad); text-decoration:none;">移除</a></td></tr>
+      <tr><td><b>familiar</b></td><td>/fəˈmɪliə/</td><td><span class="tagb">中考</span></td><td>adj. 熟悉的</td><td>Unit 2 · 网页取词</td><td>未开始</td><td><a href="#" style="color:var(--bad); text-decoration:none;">移除</a></td></tr>
+      <tr><td><b>go</b></td><td>/ɡəʊ/</td><td><span class="tagb">小学</span></td><td>v. 去</td><td>网页取词（双击 went）</td><td>第 5 轮 · 已掌握</td><td><a href="#" style="color:var(--bad); text-decoration:none;">移除</a></td></tr>
+    </table>
+  </div>
+  <div class="note"><b>交互说明：</b>popup 的「生词本」按钮打开本页并定位到此标签；「来源」列标明取词场景（网页取词 / 粘贴解析 / 课文 Unit）；「复习」列显示 SRS 阶段；CSV 按词典格式导出（词/音标/标签/释义/来源/收藏时间）。数据存扩展本地 IndexedDB，经 SW 落库。</div>
+</section>
+
+<!-- ============ 5 复习卡片 ============ -->
+<section id="s5">
+  <h2>5 · 生词复习卡片（简化 SRS） <span class="pill free">免费</span></h2>
+  <p class="lead">5 档固定间隔（1/2/4/7/15 天），不上完整 FSRS。入口在 popup / 生词本页；今日到期词逐张过。</p>
+  <div class="two">
+    <div>
+      <div style="text-align:center; color:var(--sub); font-size:12.5px; margin-bottom:8px;">今日 12 张 · 第 3 张 · 连续 5 天 🔥</div>
+      <div class="quiz">
+        <div class="face">
+          <div class="big">urgent</div>
+          <div style="color:var(--sub); margin-top:4px;">/ˈɜːdʒənt/ <span class="tagb">中考·高考</span></div>
+          <div style="margin-top:14px; color:#9ca3af; font-size:12px;">点击卡片查看释义</div>
+        </div>
+        <div class="opts">
+          <button class="btn" style="background:#fee2e2; color:var(--bad);">不会 · 1 天后</button>
+          <button class="btn" style="background:#fef3c7; color:var(--warn);">模糊 · 4 天后</button>
+          <button class="btn" style="background:#d1fae5; color:var(--ok);">认识 · 7 天后</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="quiz">
+        <div class="face" style="text-align:left; background:#f0fdf4; border-color:var(--ok);">
+          <div class="big" style="font-size:22px;">urgent <span style="font-size:13px; color:var(--sub);">/ˈɜːdʒənt/</span></div>
+          <div style="margin-top:8px;"><b>adj. 紧急的，急迫的</b></div>
+          <div style="margin-top:10px; font-family:Georgia,serif; font-size:13.5px;">
+            Doctors said it was not <b style="color:var(--obj);">urgent</b>.
+          </div>
+          <div style="color:var(--sub); font-size:11.5px; margin-top:4px;">来自：Unit 3 · 你解析过的句子</div>
+        </div>
+        <div style="text-align:center; color:var(--sub); font-size:12px; margin-top:8px;">翻面后选择记忆档位 → 下一张</div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>交互说明：</b>卡片正面 = 词 + 音标 + 徽章；点击翻面 = 释义 + <b>用户自己解析/查过的真实例句</b>（从缓存取，学习语境连贯）；三个按钮即复习档位（间隔 1/4/7 天，第 5 档 15 天在后台自动给「认识」的词续期）；全部过完显示「今日完成 ✅ 明天再来」。数据字段 reviewStage 已在生词本 store 预留。</div>
+</section>
+
+<!-- ============ 6 高亮回显 ============ -->
+<section id="s6">
+  <h2>6 · 生词页面高亮回显 <span class="pill free">免费</span></h2>
+  <p class="lead">收藏过的词，之后在任何网页上出现时自动标虚线下划线——留存杀手锏：背过的词天天在阅读里「再见」。</p>
+  <div class="browser"><i></i><i></i><i></i><span class="addr">three-days-later，另一篇新闻</span></div>
+  <div class="page">
+    <div class="article">
+      <p>The government issued an <span class="mark" title="你的生词：urgent · 点击复习">urgent</span> notice about the flood.
+      Many people are already <span class="mark" title="你的生词：familiar · 点击复习">familiar</span> with the emergency plan, and the situation is under control now.</p>
+    </div>
+  </div>
+  <div class="note"><b>交互说明：</b>MutationObserver 轻量监听（避开编辑框），命中原形或常见词形变化即加虚线下划线；**点击**高亮词 → 弹出与屏 2 同款悬浮条（复习入口）；与自家卡片/悬浮条互不误伤（composedPath 排除扩展 UI）；不改变页面布局，性能代价近似无感。</div>
+</section>
+
+<!-- ============ 7 粘贴课文解析 ============ -->
+<section id="s7">
+  <h2>7 · 粘贴课文解析（含 PDF 拖入） <span class="pill sub">订阅</span></h2>
+  <p class="lead">为智慧教育平台电子课本、老师发的 PDF/文档提供入口：粘贴文本或拖入本地 PDF，走现有解析链路，缓存与网页解析互通。</p>
+  <div class="two">
+    <div>
+      <div class="panel">
+        <h3>粘贴课文解析</h3>
+        <div class="drop">📄 拖入 PDF 文件到此处，或点击选择<br><span style="color:var(--sub);">自动提取文字层填入下方（单栏文档效果最佳）</span></div>
+        <textarea class="ta">When the fire alarm rang, everyone left the building quickly.
+Doctors said it was not urgent, but families still worried all night.</textarea>
+        <button class="btn main" style="margin-top:10px;">开始解析</button>
+      </div>
+    </div>
+    <div>
+      <div style="text-align:center; color:var(--sub); font-size:12.5px; margin-bottom:8px;">2/2 句完成 <span class="pill free">全部命中本地缓存</span></div>
+      <div class="sentcard">
+        <div class="roles"><span class="chip" style="background:var(--adv);">状语</span><span class="chip" style="background:var(--subj);">主语</span><span class="chip" style="background:var(--pred);">谓语</span><span class="chip" style="background:var(--adv);">状语</span></div>
+        <div class="en"><span class="seg" style="border-color:var(--adv);">When the fire alarm rang</span>, <span class="seg" style="border-color:var(--subj);">everyone</span> <span class="seg" style="border-color:var(--pred);">left</span> <span class="seg" style="border-color:var(--adv);">quickly</span>.</div>
+        <div class="zh">火警响起时，大家迅速离开了大楼。</div>
+      </div>
+      <div class="sentcard">
+        <div class="roles"><span class="chip" style="background:var(--subj);">主语</span><span class="chip" style="background:var(--pred);">谓语</span><span class="chip" style="background:var(--predi);">表语</span><span class="chip" style="background:var(--adv);">状语</span></div>
+        <div class="en"><span class="seg" style="border-color:var(--subj);">Doctors</span> <span class="seg" style="border-color:var(--pred);">said</span> <span class="seg" style="border-color:var(--predi);">it was not urgent</span>, <span class="seg" style="border-color:var(--adv);">but families still worried all night</span>.</div>
+        <div class="zh">医生说并不紧急，但家人整夜担心。</div>
+      </div>
+      <div class="sentcard">
+        <div class="fail">INVALID_MODEL_OUTPUT：模型输出经两轮修复后仍不合格：dangling preposition 「of」<button class="btn mini ghost" style="margin-left:10px;">重新解析</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>交互说明：</b>① 拖入 PDF → pdf.js 提取文字层重建段落 → 自动填入 textarea，用户可修改后再解析（提取与解析解耦）；无文字层的 PDF 提示改用网页版课文；② 按 6 句/批走 ANALYZE_CORE，进度 x/y 实时刷新；③ 失败句显示真实校验错误 + 重新解析；④ 二期加成分点击详解与流式渲染。</div>
+</section>
+
+<!-- ============ 8 句子收藏本 ============ -->
+<section id="s8">
+  <h2>8 · 句子收藏本 + Anki 导出 <span class="pill free">免费</span></h2>
+  <p class="lead">在解析卡片上收藏整句，导出即现成学习材料。备考人群硬需求。</p>
+  <div class="panel">
+    <h3>句子收藏本 <span style="color:var(--sub); font-weight:400; font-size:12.5px;">共 8 句</span>
+      <button class="btn mini ghost" style="float:right;">⬇ 导出 Anki (CSV)</button>
+      <button class="btn mini ghost" style="float:right; margin-right:8px;">⬇ 导出 CSV</button></h3>
+    <table>
+      <tr><th>原句</th><th>译文</th><th>来源</th><th></th></tr>
+      <tr><td style="font-family:Georgia,serif;">When the fire alarm rang, everyone left the building quickly.</td><td>火警响起时，大家迅速离开了大楼。</td><td>Unit 3 · 粘贴解析</td><td><a href="#" style="color:var(--bad); text-decoration:none;">移除</a></td></tr>
+      <tr><td style="font-family:Georgia,serif;">The firefighters arrived in five minutes.</td><td>消防员五分钟内赶到了。</td><td>Unit 3 · 网页解析</td><td><a href="#" style="color:var(--bad); text-decoration:none;">移除</a></td></tr>
+    </table>
+    <div style="margin-top:10px; font-size:12px; color:var(--sub);">导出字段：原文 / 译文 / 成分标注（可选）/ 来源 / 收藏时间 —— 直接适配 Anki「基本」笔记模板。</div>
+  </div>
+  <div class="note"><b>交互说明：</b>卡片右上角加 ☆（与生词本同交互）；收藏经 SW 落库；复用缓存中已有的成分/译文数据，零额外模型调用。</div>
+</section>
+
+<!-- ============ 9 整句朗读 + 跟读 ============ -->
+<section id="s9">
+  <h2>9 · 整句朗读 + 跟读对照 <span class="pill free">免费 · 跟读可订阅</span></h2>
+  <p class="lead">卡片底部加播放控制条：整句朗读（Web Speech），跟读模式下逐成分高亮——听力备考核心场景。</p>
+  <div class="sentcard" style="max-width:620px;">
+    <div class="roles"><span class="chip" style="background:var(--adv);">状语从句</span><span class="chip" style="background:var(--subj);">主语</span><span class="chip" style="background:var(--pred);">谓语</span><span class="chip" style="background:var(--adv);">状语</span></div>
+    <div class="en" style="font-size:16.5px;"><span class="seg" style="border-color:var(--adv);">When the fire alarm rang</span>, <span class="seg" style="border-color:var(--subj);">everyone</span> <span class="seg hl" style="border-color:var(--pred);">left</span> <span class="seg" style="border-color:var(--adv);">quickly</span>.</div>
+    <div class="zh">火警响起时，大家迅速离开了大楼。</div>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:12px; border-top:1px dashed var(--line); padding-top:10px;">
+      <button class="btn mini" style="background:var(--brand); color:#fff;">▶ 朗读整句</button>
+      <button class="btn mini ghost">🎙 跟读模式 <span class="pill sub">订阅</span></button>
+      <span style="color:var(--sub); font-size:12px;">▶ 播放中 · 正在读：<b style="color:var(--pred);">left</b>（黄色高亮跟随进度）</span>
+    </div>
+  </div>
+  <div class="note"><b>交互说明：</b>朗读 = Web Speech API 念整句，免费；跟读 = 朗读时按成分时间轴依次高亮（与角色标签同色），可标订阅权益；复用 ① speech 模块的音色选择/降级逻辑；发音不可用时按钮隐藏。</div>
+</section>
+
+<!-- ============ 10 点读模式 ============ -->
+<section id="s10">
+  <h2>10 · 点读模式开关 <span class="pill free">免费</span></h2>
+  <p class="lead">选项页开关：开启后网页里单击单词即发音——亲子/低年级基础场景，复用 ① speech。</p>
+  <div class="panel">
+    <h3>朗读设置</h3>
+    <div class="row" style="font-size:13.5px;"><span>点读模式 <span style="color:var(--sub); font-size:12px;">—— 网页中单击英文单词立即发音</span></span><span class="toggle"></span></div>
+    <div class="row" style="font-size:13.5px;"><span>发音音色 <span style="color:var(--sub); font-size:12px;">—— 优先自然/本地语音</span></span><span style="color:var(--brand);">Google US English ▾</span></div>
+    <div class="row" style="font-size:13.5px;"><span>语速</span><span>0.95×（默认，适合跟读）</span></div>
+  </div>
+  <div class="note"><b>交互说明：</b>开关在选项页修改 → 经 SW 广播到各标签页（content 读不到 chrome.storage 的约束）；SW 启动时不主动推，页面首次响应取默认值「关」；单击发音只读不选中，与双击取词互不干扰。</div>
+</section>
+
+<!-- ============ 11 学习统计 ============ -->
+<section id="s11">
+  <h2>11 · 学习统计 <span class="pill free">免费</span></h2>
+  <p class="lead">popup 内嵌摘要 + 点击展开详情。本地计数，打卡心理钩子。</p>
+  <div class="panel" style="max-width:480px;">
+    <h3>📈 学习统计 <span style="float:right; color:var(--warn); font-weight:700;">连续 5 天 🔥</span></h3>
+    <div class="stat">
+      <div class="box"><b>8</b><span>今日查词</span></div>
+      <div class="box"><b>3</b><span>今日收藏</span></div>
+      <div class="box"><b>24</b><span>今日解析句</span></div>
+    </div>
+    <div style="font-size:12.5px; color:var(--sub); margin-top:12px;">近 7 日解析句数</div>
+    <div class="bars"><i style="height:30%;"></i><i style="height:55%;"></i><i style="height:40%;"></i><i style="height:70%;"></i><i style="height:45%;"></i><i style="height:85%;"></i><i class="max" style="height:100%;"></i></div>
+  </div>
+  <div class="note"><b>交互说明：</b>事件在各功能落点埋（取词/收藏/解析/复习完成），只存本地；popup 摘要只显示核心三数 + 连续天数；点开看 7 日柱状图。零上报。</div>
+</section>
+
+<!-- ============ 12 订阅激活 ============ -->
+<section id="s12">
+  <h2>12 · 订阅激活 <span class="pill sub">订阅</span></h2>
+  <p class="lead">选项页订阅卡片：试用状态 → 激活 → 托管模型。BYOM 自填模型随订阅化移除。</p>
+  <div class="two">
+    <div>
+      <div class="panel">
+        <h3>订阅状态</h3>
+        <div class="row"><span class="k">当前状态</span><span><b style="color:var(--warn);">试用中</b> · 本页会话已用 3 / 20 次</span></div>
+        <div class="row"><span class="k">语法解析额度</span><span>试用额度 · 每页会话扣 1 次</span></div>
+        <div class="row"><span class="k">AI 深度讲解</span><span style="color:var(--bad);">未解锁</span></div>
+        <button class="btn main" style="margin-top:14px;">订阅解锁 · ¥18/月（30 天）</button>
+        <div style="margin-top:12px; border-top:1px dashed var(--line); padding-top:10px;">
+          <div style="font-size:12.5px; color:var(--sub); margin-bottom:6px;">已有激活码？</div>
+          <input style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:13px;" placeholder="输入激活码 XXXX-XXXX-XXXX">
+          <button class="btn ghost" style="margin-top:8px;">激活</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel" style="background:#f5f3ff; border-color:#ddd6fe;">
+        <h3>已订阅 · 托管模型</h3>
+        <div class="row"><span class="k">模型</span><span><b>托管 DeepSeek</b> <span class="pill">已连接</span></span></div>
+        <div class="row"><span class="k">解析 / 讲解额度</span><span>订阅内不限量</span></div>
+        <div class="row"><span class="k">有效期至</span><span>2026-10-19（30 天，不自动续费）</span></div>
+        <div class="row"><span class="k">本设备</span><span>DESKTOP-X <a href="#" style="color:var(--bad); text-decoration:none;">解绑</a></span></div>
+        <div style="font-size:11.5px; color:var(--sub); margin-top:10px;">离线宽限 72 小时：网络异常时按最近一次验证结果放行。Key 只在服务端，设备上仅有你的激活码。</div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>交互说明：</b>试用按「每页会话」扣次（重解析/详解不扣）；激活后内置托管 profile 接管，apiKey 字段复用为 license token（真钥不落设备）；「解绑本设备」入口在订阅卡片；未订阅点订阅功能统一返回 LICENSE_REQUIRED 引导到此页。license-sdk 方案见功能规划「订阅基建」节。</div>
+</section>
+
+</main>
+
+<script>
+  const links = document.querySelectorAll("#nav a");
+  links.forEach(a => a.addEventListener("click", () => {
+    links.forEach(x => x.classList.remove("on")); a.classList.add("on");
+    document.querySelectorAll("section").forEach(s => s.classList.remove("show"));
+    document.querySelector(a.getAttribute("href")).classList.add("show");
+  }));
+  // 悬浮条演示：点击选区词切换显示
+  const anchor = document.getElementById("anchor");
+  if (anchor) anchor.addEventListener("click", e => {
+    const p = document.querySelector("#s2 .wpop");
+    p.style.display = p.style.display === "none" ? "" : "none";
+  });
+</script>
+</body>
+</html>
