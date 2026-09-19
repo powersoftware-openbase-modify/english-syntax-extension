@@ -109,8 +109,9 @@
 .card-dark .seg{border-bottom-width:2.5px;}
 .card-dark .s1{border-color:#60a5fa;} .card-dark .s2{border-color:#f87171;} .card-dark .s3{border-color:#34d399;} .card-dark .s4{border-color:#fbbf24;} .card-dark .s5{border-color:#a78bfa;} .card-dark .s6{border-color:#22d3ee;}
 .card-frost .s1,.card-lite .s1{border-color:var(--subj);} .card-frost .s2,.card-lite .s2{border-color:var(--pred);} .card-frost .s3,.card-lite .s3{border-color:var(--obj);} .card-frost .s4,.card-lite .s4{border-color:var(--adv);} .card-frost .s5,.card-lite .s5{border-color:var(--attr);} .card-frost .s6,.card-lite .s6{border-color:var(--predi);}
-.roles-sm{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;}
-.roles-sm .chip{font-size:10px;}
+.seg{position:relative; display:inline-block;}
+.seg i{position:absolute; left:50%; transform:translateX(-50%); top:-1.3em; font-style:normal; font-size:10px; white-space:nowrap; letter-spacing:2px;}
+.card-dark .en,.card-frost .en,.card-lite .en{padding-top:1.2em;}
 </style>
 </head>
 <body>
@@ -124,7 +125,7 @@
   <a href="#s4">4 · 生词本列表<span class="free"></span></a>
   <a href="#s5">5 · 生词复习卡片 SRS<span class="free"></span></a>
   <a href="#s6">6 · 生词页面高亮回显<span class="free"></span></a>
-  <a href="#s7">7 · 粘贴课文解析（含 PDF）<span class="sub"></span></a>
+  <a href="#s7">7 · 粘贴原文/PDF导入<span class="sub"></span></a>
   <a href="#s8">8 · 句子收藏本 + Anki 导出<span class="free"></span></a>
   <a href="#s9">9 · 整句朗读 + 跟读对照<span class="free"></span></a>
   <a href="#s10">10 · 点读模式开关<span class="free"></span></a>
@@ -138,23 +139,22 @@
 <!-- ============ 1 Popup ============ -->
 <section id="s1" class="show">
   <h2>1 · Popup 改版</h2>
-  <p class="lead">现有 popup 基础上，新增三个入口：粘贴课文解析、生词本、学习统计。保持一主按钮原则——主按钮仍是开始/暂停学习。</p>
+  <p class="lead">现有 popup 基础上，新增三个入口：粘贴原文/PDF导入、生词本、学习统计。保持一主按钮原则——主按钮仍是开始/暂停学习。</p>
   <div class="popup">
     <div class="head"><b>英语拆解宝</b><span>⚙︎</span></div>
     <div class="body">
       <button class="btn main">▶ 开始学习本页</button>
       <div style="margin-top:10px;">
         <div class="row"><span class="k">本页进度</span><span>已解析 18 / 24 句</span></div>
-        <div class="row"><span class="k">模型</span><span>DeepSeek·官方 <span class="pill">已连接</span></span></div>
       </div>
       <div style="margin-top:12px; display:grid; gap:8px;">
-        <button class="btn ghost">📋 粘贴课文解析 <span class="pill sub">订阅</span></button>
+        <button class="btn ghost">📋 粘贴原文/PDF导入 <span class="pill sub">订阅</span></button>
         <button class="btn ghost">📖 生词本 <span class="pill free">12 词</span></button>
         <button class="btn ghost">📈 学习统计 <span class="pill free">连续 5 天 🔥</span></button>
       </div>
     </div>
   </div>
-  <div class="note"><b>交互说明：</b>三个入口按钮等宽竖排（拇指/视线动线从上到下）；生词本按钮带实时计数；统计按钮带连续天数钩子。开始学习后主按钮变为「⏸ 暂停学习」，进度行实时刷新。</div>
+  <div class="note"><b>交互说明：</b>三个入口按钮等宽竖排（拇指/视线动线从上到下）；生词本按钮带实时计数；统计按钮带连续天数钩子。开始学习后主按钮变为「⏸ 暂停学习」，进度行实时刷新。<b>「粘贴原文/PDF导入」仅是入口</b>：点击后打开独立工作台页（见第 7 屏），不在 popup 内解析——popup 失焦即关闭（切窗口复制课文/拖 PDF 必断），且宽度不够三行卡片。</div>
 </section>
 
 <!-- ============ 2 双击取词 ============ -->
@@ -271,14 +271,14 @@
   <div class="note"><b>交互说明：</b>MutationObserver 轻量监听（避开编辑框），命中原形或常见词形变化即加虚线下划线；**点击**高亮词 → 弹出与屏 2 同款悬浮条（复习入口）；与自家卡片/悬浮条互不误伤（composedPath 排除扩展 UI）；不改变页面布局，性能代价近似无感。</div>
 </section>
 
-<!-- ============ 7 粘贴课文解析 ============ -->
+<!-- ============ 7 粘贴原文/PDF导入 ============ -->
 <section id="s7">
-  <h2>7 · 粘贴课文解析（含 PDF 拖入） <span class="pill sub">订阅</span></h2>
-  <p class="lead">为智慧教育平台电子课本、老师发的 PDF/文档提供入口：粘贴文本或拖入本地 PDF，走现有解析链路，缓存与网页解析互通。</p>
+  <h2>7 · 粘贴原文/PDF导入 <span class="pill sub">订阅</span></h2>
+  <p class="lead">popup「粘贴原文/PDF导入」按钮打开的本页（独立 tab，不是 popup 本体）：粘贴文本或拖入本地 PDF，走现有解析链路，缓存与网页解析互通。</p>
   <div class="two">
     <div>
       <div class="panel">
-        <h3>粘贴课文解析</h3>
+        <h3>粘贴原文/PDF导入</h3>
         <div class="drop">📄 拖入 PDF 文件到此处，或点击选择<br><span style="color:var(--sub);">自动提取文字层填入下方（单栏文档效果最佳）</span></div>
         <textarea class="ta">When the fire alarm rang, everyone left the building quickly.
 Doctors said it was not urgent, but families still worried all night.</textarea>
@@ -401,6 +401,74 @@ Doctors said it was not urgent, but families still worried all night.</textarea>
     </div>
   </div>
   <div class="note"><b>交互说明：</b>试用按「每页会话」扣次（重解析/详解不扣）；激活后内置托管 profile 接管，apiKey 字段复用为 license token（真钥不落设备）；「解绑本设备」入口在订阅卡片；未订阅点订阅功能统一返回 LICENSE_REQUIRED 引导到此页。license-sdk 方案见功能规划「订阅基建」节。</div>
+</section>
+
+<!-- ============ 13 渲染样式优化 ============ -->
+<section id="s13">
+  <h2>13 · 渲染样式优化（深色 / 彩色 / 浅色 三场景对比）</h2>
+  <p class="lead">当前卡片是就地替换、裸文本输出——在深色 hero、亮绿色块、白底 Wikipedia 三种背景上对比度/字号/呼吸感全失控。优化方向：容器化 + 明暗自适应 + 字号归一。</p>
+
+  <div class="scene dark">
+    <h4><em>现状</em> 深色 hero 页（spring.io/why-spring）</h4>
+    <div class="legacy">
+      <p class="big">Spring <span class="u" style="color:#60a5fa">makes</span> <span class="u" style="color:#f87171">programming</span> <span class="u" style="color:#34d399">Java</span></p>
+      <span class="tr">使 Java 编程更快、更简单、更安全</span>
+    </div>
+    <div class="note" style="color:#fca5a5; margin-top:10px;"><b>失控点</b>：译文继承页面白色 → 在深底上还行；但「使」字颜色被页面继承，成分下划线与深底对比随机；字号 30px 原文 vs 13px 译文，翻倍失衡。</div>
+  </div>
+
+  <div class="scene green">
+    <h4><em>现状</em> 亮绿色块页（Spring 绿色背景）</h4>
+    <div class="legacy">
+      <p>We <span class="u" style="color:#60a5fa">use</span> a lot of the tools <span class="u" style="color:#f87171">that</span> come with the Spring framework</p>
+      <span class="tr">我们使用很多工具，随 Spring 框架一起提供的</span>
+    </div>
+    <div class="note" style="color:#fde68a; margin-top:10px;"><b>失控点</b>：白字译文 + 灰色下划线在绿色背景上几乎不可读；成分色条被绿底吞没。</div>
+  </div>
+
+  <div class="scene light">
+    <h4><em>现状</em> 白色 Wikipedia 页</h4>
+    <div class="legacy" style="color:#202122;">
+      <p>The <span class="u" style="color:#3b5998">population</span> <span class="u" style="color:#999">was</span> 48,604 <span class="u" style="color:#999">at</span> the 2021 census.</p>
+      <span class="tr">人口是在 2021 年人口普查时</span>
+    </div>
+    <div class="note" style="color:#6b7280; margin-top:10px;"><b>失控点</b>：白底上勉强可读，但句子间无卡片边界、散装文本无呼吸感；灰色译文与正文混在一起。</div>
+  </div>
+
+  <div class="two">
+    <div>
+      <h4><em class="ok">优化后</em> 深色 hero 页</h4>
+      <div class="card-dark">
+        <p class="en">Spring <span class="seg s1" style="border-bottom:2.5px solid #60a5fa"><i style="color:#60a5fa">主语</i>makes</span> <span class="seg s2" style="border-bottom:2.5px solid #f87171"><i style="color:#f87171">谓语</i>programming</span> <span class="seg s3" style="border-bottom:2.5px solid #34d399"><i style="color:#34d399">宾语</i>Java</span></p>
+        <p class="zh">Spring 使 Java 编程更快、更简单、更安全</p>
+      </div>
+      <div class="note" style="margin-top:10px;"><b>修复</b>：卡片容器 + 半透明深色底 + 毛玻璃；译文 14px 与原文 15px 字号归一；成分色条在暗底上反色（蓝 #60a5fa / 红 #f87171 / 绿 #34d399）。</div>
+    </div>
+    <div>
+      <h4><em class="ok">优化后</em> 亮绿色块页</h4>
+      <div class="card-frost">
+        <p class="en">We <span class="seg s1" style="border-bottom:2.5px solid #2563eb"><i style="color:#2563eb">主语</i>use</span> a lot of the tools <span class="seg s2" style="border-bottom:2.5px solid #dc2626"><i style="color:#dc2626">定语从句</i>that come with the Spring framework</span></p>
+        <p class="zh">我们使用很多工具，随 Spring 框架一起提供的</p>
+      </div>
+      <div class="note" style="margin-top:10px;"><b>修复</b>：毛玻璃白底 + 半透明白边；译文 13px 深灰 #374151 保证 ≥4.5:1 对比度；成分色条在浅底上保留饱和色。</div>
+    </div>
+    <div>
+      <h4><em class="ok">优化后</em> 白色 Wikipedia 页</h4>
+      <div class="card-lite">
+        <p class="en">The <span class="seg s1" style="border-bottom:2.5px solid #2563eb"><i style="color:#2563eb">主语</i>population</span> <span class="seg s2" style="border-bottom:2.5px solid #dc2626"><i style="color:#dc2626">谓语</i>was</span> 48,604 <span class="seg s3" style="border-bottom:2.5px solid #d97706"><i style="color:#d97706">状语</i>at</span> the 2021 census.</p>
+        <p class="zh">人口是在 2021 年人口普查时</p>
+      </div>
+      <div class="note" style="margin-top:10px;"><b>修复</b>：白底卡片 + 细灰边框 + 微阴影；句子间有明确视觉边界；译文颜色与正文分离（#374151 vs #202122）。</div>
+    </div>
+  </div>
+
+  <div class="note"><b>设计原则</b>：
+    ① <b>容器化</b>——每个解析结果包裹在独立卡片（.card-dark / .card-frost / .card-lite），不再就地替换原文；
+    ② <b>明暗自适应</b>——SW 根据页面背景亮度（取段落容器 computed background 亮度均值）选卡片类型：dark（#111827 底）、frost（毛玻璃白底）、lite（白底细边框）；
+    ③ <b>字号归一</b>——原文 15px、译文 13-14px，无论页面继承多大字号都强制归一；
+    ④ <b>对比度 ≥4.5:1</b>——WCAG AA 最低标准，成分色条在暗底反色、在浅底饱和；
+    ⑤ <b>呼吸感</b>——卡片间距 18px、内边距 12-16px、圆角 10-12px，段落节奏清晰；
+    ⑥ <b>不破坏原文结构</b>——卡片是替换原文段落（BlockReplacement），原文还原时 class 属性按原样保留，不留空 class；⑦ <b>角色标签居中悬于成分上方</b>——主语/谓语/宾语等小字标签逐个居中悬在对应成分正上方，颜色与该成分下划线一致（对齐真实卡片样式），不做图例色块列表。</div>
 </section>
 
 </main>

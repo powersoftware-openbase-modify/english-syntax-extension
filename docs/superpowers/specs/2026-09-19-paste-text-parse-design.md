@@ -1,4 +1,4 @@
-# 粘贴课文解析 设计
+# 粘贴原文/PDF导入 设计
 
 日期：2026-09-19
 
@@ -12,7 +12,7 @@
 
 | 问题 | 决策 |
 | --- | --- |
-| 入口位置 | popup 新增「粘贴课文解析」按钮，打开独立扩展页 `src/paste/paste.html`（popup 空间小且一关 JS 上下文即丢，长课文解析不能放 popup 里） |
+| 入口位置 | popup 新增「粘贴原文/PDF导入」按钮，打开独立扩展页 `src/paste/paste.html`（popup 空间小且一关 JS 上下文即丢，长课文解析不能放 popup 里） |
 | documentId | 粘贴页自造 `paste-<随机段>`；协议 `PageRequestBase(tabId+documentId)` 语义不变，trustedExtensionUi 已有 popup 先例 |
 | 分句 | 粘贴文本按空行分段，每段走 `segmenter.ts` 的 `segmentBlock`，产 `SentenceInput`（与 content 同一套双端确定性分句） |
 | 分批 | 按 `MAX_SENTENCES_PER_REQUEST`(6) 切批逐批发 `ANALYZE_CORE`；并发与优先级由 request-scheduler 照常接管 |
@@ -25,7 +25,7 @@
 ## 1. 页面与入口
 
 - 新增 `src/paste/paste.html` + `paste.ts` + `paste.css`，注册进 `vite.config.ts` 的多页构建与 `manifest.json`（无需额外权限——扩展页发 runtime 消息天然可用）。
-- `src/popup/popup.ts` 加入口按钮（`chrome.runtime.getURL("src/paste/paste.html")` 新标签打开），文案「粘贴课文解析」。
+- `src/popup/popup.ts` 加入口按钮（`chrome.runtime.getURL("src/paste/paste.html")` 新标签打开），文案「粘贴原文/PDF导入」。
 - 页面结构：大 textarea（粘贴区）＋「开始解析」按钮＋结果区（逐句卡片列表）＋顶部统计（x/y 句完成、失败数）。
 
 ## 2. 数据流
