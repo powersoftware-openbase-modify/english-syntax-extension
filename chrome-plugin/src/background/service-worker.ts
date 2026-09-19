@@ -30,6 +30,21 @@ const CONTEXT_BLOCK_MENU_ID = "syntax-parse-context-block";
 const CONTENT_SCRIPT_FILE = "content-script.js";
 const CONTEXT_INSTRUCTION = "请先启动学习模式，或选中文字后解析";
 const HOVERED_BLOCK_COMMAND = "parse-hovered-block";
+// 不可注入的页面（chrome:// 等）上显式手势原本零反馈。用 action 徽标闪「×」两秒补上，
+// 不加协议消息、不动 content。
+const BADGE_FLASH_MS = 2000;
+
+function flashBadgeError(action: typeof chrome.action | undefined, tabId: number): void {
+  if (action?.setBadgeText === undefined) return;
+  // Promise.resolve 包一层：mock 环境里这些 API 可能不返回 Promise。
+  void Promise.resolve(action.setBadgeText({ tabId, text: "×" })).catch(() => {});
+  void Promise.resolve(action.setBadgeBackgroundColor({ color: "#c5221f", tabId })).catch(
+    () => {},
+  );
+  setTimeout(() => {
+    void Promise.resolve(action.setBadgeText({ tabId, text: "" })).catch(() => {});
+  }, BADGE_FLASH_MS);
+}
 
 interface ConfigPort {
   getProfile(profileId: string): Promise<ModelProfile | undefined>;
@@ -900,7 +915,10 @@ export function registerServiceWorker(
         type: "START_SESSION",
         ...(prefetchDetail ? { prefetchDetail: true } : {}),
       });
-    })();
+    })().catch(() => {
+      // 与快捷键同款：不可注入页面上点击图标也没有任何反馈。
+      flashBadgeError(chromeApi.action, tabId);
+    });
   });
 
   chromeApi.commands?.onCommand.addListener((command, tab) => {
@@ -919,7 +937,8 @@ export function registerServiceWorker(
       persistActiveTabs();
       await sendPageCommand(tabId, documentId, { type: "PARSE_HOVERED_BLOCK" });
     })().catch(() => {
-      // chrome:// 等不可注入页面：静默忽略。
+      // chrome:// 等不可注入页面进不去，徽标闪「×」代替内容反馈。
+      flashBadgeError(chromeApi.action, tabId);
     });
   });
 
@@ -943,7 +962,10 @@ export function registerServiceWorker(
             selectionText: info.selectionText,
           });
         }
-      })();
+      })().catch(() => {
+        // 选区为空或不可注入页面同样静默，徽标补上反馈。
+        flashBadgeError(chromeApi.action, tabId);
+      });
       return;
     }
     if (info.menuItemId === CONTEXT_BLOCK_MENU_ID) {
